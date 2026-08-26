@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1020"/>
+      <stop offset="0.55" stop-color="#141b34"/>
+      <stop offset="1" stop-color="#1d2b52"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#5b8cff"/>
+      <stop offset="1" stop-color="#8f6bff"/>
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <circle cx="1620" cy="180" r="240" fill="url(#accent)" opacity="0.12"/>
+  <circle cx="240" cy="920" r="300" fill="url(#accent)" opacity="0.08"/>
+  <text x="96" y="500" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="120" font-weight="700" fill="#eef2ff">Veragensia</text>
+  <text x="100" y="560" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="34" fill="#9fb0e8">the realm of the true agent — Focusa Agent OS</text>
+  <rect x="100" y="600" width="420" height="6" rx="3" fill="url(#accent)"/>
+  <text x="100" y="980" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="24" fill="#6f7fb8">build-in-public · os.focusa.dev</text>
+</svg>
