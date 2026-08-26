@@ -18,7 +18,27 @@ if [ -f "$THEME/veragensia-wallpaper.svg" ]; then
   mkdir -p "$ABC_HOME/.config" 2>/dev/null || true
 fi
 
-# 2) Color scheme — install + select (applies to new windows/apps; safe, no restart).
+# 1b) Living wallpaper — slideshow of animated Veragensia frames (org.kde.slideshow).
+LIVE_SRC=$THEME/live/frames
+LIVE_DST=/config/veragens-live
+if [ -d "$LIVE_SRC" ]; then
+  mkdir -p "$LIVE_DST" 2>/dev/null || true
+  cp -f "$LIVE_SRC"/*.png "$LIVE_DST"/ 2>/dev/null || true
+  chown -R 1001:1001 "$LIVE_DST" 2>/dev/null || true
+  su -s /bin/bash abc -c 'DISPLAY=:1 qdbus org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript "
+    desktops().forEach(function(d) {
+      d.wallpaperPlugin = \"org.kde.slideshow\";
+      var c = d.currentConfigGroup;
+      c.writeConfig(\"SlidePaths\", \"/config/veragens-live\");
+      c.writeConfig(\"Animation\", \"landscape\");
+      c.writeConfig(\"Interval\", 3000);
+      d.reloadConfig();
+    });
+  "' >/dev/null 2>&1 || true
+  echo "[overlay] living wallpaper slideshow staged ($( ls "$LIVE_SRC"/*.png 2>/dev/null | wc -l) frames)"
+fi
+
+# 2) Color scheme — copy + select (applies to new windows/apps; safe, no rest).
 if [ -f "$THEME/Veragensia.colors" ]; then
   mkdir -p "$ABC_HOME/.local/share/color-schemes" 2>/dev/null || true
   cp "$THEME/Veragensia.colors" "$ABC_HOME/.local/share/color-schemes/Veragensia.colors" 2>/dev/null || true
