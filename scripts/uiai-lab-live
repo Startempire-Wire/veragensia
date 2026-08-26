@@ -1,0 +1,135 @@
+#!/bin/bash
+# uiai-lab-live — reliable, synchronized, ephemeral public share of the GUI lab.
+# ONE lifecycle owner: login-free webtop + workforce-extension chromium + cloudflared
+# connector (stable URL). Mounts the extension PARENT dir so rebuilds (which replace
+# the dist subdir) always resolve fresh. Self-heals; tears all down together when idle.
+set -uo pipefail
+
+NAME=uiai-webtop
+IMG=lscr.io/linuxserver/webtop:ubuntu-kde
+HTTP_PORT=3000
+HTTPS_PORT=3001
+CFG_DIR=/home/wirebot/webtop
+EXT_PARENT_HOST=/home/wirebot/build/focusa/source/apps/workforce-extension
+CFD=/etc/cloudflared/gui-lab.yml
+LAB_URL=https://gui.focusa.dev
+
+IDLE_TEARDOWN_MIN=${IDLE_TEARDOWN_MIN:-15}
+SAFETY_MAX_MIN=${SAFETY_MAX_MIN:-180}
+KEEPER_PIDFILE=/tmp/uiai-lab-keeper.pid
+KEEPER_LOG=/tmp/uiai-lab-keeper.log
+CONN_LOG=/tmp/uiai-lab-connector.log
+LABEXT=/usr/local/bin/lab-ext.sh
+PERSIST_FILE=/tmp/uiai-lab-persistent
+
+is_running(){ docker ps --format '{{.Names}}' | grep -qx "$NAME"; }
+is_persistent(){ [ -f "$PERSIST_FILE" ]; }
+
+ensure_container(){
+  if ! is_running; then
+    local free_kb; free_kb=$(df --output=avail -k / | tail -1 | tr -d ' ')
+    if [ "$free_kb" -lt $((8*1024*1024)) ]; then echo "REFUSING start: <8GiB free" >&2; return 1; fi
+    docker run -d --name "$NAME" \
+      -p 127.0.0.1:$HTTP_PORT:3000 -p 127.0.0.1:$HTTPS_PORT:3001 \
+      -e PUID=1001 -e PGID=1001 -e TZ=America/Los_Angeles \
+      -e TITLE="Veragensia — Focusa Agent OS" \
+      -v "$CFG_DIR":/config -v "$EXT_PARENT_HOST":/extroot:ro \
+      --shm-size=2g --restart=no "$IMG" >/dev/null
+    sleep 12
+  fi
+}
+
+chrome_healthy(){ docker exec "$NAME" bash -c 'curl -s http://127.0.0.1:9333/json >/dev/null 2>&1'; }
+
+ensure_chrome(){
+  docker cp "$LABEXT" "$NAME:/tmp/lab-ext.sh" 2>/dev/null
+  if ! chrome_healthy; then
+    docker exec "$NAME" bash /tmp/lab-ext.sh >/tmp/uiai-lab-chrome.log 2>&1
+  fi
+}
+
+connector_up(){ pgrep -f "cloudflared.*gui-lab.yml" >/dev/null 2>&1; }
+
+ensure_connector(){
+  if ! connector_up; then
+    setsid nohup /usr/local/bin/cloudflared --no-autoupdate tunnel --config "$CFD" run > "$CONN_LOG" 2>&1 < /dev/null &
+    disown 2>/dev/null || true
+    sleep 3
+  fi
+}
+
+viewers(){ ss -tnH "sport = :$HTTP_PORT or sport = :$HTTPS_PORT" 2>/dev/null | wc -l; }
+
+teardown(){
+  echo "$(date -u +%FT%TZ) teardown: $1" >> "$KEEPER_LOG"
+  docker rm -f "$NAME" >/dev/null 2>&1 || true
+  pkill -f "cloudflared.*gui-lab.yml" >/dev/null 2>&1 || true
+  rm -f "$KEEPER_PIDFILE"
+}
+
+keeper(){
+  local born now last_active idle v
+  born=$(date +%s); last_active=$born
+  echo "$(date -u +%FT%TZ) keeper started (idle_teardown=${IDLE_TEARDOWN_MIN}m safety_max=${SAFETY_MAX_MIN}m)" >> "$KEEPER_LOG"
+  while true; do
+    sleep 30
+    now=$(date +%s)
+    is_running || ensure_container
+    if is_running; then chrome_healthy || ensure_chrome; fi
+    connector_up || ensure_connector
+    v=$(viewers); [ "$v" -gt 0 ] && last_active=$now
+    idle=$(( (now - last_active) / 60 ))
+    if ! is_persistent; then
+      if [ $(( (now - born)/60 )) -ge "$SAFETY_MAX_MIN" ]; then teardown "safety max ${SAFETY_MAX_MIN}m"; exit 0; fi
+      if [ "$idle" -ge "$IDLE_TEARDOWN_MIN" ]; then teardown "idle ${idle}m"; exit 0; fi
+    fi
+  done
+}
+
+keeper_alive(){ [ -f "$KEEPER_PIDFILE" ] && kill -0 "$(cat "$KEEPER_PIDFILE" 2>/dev/null)" 2>/dev/null; }
+
+case "${1:-up}" in
+  up)
+    ensure_container || exit 1
+    ensure_chrome
+    ensure_connector
+    if ! keeper_alive; then
+      setsid nohup "$0" keeper >> "$KEEPER_LOG" 2>&1 < /dev/null &
+      echo $! > "$KEEPER_PIDFILE"
+      disown 2>/dev/null || true
+    fi
+    ok=""
+    for i in $(seq 1 30); do
+      code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 4 "$LAB_URL/" 2>/dev/null)
+      [ "$code" = "200" ] && { ok=1; break; }
+      sleep 2
+    done
+    echo "LAB_URL=$LAB_URL"
+    if [ -n "$ok" ]; then echo "PUBLIC_HTTP=200"; else echo "PUBLIC_HTTP=pending"; fi
+    echo "EXT_ID=$(docker exec "$NAME" cat /tmp/uiai-ext-id 2>/dev/null || echo unknown)"
+    ;;
+  keeper) keeper ;;
+  reload-chrome)
+    ensure_container || exit 1
+    docker exec "$NAME" bash -c 'pkill -f chromium 2>/dev/null' 2>/dev/null
+    sleep 2
+    ensure_chrome
+    echo "EXT_ID=$(docker exec "$NAME" cat /tmp/uiai-ext-id 2>/dev/null || echo unknown)"
+    ;;
+  persist)
+    case "${2:-}" in
+      on)  touch "$PERSIST_FILE"; echo "persistent: on (no idle teardown)" ;;
+      off) rm -f "$PERSIST_FILE"; echo "persistent: off (idle teardown active)" ;;
+      *)   is_persistent && echo "persistent: on" || echo "persistent: off" ;;
+    esac ;;
+  stop) teardown "manual stop"; echo stopped ;;
+  status)
+    echo "container: $(is_running && echo running || echo stopped)"
+    echo "connector: $(connector_up && echo running || echo stopped)"
+    echo "keeper:    $(keeper_alive && echo "alive pid=$(cat "$KEEPER_PIDFILE")" || echo absent)"
+    echo "chrome:    $(is_running && chrome_healthy && echo healthy || echo down)"
+    echo "viewers:   $(viewers)"
+    echo "ext_id:    $(docker exec "$NAME" cat /tmp/uiai-ext-id 2>/dev/null || echo unknown)"
+    ;;
+  *) echo "usage: uiai-lab-live {up|stop|status|reload-chrome}"; exit 2 ;;
+esac

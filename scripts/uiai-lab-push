@@ -1,0 +1,10 @@
+#!/bin/bash
+# uiai-lab-push — build the workforce extension (routes to OVH dist) and reload the
+# lab browser so the change is visible at https://gui.focusa.dev.
+set -e
+cd /home/wirebot/focusa-piext-sync/apps/workforce-extension
+echo "== building =="
+npm run build 2>&1 | tail -1
+echo "== reloading lab browser =="
+ssh ovh-ts 'uiai-lab-live reload-chrome' 2>&1 | grep -E "EXT_ID" || true
+echo "LAB: https://gui.focusa.dev"
