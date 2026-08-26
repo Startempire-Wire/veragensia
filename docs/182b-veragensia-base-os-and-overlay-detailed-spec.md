@@ -37,6 +37,15 @@ the Selkies/KasmVNC streaming stack, and a place to mount the overlay + extensio
 
 ---
 
+### A.5 Target platforms
+- **Cloud (now):** OVH webtop container → os.focusa.dev (Agent Cloud Computer).
+- **Chromebook — Crostini path (easy):** Veragensia userland (daemon + browser + overlay) runs in the
+  ChromeOS Linux container; ChromeOS stays the secure verified-boot base. No firmware hack.
+- **Chromebook — native path (dev mode + custom firmware):** Intel boards (MrChromebox) boot real Arch →
+  Omarchy → Veragensia overlay = true Veragensia Chromebook. ARM/MediaTek harder.
+- **Why Chromebooks:** cheap, secure, verified-boot, long-battery endpoints; pair as thin clients to cloud
+  Agent Cloud Computers, or run local agents in Crostini and sync to the control plane (115).
+
 ## Part B — Overlay (the Focusa layer)
 
 ### B.1 Definition
