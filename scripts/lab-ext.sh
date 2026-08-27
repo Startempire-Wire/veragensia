@@ -12,7 +12,7 @@ done
 pkill -f "chromium" 2>/dev/null
 sleep 2
 rm -f "$PDIR/SingletonLock" "$PDIR/SingletonCookie" "$PDIR/SingletonSocket" 2>/dev/null
-su -s /bin/bash abc -c "DISPLAY=:1 nohup chromium --no-sandbox --user-data-dir=$PDIR --load-extension=$EXT --disable-extensions-except=$EXT --remote-debugging-port=9333 --remote-debugging-address=127.0.0.1 --no-first-run --no-default-browser-check --start-maximized about:blank > /tmp/chrome.err 2>&1 &"
+su -s /bin/bash abc -c "DISPLAY=:1 nohup chromium --no-sandbox --user-data-dir=$PDIR --load-extension=$EXT --disable-extensions-except=$EXT --remote-debugging-port=9333 --remote-debugging-address=127.0.0.1 --no-first-run --no-default-browser-check --window-size=1280,760 --window-position=150,90 about:blank > /tmp/chrome.err 2>&1 &"
 sleep 9
 EXT_ID=$(curl -s http://127.0.0.1:9333/json 2>/dev/null | python3 -c 'import sys,json
 try:
