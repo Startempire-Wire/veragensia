@@ -118,20 +118,24 @@ KH `uiai-lab-push` connects as `wirebot`. It cannot execute arbitrary root comma
 
 Only `sync-activate` and `status` are accepted by the wrapper. Sudoers grants only that wrapper.
 
-## 8. Emergency private OAuth procedure
+## 8. Private provider/OAuth procedure
 
-Preferred: use a private ephemeral browser context/node. If unavailable and release-critical:
+Try API-native recovery first. Example: an exact GitHub push webhook can be redelivered through the authenticated repository-hooks API to retrigger AppVeyor without a browser login or a new commit.
 
-1. Stop the public webtop or otherwise remove public access.
-2. Use the persistent Chrome through authenticated root SSH + Docker-local CDP.
-3. Inject vault values through stdin-only pipes; never command arguments, files, logs, snapshots, or model-visible output.
-4. Complete provider action and capture value-free receipts.
-5. Stop Chromium/container.
-6. Remove cookies, local/session storage, IndexedDB, login/web data, and history.
-7. Restart fresh browser and verify sensitive-origin cookie count is zero.
-8. Restore extension/demo health and public HTTP 200.
+When authenticated provider UI is still required, use a **separate ephemeral profile**:
 
-The proven 2026-08-28 flow used `rbw` password + one-use GitHub recovery code to authorize AppVeyor, cancelled superseded builds, then performed the scrub above.
+1. Keep the public demo on its normal CDP/profile (currently `:9333`).
+2. Launch a headless Chromium with a disposable profile and separate loopback CDP port (proven: `:9444`).
+3. Inject vault values through stdin-only pipes; never command arguments, persistent files, logs, snapshots, or model-visible output.
+4. Complete OAuth/provider action and capture value-free receipts.
+5. Terminate only the private browser.
+6. Destroy its profile and helper scripts.
+7. Prove its CDP port closed and profile absent.
+8. Prove the public profile has zero sensitive-origin cookies and full extension/daemon/public-HTTP health.
+
+If separate context creation is unavailable, stop public access before using its profile, then scrub cookies, local/session storage, IndexedDB, login/web data, and history before reopening.
+
+The proven 2026-08-28 flow used GitHub webhook redelivery to create exact-main AppVeyor build 113, then `rbw` password + one-use GitHub recovery code in an isolated profile to cancel superseded PR builds. The private port/profile were destroyed; public sensitive cookie count remained zero.
 
 ## 9. Security improvements still required
 
