@@ -3,11 +3,22 @@
 # Robust: mounts parent so /extroot/dist is always fresh; CDP discovers ID.
 PDIR=/config/.config/chromium-uiai
 EXT=/extroot/dist
+# Bind to the current desktop session after container restart. su(1) alone
+# does not recover the per-session DBus/XDG environment, causing Chromium to
+# exit before CDP becomes available.
+DESKTOP_PID=$(pgrep -u abc -x plasmashell | head -1)
+if [ -z "$DESKTOP_PID" ]; then echo "plasmashell session unavailable" >&2; exit 1; fi
+DBUS_SESSION_BUS_ADDRESS=$(su -s /bin/bash abc -c "tr '\0' '\n' </proc/$DESKTOP_PID/environ | sed -n 's/^DBUS_SESSION_BUS_ADDRESS=//p'")
+export DBUS_SESSION_BUS_ADDRESS
+export XDG_RUNTIME_DIR=/config/.XDG
+[ -f "$EXT/manifest.json" ] || { echo "extension manifest missing: $EXT/manifest.json" >&2; exit 1; }
 # wait for X display (best-effort)
 for i in $(seq 1 40); do
   if su -s /bin/bash abc -c "DISPLAY=:1 xset q >/dev/null 2>&1"; then break; fi
   sleep 1
 done
+# apply Veragensia overlay branding (git-backed repo at /veragensia)
+[ -f /veragensia/overlay/install.sh ] && bash /veragensia/overlay/install.sh >/tmp/overlay.log 2>&1 || true
 # kill default autostarted chromium + any prior instance
 pkill -f "chromium" 2>/dev/null
 sleep 2
@@ -28,4 +39,5 @@ if [ -n "$EXT_ID" ]; then
 else
   echo "EXT_ID=NOTFOUND"
   tail -3 /tmp/chrome.err 2>/dev/null
+  exit 1
 fi

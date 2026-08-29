@@ -1,10 +1,57 @@
-#!/bin/bash
-# uiai-lab-push — build the workforce extension (routes to OVH dist) and reload the
-# lab browser so the change is visible at https://gui.focusa.dev.
-set -e
-cd /home/wirebot/focusa-piext-sync/apps/workforce-extension
-echo "== building =="
-npm run build 2>&1 | tail -1
-echo "== reloading lab browser =="
-ssh ovh-ts 'uiai-lab-live reload-chrome' 2>&1 | grep -E "EXT_ID" || true
-echo "LAB: https://gui.focusa.dev"
+#!/usr/bin/env bash
+# Build and atomically deploy the public Veragensia/Focusa Workforce extension.
+set -euo pipefail
+
+SOURCE=/home/wirebot/focusa-piext-sync/apps/workforce-extension
+REMOTE=focusa-build-ovh
+STABLE=uiai-lab/workforce-extension
+NODE=/opt/node-v22.22.3-linux-x64/bin/node
+STAGE="dist.stage.$$"
+
+cd "$SOURCE"
+echo "== building locally =="
+"$NODE" scripts/build.mjs
+
+echo "== staging stable OVH extension =="
+ssh "$REMOTE" "install -d -m 775 '$STABLE'; find '$STABLE/$STAGE' -mindepth 1 -delete 2>/dev/null || true; rmdir '$STABLE/$STAGE' 2>/dev/null || true; mkdir '$STABLE/$STAGE'"
+rsync -az --delete dist/ "$REMOTE:$STABLE/$STAGE/"
+local_manifest=$(sha256sum dist/manifest.json | awk '{print $1}')
+remote_manifest=$(ssh "$REMOTE" "sha256sum '$STABLE/$STAGE/manifest.json' | cut -d' ' -f1")
+[[ "$local_manifest" == "$remote_manifest" ]] || { echo "manifest checksum mismatch" >&2; exit 1; }
+
+ssh "$REMOTE" "bash -s -- '$STABLE' '$STAGE'" <<'REMOTE'
+set -euo pipefail
+root=$1
+stage=$2
+cd "$root"
+if [[ -d dist.rollback ]]; then
+  find dist.rollback -mindepth 1 -delete
+  rmdir dist.rollback
+fi
+[[ ! -d dist ]] || mv dist dist.rollback
+mv "$stage" dist
+test -f dist/manifest.json
+REMOTE
+
+echo "== activating and verifying public lab =="
+if ! status=$(ssh "$REMOTE" 'sudo -n /usr/local/sbin/uiai-lab-remote-control sync-activate'); then
+  echo "remote activation failed; restoring prior extension" >&2
+  ssh "$REMOTE" "bash -s -- '$STABLE'" <<'REMOTE'
+set -euo pipefail
+cd "$1"
+if [[ -d dist.rollback ]]; then
+  find dist -mindepth 1 -delete 2>/dev/null || true
+  rmdir dist 2>/dev/null || true
+  mv dist.rollback dist
+fi
+REMOTE
+  exit 1
+fi
+printf '%s\n' "$status"
+grep -q 'chrome:    healthy' <<<"$status"
+grep -q 'extension: ready' <<<"$status"
+grep -q 'owner_drift: none' <<<"$status"
+grep -q 'ext_id:    ohfbbkpacpcapicpgplnnmifmlnmjggj' <<<"$status"
+code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 15 https://os.focusa.dev/)
+[[ "$code" == 200 ]] || { echo "public lab health failed: HTTP $code" >&2; exit 1; }
+echo "LAB: https://os.focusa.dev (HTTP 200, stable extension synchronized)"

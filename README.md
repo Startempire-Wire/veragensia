@@ -38,15 +38,19 @@ Focusa Cloud (private spec 115) — *cloud coordinates, node decides, receipts p
 
 ## This repo
 - `overlay/` — the Focusa layer installed **on top of** stock Omarchy (theme, services, GUI).
-- `scripts/` — lab lifecycle + iterate tooling (`uiai-lab-live`, `uiai-lab-push`, `lab-ext.sh`, screenshot helper).
-- `docs/182-…` — the product spec (mirror of the public Focusa spec 182).
+- `scripts/` — lab lifecycle, atomic deployment, browser launcher, narrow remote control, and screenshot tooling.
+- `ops/sudoers/` — least-privilege deployment templates for the live lab.
+- `docs/182-…` — product/base/fleet specs (mirrors of public Focusa spec 182).
+- `docs/183-veragensia-public-agent-computer-security-and-lifecycle.md` — constant-availability, stable-sync, self-healing, and public/private browser trust contract.
 
 ## Run the lab (proving ground)
 ```bash
 scripts/uiai-lab-live up            # container + extension chromium + tunnel + keeper
 scripts/uiai-lab-live persist on    # always-on demo (off = idle teardown)
-scripts/uiai-lab-push               # build + reload → change appears at os.focusa.dev
+scripts/uiai-lab-push               # atomic stable deploy + reload + end-to-end verification
 ```
+
+The public demo is a `public_demo` trust class: operator/provider credentials must use a private ephemeral browser context and must never persist in the public profile. See docs/183.
 
 ## Status
 Build-in-public. Phase 0 (live webtop demo) operational at os.focusa.dev. Phases 1–4 per docs/182.

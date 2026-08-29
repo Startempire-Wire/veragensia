@@ -1,0 +1,2 @@
+# Allow the project owner to run only the audited Veragensia lab lifecycle wrapper.
+wirebot ALL=(root) NOPASSWD: /usr/local/sbin/uiai-lab-remote-control

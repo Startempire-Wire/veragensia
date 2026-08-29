@@ -1,0 +1,14 @@
+#!/bin/bash
+# Narrow root boundary used by uiai-lab-push over SSH.
+set -euo pipefail
+case "${1:-}" in
+  sync-activate)
+    /usr/local/bin/uiai-lab-live reload-chrome
+    /usr/local/bin/uiai-lab-live up
+    /usr/local/bin/uiai-lab-live status
+    ;;
+  status)
+    /usr/local/bin/uiai-lab-live status
+    ;;
+  *) echo "usage: uiai-lab-remote-control {sync-activate|status}" >&2; exit 2 ;;
+esac

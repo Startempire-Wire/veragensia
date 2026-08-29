@@ -10,9 +10,11 @@ IMG=lscr.io/linuxserver/webtop:ubuntu-kde
 HTTP_PORT=3000
 HTTPS_PORT=3001
 CFG_DIR=/home/wirebot/webtop
-EXT_PARENT_HOST=/home/wirebot/build/focusa/source/apps/workforce-extension
+EXT_PARENT_HOST=/home/wirebot/uiai-lab/workforce-extension
+DEMO_DATA_HOST=/home/wirebot/uiai-lab/veragensia-demo
+DEMO_DAEMON_HOST=/usr/local/bin/focusa-daemon
 CFD=/etc/cloudflared/gui-lab.yml
-LAB_URL=https://gui.focusa.dev
+LAB_URL=https://os.focusa.dev
 
 IDLE_TEARDOWN_MIN=${IDLE_TEARDOWN_MIN:-15}
 SAFETY_MAX_MIN=${SAFETY_MAX_MIN:-180}
@@ -25,7 +27,26 @@ PERSIST_FILE=/tmp/uiai-lab-persistent
 is_running(){ docker ps --format '{{.Names}}' | grep -qx "$NAME"; }
 is_persistent(){ [ -f "$PERSIST_FILE" ]; }
 
+# Exact-scope permission self-heal: build syncs and root-run maintenance must
+# never leave the mounted extension source unwritable by wirebot.
+repair_extension_mount(){
+  install -d -o wirebot -g wirebot -m 775 "$EXT_PARENT_HOST"
+  local drift
+  drift=$(find "$EXT_PARENT_HOST" -xdev \( ! -user wirebot -o ! -group wirebot \) -print -quit 2>/dev/null)
+  if [ -n "$drift" ]; then
+    chown -R wirebot:wirebot "$EXT_PARENT_HOST"
+    echo "$(date -u +%FT%TZ) repaired extension mount ownership: $drift" >> "$KEEPER_LOG"
+  fi
+  install -d -o wirebot -g wirebot -m 775 "$DEMO_DATA_HOST"
+  drift=$(find "$DEMO_DATA_HOST" -xdev \( ! -user wirebot -o ! -group wirebot \) -print -quit 2>/dev/null)
+  if [ -n "$drift" ]; then
+    chown -R wirebot:wirebot "$DEMO_DATA_HOST"
+    echo "$(date -u +%FT%TZ) repaired demo data ownership: $drift" >> "$KEEPER_LOG"
+  fi
+}
+
 ensure_container(){
+  repair_extension_mount
   if ! is_running; then
     local free_kb; free_kb=$(df --output=avail -k / | tail -1 | tr -d ' ')
     if [ "$free_kb" -lt $((8*1024*1024)) ]; then echo "REFUSING start: <8GiB free" >&2; return 1; fi
@@ -34,6 +55,8 @@ ensure_container(){
       -e PUID=1001 -e PGID=1001 -e TZ=America/Los_Angeles \
       -e TITLE="Veragensia — Focusa Agent OS" \
       -v "$CFG_DIR":/config -v "$EXT_PARENT_HOST":/extroot:ro \
+      -v "$DEMO_DATA_HOST":/veragensia-demo \
+      -v /home/wirebot/veragensia:/veragensia:ro \
       --shm-size=2g --restart=no "$IMG" >/dev/null
     sleep 12
   fi
@@ -42,9 +65,35 @@ ensure_container(){
 chrome_healthy(){ docker exec "$NAME" bash -c 'curl -s http://127.0.0.1:9333/json >/dev/null 2>&1'; }
 
 ensure_chrome(){
+  repair_extension_mount
+  if [ ! -f "$EXT_PARENT_HOST/dist/manifest.json" ]; then
+    echo "extension build missing: $EXT_PARENT_HOST/dist/manifest.json; run uiai-lab-push" >&2
+    return 1
+  fi
   docker cp "$LABEXT" "$NAME:/tmp/lab-ext.sh" 2>/dev/null
   if ! chrome_healthy; then
     docker exec "$NAME" bash /tmp/lab-ext.sh >/tmp/uiai-lab-chrome.log 2>&1
+  fi
+}
+
+demo_healthy(){ docker exec "$NAME" bash -c 'curl -fsS --max-time 3 http://127.0.0.1:8790/v1/health >/dev/null 2>&1'; }
+
+ensure_demo_daemon(){
+  repair_extension_mount
+  [ -x "$DEMO_DAEMON_HOST" ] || { echo "demo daemon binary missing: $DEMO_DAEMON_HOST" >&2; return 1; }
+  if ! demo_healthy; then
+    docker cp "$DEMO_DAEMON_HOST" "$NAME:/usr/local/bin/focusa-daemon" >/dev/null
+    docker exec "$NAME" chmod 0755 /usr/local/bin/focusa-daemon
+    docker exec -d -u abc \
+      -e HOME=/config \
+      -e FOCUSA_BIND=127.0.0.1:8790 \
+      -e FOCUSA_DATA_DIR=/veragensia-demo/data \
+      -e FOCUSA_TEST_MODE=1 \
+      "$NAME" sh -c 'exec /usr/local/bin/focusa-daemon >>/tmp/veragensia-demo-daemon.log 2>&1'
+    for _ in $(seq 1 20); do demo_healthy && return 0; sleep 1; done
+    echo "demo daemon failed to become healthy" >&2
+    docker exec "$NAME" tail -30 /tmp/veragensia-demo-daemon.log 2>/dev/null || true
+    return 1
   fi
 }
 
@@ -75,7 +124,11 @@ keeper(){
     sleep 30
     now=$(date +%s)
     is_running || ensure_container
-    if is_running; then chrome_healthy || ensure_chrome; fi
+    repair_extension_mount
+    if is_running; then
+      chrome_healthy || ensure_chrome
+      demo_healthy || ensure_demo_daemon
+    fi
     connector_up || ensure_connector
     v=$(viewers); [ "$v" -gt 0 ] && last_active=$now
     idle=$(( (now - last_active) / 60 ))
@@ -92,6 +145,7 @@ case "${1:-up}" in
   up)
     ensure_container || exit 1
     ensure_chrome
+    ensure_demo_daemon
     ensure_connector
     if ! keeper_alive; then
       setsid nohup "$0" keeper >> "$KEEPER_LOG" 2>&1 < /dev/null &
@@ -128,6 +182,10 @@ case "${1:-up}" in
     echo "connector: $(connector_up && echo running || echo stopped)"
     echo "keeper:    $(keeper_alive && echo "alive pid=$(cat "$KEEPER_PIDFILE")" || echo absent)"
     echo "chrome:    $(is_running && chrome_healthy && echo healthy || echo down)"
+    echo "extension: $([ -f "$EXT_PARENT_HOST/dist/manifest.json" ] && echo ready || echo missing)"
+    echo "demo_daemon: $(is_running && demo_healthy && echo healthy || echo down)"
+    drift=$(find "$EXT_PARENT_HOST" -xdev \( ! -user wirebot -o ! -group wirebot \) -print -quit 2>/dev/null)
+    echo "owner_drift: ${drift:-none}"
     echo "viewers:   $(viewers)"
     echo "ext_id:    $(docker exec "$NAME" cat /tmp/uiai-ext-id 2>/dev/null || echo unknown)"
     ;;
