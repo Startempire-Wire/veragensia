@@ -1,6 +1,7 @@
 # 182c — Veragensia Fleet-Scale + Tailnet Mesh Spec
 
 **Status:** DRAFT vision (2026-08-26). Companion to 182 / 182b; control plane = private spec 115.
+**Planning:** capture gaps concisely in repository-local `br`; do not duplicate trackers or turn this draft vision into implementation before the operator and planning agent select the architecture.
 **Vision:** spin up a fleet of Veragensia Agent Cloud Computers with a button in the Focusa UI —
 e.g. ~85 instances × ~20 agents each running autonomous workflows — on the Tailscale mesh
 (free tier = 100 nodes), each instance a tailnet node.

@@ -195,3 +195,9 @@ Sequencing: 0 → 1 → 2 → 3 → 4. Each phase is independently valuable and 
 - **Done primitives** (daemon, worksets, silent sessions, `can()`, approvals, credentials, pairing, work loop, roles, widgets/wall, SSE, audit) are **re-homed**, not rebuilt. The OS is packaging + surfacing.
 - **GUI lab** (`gui.focusa.dev`, `uiai-lab-live`) is the live proving ground for Phases 0–1.
 - **Extension** (174/180) remains a first-class surface and the fastest demo path.
+
+---
+
+## 14. Planning discipline
+
+This document supplies high-level vision and locked product principles, not a requirement to design every future phase immediately. Capture discoveries as concise repository-local `br` items without duplicating GitHub issues. The operator and planning agent decide sequencing, consolidation, and when an architectural choice needs a detailed numbered specification. Open questions remain open until that decision is recorded.

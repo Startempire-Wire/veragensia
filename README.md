@@ -52,6 +52,12 @@ scripts/uiai-lab-push               # atomic stable deploy + reload + end-to-end
 
 The public demo is a `public_demo` trust class: operator/provider credentials must use a private ephemeral browser context and must never persist in the public profile. See docs/183.
 
+## Planning and task tracking
+
+Veragensia uses repository-local beads_rust through **`br` only**. Do not maintain duplicate backlogs in GitHub issues, markdown files, or another tracker. Public GitHub issues may remain as linked external references; `br` owns execution state and dependencies once `.beads/` is initialized.
+
+Capture discoveries concisely first. The operator and planning agent decide which items need research, consolidation, a decision record, or a detailed numbered specification. The vision documents guide that work without prematurely fixing architecture.
+
 ## Status
 Build-in-public. Phase 0 (live webtop demo) operational at os.focusa.dev. Phases 1–4 per docs/182.
 

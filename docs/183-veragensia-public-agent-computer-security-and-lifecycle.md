@@ -1,8 +1,9 @@
 # 183 — Veragensia Public Agent Computer Security and Lifecycle
 
-**Status:** live operational contract  
-**Live surface:** `https://os.focusa.dev`  
+**Status:** live operational contract
+**Live surface:** `https://os.focusa.dev`
 **Related:** specs 182/182b/182c; WPUIAI/uiai-engine#102; Startempire-Wire/veragensia#1
+**Tracking:** repository-local `br` items are canonical once initialized; linked GitHub issues are external references, not duplicate task records.
 
 ## 1. Goal
 

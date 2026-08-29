@@ -3,6 +3,7 @@
 **Status:** DRAFT (2026-08-26). Companion to `182-veragensia-focusa-agent-os-spec.md`.
 **Repo:** Startempire-Wire/veragensia · live proving ground `https://os.focusa.dev`.
 **Convention:** base = upstream-untouched; overlay = the only Focusa mutation surface.
+**Planning:** capture gaps concisely in repository-local `br`; do not duplicate trackers or treat this draft as authority to prematurely settle open architecture.
 
 ---
 
