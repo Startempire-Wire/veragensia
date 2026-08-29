@@ -4,6 +4,8 @@
 > **NEVER automate with a nonrenewable resource. NO recovery code automation—ever, for any provider.** Recovery codes and finite break-glass assets are operator-only and untouchable. Unknown renewability fails closed.
 >
 > **GitHub renewable routes:** existing `gh` CLI/API session → existing private browser session → approved PAT/OAuth token → GitHub App token → SSH/deploy key → device OAuth → UIAI Engine in a private ephemeral Veragensia browser using approved email/password plus renewable email OTP, TOTP, passkey/security key, or normal OAuth consent → provider support/manual operator recovery without recovery codes. One failed route is not exhaustion. Never use public `os.focusa.dev` for credentials.
+>
+> **Mandatory provider-auth preflight:** `bash tests/02-veragensia-nonrenewable-resource-policy-static-test.sh` must pass before any login, OAuth, credential recovery, or provider-auth mutation.
 
 This file governs work in the `Startempire-Wire/veragensia` repository. It applies to human contributors and automated agents from the repository root downward. A more specific `AGENTS.md` may refine rules for a future subtree, but it must not weaken the security, authority, or evidence requirements here.
 

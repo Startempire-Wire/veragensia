@@ -13,6 +13,7 @@ required=(
   "SSH/deploy key"
   "device OAuth"
   "One failed route is not exhaustion"
+  "Mandatory provider-auth preflight"
 )
 
 for file in AGENTS.md docs/183-veragensia-public-agent-computer-security-and-lifecycle.md; do
