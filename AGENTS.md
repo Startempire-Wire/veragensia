@@ -1,5 +1,10 @@
 # AGENTS.md — Veragensia Contributor and Agent Contract
 
+> # 🚨 AUTHENTICATION HARD STOP — READ BEFORE ANY LOGIN
+> **NEVER automate with a nonrenewable resource. NO recovery code automation—ever, for any provider.** Recovery codes and finite break-glass assets are operator-only and untouchable. Unknown renewability fails closed.
+>
+> **GitHub renewable routes:** existing `gh` CLI/API session → existing private browser session → approved PAT/OAuth token → GitHub App token → SSH/deploy key → device OAuth → UIAI Engine in a private ephemeral Veragensia browser using approved email/password plus renewable email OTP, TOTP, passkey/security key, or normal OAuth consent → provider support/manual operator recovery without recovery codes. One failed route is not exhaustion. Never use public `os.focusa.dev` for credentials.
+
 This file governs work in the `Startempire-Wire/veragensia` repository. It applies to human contributors and automated agents from the repository root downward. A more specific `AGENTS.md` may refine rules for a future subtree, but it must not weaken the security, authority, or evidence requirements here.
 
 ## 1. Product identity
@@ -122,6 +127,9 @@ A future private operator context must have explicit identity, authorization, re
 
 ## 7. Secret and customer-data handling
 
+- **Never automate with a nonrenewable resource.** Safe replenishment or reissuance must be proven before any agent, subprocess, browser workflow, or Veragensia node consumes, tests, rotates, invalidates, or spends a resource. Unknown renewability fails closed. Finite break-glass artifacts, one-time emergency credentials, irreversible quotas, and anything that cannot be replenished are operator-only and untouchable.
+- **No recovery code automation—ever, for any provider.** Never retrieve, inspect, enumerate, parse, reveal, copy, inject, test, consume, request, rotate, or use a recovery code, and never ask the operator to spend one. Use an authorized session or renewable approved route; otherwise stop and report the blocker. This supersedes every historical workflow or fallback.
+- **GitHub renewable-access ladder:** existing authenticated `gh` CLI/API session; existing private browser session; approved PAT/OAuth token; GitHub App installation token; authorized SSH/deploy key; GitHub device OAuth; UIAI Engine with a private ephemeral Veragensia browser using approved email/password plus renewable email OTP, authenticator/TOTP, passkey/security key, or normal OAuth consent; then provider support/operator-controlled manual recovery without recovery-code automation. Never use the public `os.focusa.dev` profile for credentials. Destroy private contexts and prove zero residue. One failed route never authorizes a recovery code; stop only after every applicable renewable route fails.
 - Never print, paste, commit, snapshot, or narrate secret values.
 - Retrieve only the exact required credential field from an approved manager.
 - Use synthetic fixtures for mutation and destructive-path tests.

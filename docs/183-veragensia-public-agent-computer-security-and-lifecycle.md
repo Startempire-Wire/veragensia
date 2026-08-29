@@ -5,6 +5,11 @@
 **Related:** specs 182/182b/182c; WPUIAI/uiai-engine#102; Startempire-Wire/veragensia#1
 **Tracking:** repository-local `br` items are canonical once initialized; linked GitHub issues are external references, not duplicate task records.
 
+> # 🚨 AUTHENTICATION HARD STOP — READ BEFORE ANY LOGIN
+> **NEVER automate with a nonrenewable resource. NO recovery code automation—ever, for any provider.** Recovery codes and finite break-glass assets are operator-only and untouchable. Unknown renewability fails closed.
+>
+> **GitHub renewable routes:** existing `gh` CLI/API session → existing private browser session → approved PAT/OAuth token → GitHub App token → SSH/deploy key → device OAuth → UIAI Engine in a private ephemeral Veragensia browser using approved email/password plus renewable email OTP, TOTP, passkey/security key, or normal OAuth consent → provider support/manual operator recovery without recovery codes. One failed route is not exhaustion. Never use public `os.focusa.dev` for credentials.
+
 ## 1. Goal
 
 The public Veragensia demo is constantly available as a real agent computer and build-in-public product surface, while remaining isolated from operator/provider credentials and independent of transient Focusa build workspaces.
@@ -121,6 +126,10 @@ Only `sync-activate` and `status` are accepted by the wrapper. Sudoers grants on
 
 ## 8. Private provider/OAuth procedure
 
+**Never automate with a nonrenewable resource.** Safe replenishment or reissuance must be proven before automation consumes, tests, rotates, invalidates, or spends anything; unknown renewability fails closed. Recovery codes and all other finite break-glass artifacts are operator-only and permanently forbidden to automation. Never retrieve, inspect, parse, inject, test, consume, request, rotate, or use one, and never ask the operator to spend one.
+
+For GitHub, exhaust the applicable renewable routes: existing authenticated `gh` CLI/API session; existing private browser session; approved PAT/OAuth token; GitHub App installation token; authorized SSH/deploy key; GitHub device OAuth; UIAI Engine with a private ephemeral Veragensia browser using approved email/password plus renewable email OTP, authenticator/TOTP, passkey/security key, or normal OAuth consent; then provider support/operator-controlled manual recovery without recovery-code automation. Never enter credentials in the public `os.focusa.dev` profile. Destroy the private context and prove zero residue. One failed route never authorizes recovery-code access.
+
 Try API-native recovery first. Example: an exact GitHub push webhook can be redelivered through the authenticated repository-hooks API to retrigger AppVeyor without a browser login or a new commit.
 
 When authenticated provider UI is still required, use a **separate ephemeral profile**:
@@ -136,7 +145,7 @@ When authenticated provider UI is still required, use a **separate ephemeral pro
 
 If separate context creation is unavailable, stop public access before using its profile, then scrub cookies, local/session storage, IndexedDB, login/web data, and history before reopening.
 
-The proven 2026-08-28 flow used GitHub webhook redelivery to create exact-main AppVeyor build 113, then `rbw` password + one-use GitHub recovery code in an isolated profile to cancel superseded PR builds. The private port/profile were destroyed; public sensitive cookie count remained zero.
+A historical 2026-08-28 flow consumed a one-use GitHub recovery code. That behavior is revoked as unsafe and must never be repeated or reconstructed. Current provider work must use an already-authorized session or a renewable approved route; otherwise it stops.
 
 ## 9. Security improvements still required
 
@@ -144,7 +153,7 @@ Tracked in WPUIAI/uiai-engine#102 and Veragensia#1:
 
 - first-class external CDP attach/adopt;
 - popup/OAuth target tracking;
-- broker-bound recovery-code challenge resolution;
+- fail-closed rejection of every recovery-code challenge, with renewable authenticator routing only;
 - verified `storage.scrub` operation;
 - enforced `public_demo`, `ephemeral_auth`, and `private_operator` context classes;
 - separate public view and governed private control paths;
