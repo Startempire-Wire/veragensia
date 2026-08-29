@@ -28,6 +28,15 @@ Control-plane principle:
 
 > Cloud coordinates. Node decides. Receipts prove. Private state stays local.
 
+## 1.1 Agent communications + GitHub 2FA portability
+
+- The immediate private communications use case is authorized completion of an active `github.com` login with a renewable SMS OTP so Focusa build/release work can proceed. It does not authorize ambient inbox, thread, notification, or phone access. Public `os.focusa.dev` remains credential-free and must never host the paired connector or OTP workflow.
+- Connector/browser state belongs only in an encrypted private operator/customer trust context behind the Focusa credential/communications broker. Agents receive short-lived, revocable `read_otp`/`inject_otp` capabilities bound to provider, enrolled phone, expected sender/message class, active challenge, and expiry—not cookies, Google/Apple credentials, or unrestricted CDP/profile access. Prefer broker-side injection and keep OTP values out of model context and evidence.
+- GitHub OTP is the first bounded slice, not the final product boundary. Preserve later customer-authorized SMS thread listing, bounded reads, sends, and events behind separate explicit capabilities; an OTP grant must never widen into ambient message access.
+- Android/Google Messages may be the first connector, but Veragensia lifecycle, enrollment, encrypted-state, health, revoke/re-pair, teardown, and evidence contracts must use a versioned transport-neutral connector boundary. Do not bake Chromium or Android details into shared Focusa/Veragensia types.
+- **iPhone/iOS is an urgent first-class target developed in parallel.** Select only Apple-supported and user-consented integration paths; never assume private iMessage/SMS APIs, jailbreaks, or weakened isolation. Require equivalent GitHub OTP scoping, customer ownership, restart durability, audit, revocation, portability, and real-device proof for Android and iPhone. Android-only delivery is an explicitly bounded bootstrap, not completion.
+- Recovery codes and other finite break-glass artifacts remain permanently unavailable to agents regardless of release urgency.
+
 ## 2. Authority and conflict order
 
 Use this precedence when instructions conflict:
