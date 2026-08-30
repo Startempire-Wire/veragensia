@@ -15,6 +15,7 @@ DEMO_DATA_HOST=/home/wirebot/uiai-lab/veragensia-demo
 DEMO_DAEMON_HOST=/usr/local/bin/focusa-daemon
 CFD=/etc/cloudflared/gui-lab.yml
 LAB_URL=https://os.focusa.dev
+VERAGENSIA_ROOT=/home/wirebot/veragensia
 
 IDLE_TEARDOWN_MIN=${IDLE_TEARDOWN_MIN:-15}
 SAFETY_MAX_MIN=${SAFETY_MAX_MIN:-180}
@@ -26,6 +27,13 @@ PERSIST_FILE=/tmp/uiai-lab-persistent
 
 is_running(){ docker ps --format '{{.Names}}' | grep -qx "$NAME"; }
 is_persistent(){ [ -f "$PERSIST_FILE" ]; }
+
+sync_evidence_preview(){
+  is_running || return 1
+  docker exec "$NAME" sh -lc 'rm -rf /usr/share/selkies/web/evidence.stage && mkdir -p /usr/share/selkies/web/evidence.stage'
+  docker cp "$VERAGENSIA_ROOT/preview/evidence/." "$NAME:/usr/share/selkies/web/evidence.stage/"
+  docker exec "$NAME" sh -lc 'rm -rf /usr/share/selkies/web/evidence && mv /usr/share/selkies/web/evidence.stage /usr/share/selkies/web/evidence && test -f /usr/share/selkies/web/evidence/index.html'
+}
 
 # Exact-scope permission self-heal: build syncs and root-run maintenance must
 # never leave the mounted extension source unwritable by wirebot.
@@ -59,6 +67,9 @@ ensure_container(){
       -v /home/wirebot/veragensia:/veragensia:ro \
       --shm-size=2g --restart=no "$IMG" >/dev/null
     sleep 12
+    sync_evidence_preview || { echo "evidence preview sync failed" >&2; return 1; }
+  else
+    sync_evidence_preview || { echo "evidence preview sync failed" >&2; return 1; }
   fi
 }
 
@@ -128,6 +139,7 @@ keeper(){
     if is_running; then
       chrome_healthy || ensure_chrome
       demo_healthy || ensure_demo_daemon
+      sync_evidence_preview || echo "$(date -u +%FT%TZ) evidence preview sync failed" >> "$KEEPER_LOG"
     fi
     connector_up || ensure_connector
     v=$(viewers); [ "$v" -gt 0 ] && last_active=$now
