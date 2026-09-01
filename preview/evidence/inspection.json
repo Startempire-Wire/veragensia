@@ -1,0 +1,8 @@
+{
+  "asset_id": "asset:screenshot",
+  "policy_ref": "uiai.evidence_security.strict.v1",
+  "status": "passed",
+  "observed_media_type": "image/png",
+  "finding_codes": [],
+  "inspection_sha256": "9eb4fcf5867f4a455541565c4e92c1978d1b67a1a17ddf11d4f40a3b51d5274f"
+}

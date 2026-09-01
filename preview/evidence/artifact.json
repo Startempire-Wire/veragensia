@@ -1,0 +1,30 @@
+{
+  "schema": "uiai.screenshot_evidence_share.v1",
+  "artifact_ref": "uiai-evidence-share:sha256:e0f88cb528645eec7dad400c3c4b36355bff059c5c65be0a5ea6bb072d75865b",
+  "artifact_sha256": "e0f88cb528645eec7dad400c3c4b36355bff059c5c65be0a5ea6bb072d75865b",
+  "screenshot_ref": "./screenshot.png",
+  "screenshot_sha256": "8e9fa98bf61355111620b80b1a5b8f5afcfbe9cd9edbc521e9a62c2cc6a16675",
+  "format": "png",
+  "mime": "image/png",
+  "bytes": 337199,
+  "width": 1440,
+  "height": 1000,
+  "source_url": "https://focusa.dev/",
+  "captured_at": "2026-08-30T02:00:00Z",
+  "duration_ms": 87,
+  "availability": "ready",
+  "access": "public_safe_read_only",
+  "interaction": "read_only",
+  "scope": {
+    "project_ref": "project:focusa",
+    "workstream_ref": "workstream:epwa",
+    "workset_ref": "workset:t08",
+    "callgraph_ref": "callgraph:133",
+    "workpoint_ref": "workpoint:t08b",
+    "work_item_ref": "work-item:screenshot-share",
+    "continuity_ref": "epwa-t08b"
+  },
+  "truth_notice": "This screenshot proves only the captured visual state. It does not by itself prove review, completion, provider closure, or settlement.",
+  "projection_ref": "./projection.json",
+  "inspection_ref": "./inspection.json"
+}

@@ -1,53 +1,38 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="color-scheme" content="light dark" />
-  <title>Evidence Artifact</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Evidence · UIAI</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23141712'/%3E%3Cpath d='M18 17v20c0 9 5 14 14 14s14-5 14-14V17h-8v20c0 5-2 7-6 7s-6-2-6-7V17z' fill='%23c9ff3d'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="./styles.css">
+  <script src="./app.js" defer></script>
 </head>
 <body data-epwa-shell="v1" data-interaction="read-only">
-  <a href="#evidence-artifact">Skip to evidence artifact</a>
-  <header>
-    <p>Immutable Evidence Artifact</p>
-    <nav aria-label="Evidence sections">
-      <a href="#overview">Overview</a>
-      <a href="#evidence">Evidence</a>
-      <a href="#timeline">Timeline</a>
-      <a href="#inspect">Inspect</a>
-      <a href="#developer">Developer</a>
-    </nav>
-    <p id="artifact-status" role="status" aria-live="polite" data-epwa-status="loading">Loading the exact artifact projection.</p>
+  <a class="skip" href="#artifact">Skip to evidence artifact</a>
+  <header class="masthead">
+    <a class="brand" href="#overview" aria-label="UIAI evidence overview"><span class="mark">U</span><span>UIAI Evidence</span></a>
+    <div id="status" class="status" role="status" aria-live="polite" data-epwa-status="loading"><i></i><span>Loading exact artifact projection</span></div>
   </header>
-  <main id="evidence-artifact">
-    <article aria-labelledby="artifact-heading" data-epwa-article="true">
-      <h1 id="artifact-heading">Evidence Artifact</h1>
-      <p data-epwa-posture="read-only">This projection is read-only. It does not by itself prove review, completion, provider closure, or settlement.</p>
-      <section id="overview" data-epwa-section="overview" aria-labelledby="overview-heading">
-        <h2 id="overview-heading">Overview</h2>
-        <p data-epwa-slot="overview">Artifact identity, scope, availability, freshness, and blockers appear here.</p>
+  <main id="artifact">
+    <article aria-labelledby="title" data-epwa-article="true">
+      <section id="overview" class="hero" data-epwa-section="overview" aria-labelledby="title">
+        <div class="eyebrow">Immutable Evidence Artifact</div>
+        <h1 id="title">Evidence Artifact</h1>
+        <p id="truth" class="lede">Loading the bounded evidence record.</p>
+        <dl id="facts" class="facts"></dl>
       </section>
-      <section id="evidence" data-epwa-section="evidence" aria-labelledby="evidence-heading">
-        <h2 id="evidence-heading">Evidence</h2>
-        <p data-epwa-slot="evidence">Claims, immutable assets, citations, omissions, and trust posture appear here.</p>
+      <section id="evidence" class="visual" data-epwa-section="evidence" aria-labelledby="evidence-title">
+        <div class="section-head"><span>01</span><h2 id="evidence-title">Evidence</h2></div>
+        <figure class="frame"><div class="browser-bar" aria-hidden="true"><b></b><b></b><b></b><span id="source-label">Captured page</span></div><a id="image-link" href="./screenshot.png" target="_blank" rel="noopener"><img id="screenshot" alt="Captured browser screenshot evidence" decoding="async"></a><figcaption id="caption">Immutable screenshot bytes</figcaption></figure>
       </section>
-      <section id="timeline" data-epwa-section="timeline" aria-labelledby="timeline-heading">
-        <h2 id="timeline-heading">Timeline</h2>
-        <p data-epwa-slot="timeline">Custody, actions, diagnostics, Receipts, and revalidation events appear here.</p>
-      </section>
-      <section id="inspect" data-epwa-section="inspect" aria-labelledby="inspect-heading">
-        <h2 id="inspect-heading">Inspect</h2>
-        <p data-epwa-slot="inspect">Hashes, provenance, inspection, redaction, access, and retention details appear here.</p>
-      </section>
-      <section id="developer" data-epwa-section="developer" aria-labelledby="developer-heading">
-        <h2 id="developer-heading">Developer</h2>
-        <p data-epwa-slot="developer">Versioned machine-contract and compatibility information appears here.</p>
-      </section>
+      <section id="timeline" class="panel" data-epwa-section="timeline" aria-labelledby="timeline-title"><div class="section-head"><span>02</span><h2 id="timeline-title">Timeline</h2></div><ol id="events" class="timeline"></ol></section>
+      <section id="inspect" class="panel" data-epwa-section="inspect" aria-labelledby="inspect-title"><div class="section-head"><span>03</span><h2 id="inspect-title">Inspect</h2></div><div id="inspect-grid" class="inspect-grid"></div></section>
+      <section id="developer" class="panel developer" data-epwa-section="developer" aria-labelledby="developer-title"><div class="section-head"><span>04</span><h2 id="developer-title">Developer</h2></div><a href="./artifact.json">Open machine-readable artifact JSON <span>↗</span></a></section>
     </article>
   </main>
-  <noscript>This read-only semantic artifact remains inspectable without JavaScript. Dynamic evidence is unavailable until a governed projection is embedded or loaded.</noscript>
-  <footer>
-    <p>Unavailable, blocked, corrupt, stale, redacted, degraded, and ready states must remain explicit.</p>
-  </footer>
+  <noscript>This read-only artifact remains inspectable without JavaScript. Dynamic evidence is unavailable.</noscript>
+  <footer><span>Read-only portable evidence</span><span>Review ≠ completion ≠ settlement</span></footer>
 </body>
 </html>

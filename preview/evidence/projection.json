@@ -1,0 +1,117 @@
+{
+  "schema": "uiai.evidence_pwa_projection.v1",
+  "projection_id": "uiai-evidence-projection:sha256:e0f88cb528645eec7dad400c3c4b36355bff059c5c65be0a5ea6bb072d75865b",
+  "artifact": {
+    "artifact_ref": "uiai-evidence-share:sha256:e0f88cb528645eec7dad400c3c4b36355bff059c5c65be0a5ea6bb072d75865b",
+    "revision": 1,
+    "manifest_sha256": "59535b938ab7bbe56ed867cf2c2fcb23d0d85d7690f3cbd4ff15c09c72013fd8",
+    "bundle_sha256": "e0f88cb528645eec7dad400c3c4b36355bff059c5c65be0a5ea6bb072d75865b",
+    "scope": {
+      "project_ref": "project:focusa",
+      "workstream_ref": "workstream:epwa",
+      "workset_ref": "workset:t08",
+      "callgraph_ref": "callgraph:133",
+      "workpoint_ref": "workpoint:t08b",
+      "work_item_ref": "work-item:screenshot-share"
+    }
+  },
+  "title": "Evidence Artifact",
+  "summary": "This screenshot proves only the captured visual state. It does not by itself prove review, completion, provider closure, or settlement.",
+  "sections": [
+    {
+      "id": "overview",
+      "heading": "Overview"
+    },
+    {
+      "id": "evidence",
+      "heading": "Evidence"
+    },
+    {
+      "id": "timeline",
+      "heading": "Timeline"
+    },
+    {
+      "id": "inspect",
+      "heading": "Inspect"
+    },
+    {
+      "id": "developer",
+      "heading": "Developer"
+    }
+  ],
+  "claims": [
+    {
+      "claim_id": "claim:captured-visual-state",
+      "statement": "The bound screenshot records the captured browser visual state at the stated time.",
+      "posture": "captured_visual_only",
+      "citation_ids": [
+        "citation:screenshot"
+      ],
+      "asset_ids": [
+        "asset:screenshot"
+      ]
+    }
+  ],
+  "assets": [
+    {
+      "asset_id": "asset:screenshot",
+      "ref": "./screenshot.png",
+      "sha256": "8e9fa98bf61355111620b80b1a5b8f5afcfbe9cd9edbc521e9a62c2cc6a16675",
+      "mime": "image/png",
+      "modality": "screenshot",
+      "bytes": 337199
+    }
+  ],
+  "citations": [
+    {
+      "citation_id": "citation:screenshot",
+      "source_ref": "asset:screenshot",
+      "sha256": "8e9fa98bf61355111620b80b1a5b8f5afcfbe9cd9edbc521e9a62c2cc6a16675",
+      "locator": "full_frame"
+    }
+  ],
+  "timeline": [
+    {
+      "entry_id": "timeline:capture",
+      "occurred_at": "2026-08-30T02:00:00Z",
+      "event_type": "screenshot_captured",
+      "refs": [
+        "asset:screenshot",
+        "claim:captured-visual-state"
+      ]
+    }
+  ],
+  "security_refs": [
+    "./inspection.json"
+  ],
+  "availability": "ready",
+  "access": "public_safe",
+  "redaction": {
+    "state": "applied",
+    "evidence_ref": "./inspection.json",
+    "private_ref_count": 0,
+    "secret_finding_count": 0,
+    "pii_finding_count": 0
+  },
+  "federation_posture": "source_local",
+  "freshness_observed_at": "2026-08-30T02:00:00Z",
+  "page": {
+    "page_size": 1,
+    "total_count": 1
+  },
+  "links": [
+    {
+      "rel": "manifest",
+      "href": "./artifact.json"
+    },
+    {
+      "rel": "screenshot",
+      "href": "./screenshot.png"
+    },
+    {
+      "rel": "inspection",
+      "href": "./inspection.json"
+    }
+  ],
+  "interaction": "read_only"
+}
