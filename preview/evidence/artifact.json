@@ -1,7 +1,7 @@
 {
   "schema": "uiai.screenshot_evidence_share.v1",
-  "artifact_ref": "uiai-evidence-share:sha256:85e790f87224708cf53f3321ed9197f667f890dc2d86dbbf19bfec4b68b2f769",
-  "artifact_sha256": "85e790f87224708cf53f3321ed9197f667f890dc2d86dbbf19bfec4b68b2f769",
+  "artifact_ref": "uiai-evidence-share:sha256:efdbf7dfa07cb20d0f9b459b00d8ee14273775d8aea9f7ca08d06a273b4ef052",
+  "artifact_sha256": "efdbf7dfa07cb20d0f9b459b00d8ee14273775d8aea9f7ca08d06a273b4ef052",
   "screenshot_ref": "./screenshot.png",
   "screenshot_sha256": "8e9fa98bf61355111620b80b1a5b8f5afcfbe9cd9edbc521e9a62c2cc6a16675",
   "format": "png",

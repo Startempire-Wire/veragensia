@@ -1,11 +1,11 @@
 {
   "schema": "uiai.evidence_pwa_projection.v1",
-  "projection_id": "uiai-evidence-projection:sha256:85e790f87224708cf53f3321ed9197f667f890dc2d86dbbf19bfec4b68b2f769",
+  "projection_id": "uiai-evidence-projection:sha256:efdbf7dfa07cb20d0f9b459b00d8ee14273775d8aea9f7ca08d06a273b4ef052",
   "artifact": {
-    "artifact_ref": "uiai-evidence-share:sha256:85e790f87224708cf53f3321ed9197f667f890dc2d86dbbf19bfec4b68b2f769",
+    "artifact_ref": "uiai-evidence-share:sha256:efdbf7dfa07cb20d0f9b459b00d8ee14273775d8aea9f7ca08d06a273b4ef052",
     "revision": 1,
-    "manifest_sha256": "233df3b052e06f24f472fb1044b5e3f70c3673bd0ef8ba0e51290bf5d0941ea7",
-    "bundle_sha256": "85e790f87224708cf53f3321ed9197f667f890dc2d86dbbf19bfec4b68b2f769",
+    "manifest_sha256": "27033dcd153cf6f82485faf6a2213589db4d880ad6f25a5bd33a3f21a164e0a9",
+    "bundle_sha256": "efdbf7dfa07cb20d0f9b459b00d8ee14273775d8aea9f7ca08d06a273b4ef052",
     "scope": {
       "project_ref": "project:focusa",
       "workstream_ref": "workstream:epwa",
