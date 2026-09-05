@@ -16,6 +16,8 @@ The next implementation target is a **native Omarchy developer preview**, with p
 - [187 — exact-device installation and bring-up runbook](docs/187-veragensia-chromebook-first-install-runbook.md)
 - [188 — engineering decisions, CLI, IPC, and integration contracts](docs/188-veragensia-v0.1-decisions-and-integration-contracts.md)
 - [190 — agent-first software and capability resolution](docs/190-veragensia-agent-first-software-and-capability-resolution-spec.md)
+- [191 — Elastic Agent Computing and cloud runtime](docs/191-veragensia-elastic-agent-computing-and-cloud-runtime-spec.md)
+- [192 — telemetry and improvement plane](docs/192-veragensia-telemetry-and-improvement-plane-spec.md)
 - [Machine-readable candidate/dependency inventory](config/v0.1-release-candidate.json)
 
 These documents distinguish existing capabilities, selected engineering proposals, implementation gaps, and device evidence. Downloading Focusa binaries or booting Omarchy does not establish Veragensia release readiness.
@@ -83,6 +85,8 @@ See [Doc 190](docs/190-veragensia-agent-first-software-and-capability-resolution
 - `docs/185-*` — architecture authority and provenance policy.
 - `docs/186-*`, `187-*`, `188-*` — proposed native v0.1 implementation and bring-up contracts.
 - `docs/190-*` — Agent Computer software doctrine, agentability, capability profiles, and Agent App resolution.
+- `docs/191-*` — Elastic Agent Computing, Cloud Agent Computer runtime, workcells, Agent Apps, Agent Assist, and mixed topology.
+- `docs/192-*` — privacy-tiered telemetry, Agentability measurement, and the evidence-to-improvement loop.
 
 ## Run the existing lab
 
