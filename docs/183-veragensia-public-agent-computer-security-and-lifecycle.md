@@ -2,7 +2,7 @@
 
 **Status:** live operational contract
 **Live surface:** `https://os.focusa.dev`
-**Related:** specs 182/182b/182c; WPUIAI/uiai-engine#102; Startempire-Wire/veragensia#1
+**Related:** specs 182/182b/182c/190/191/192; WPUIAI/uiai-engine#102; Startempire-Wire/veragensia#1
 **Tracking:** repository-local `br` items are canonical once initialized; linked GitHub issues are external references, not duplicate task records.
 
 > # 🚨 AUTHENTICATION HARD STOP — READ BEFORE ANY LOGIN
@@ -15,6 +15,10 @@
 ## 1. Goal
 
 The public Veragensia demo is constantly available as a real agent computer and build-in-public product surface, while remaining isolated from operator/provider credentials and independent of transient Focusa build workspaces.
+
+Architecturally, this runtime is the first crude implementation of the **Veragensia Cloud Agent Computer Runtime shape** described by Doc 191: streamed Linux desktop, persistent desktop state, Chromium/Workforce, local Focusa daemon, streaming/tunnel and keeper lifecycle.
+
+That architectural role changes **nothing** about this contract's trust posture. `os.focusa.dev` is a deliberately constrained `public_demo` profile, not the canonical full private Agent Computer profile. It is not required to contain every Doc-190 full-profile default, and any missing surface must never be used to demote Focusa Desktop, Pi, UIAI Engine/Cockpit, or other canonical full-profile components. Conversely, the full-profile defaults never authorize adding private credentials or customer state to this public runtime.
 
 ## 2. Trust boundary
 
@@ -162,6 +166,8 @@ Tracked in WPUIAI/uiai-engine#102 and Veragensia#1:
 - continuous alerting for extension/CDP/daemon/auth-residue drift;
 - repo-managed installation of live scripts and sudoers templates.
 
+These are live-demo/security improvements. Broader full-profile application defaults, Agentability, Pi packaging, Focusa Desktop integration, Agent Assist, elastic workcells and telemetry belong to Docs 190–192 and must not be opportunistically bolted into this live public profile.
+
 ## 10. Combination opportunities
 
 - UIAI read/snapshot + Veragensia desktop + Focusa evidence receipt: semantic execution with human-visible proof.
@@ -170,3 +176,5 @@ Tracked in WPUIAI/uiai-engine#102 and Veragensia#1:
 - Focusa background jobs + provider browser transactions: durable build dispatch, browser receipt, and completion event.
 - HyperFrames + browser evidence: turn verified UI flows into deterministic product demos.
 - Stripe/commerce tools + private browser context: governed provider setup without exposing payment/admin sessions publicly.
+
+These opportunities remain bounded by the `public_demo` trust class. A capability being architecturally useful elsewhere does not authorize it here.
