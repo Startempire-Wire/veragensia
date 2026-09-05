@@ -15,6 +15,19 @@ Before writing, revising, interpreting, consolidating, or promoting any Veragens
 - The existing lowercase `wirebot` Linux/service account is infrastructure only and has **zero architecture authority**.
 - If authority provenance is absent, conflicting, stale, or unverifiable, fail closed to advisory-only and escalate the architectural decision to Verious Smith III.
 
+## Agent Computer architecture reading rule
+
+When documentation touches Agent Computer composition, software defaults, cloud execution, fleet topology, applications, computer use, telemetry, or agent/human desktop collaboration, read the relevant companions before editing:
+
+- `182-veragensia-focusa-agent-os-spec.md` — product/root composition;
+- `190-veragensia-agent-first-software-and-capability-resolution-spec.md` — canonical full-profile defaults, Agentability, capability profiles and Agent App resolution;
+- `191-veragensia-elastic-agent-computing-and-cloud-runtime-spec.md` — full Cloud Agent Computers, workcells, Silent Sessions, Agent Apps, Agent Assist and elastic topology;
+- `192-veragensia-telemetry-and-improvement-plane-spec.md` — privacy-tiered telemetry and improvement loop.
+
+The deliberately listed full-profile first-party defaults are **Focusa daemon/core, Focusa Desktop, Pi + Focusa Pi extension, UIAI Engine + Cockpit/browser surfaces, and Veragensia session/shell integration**. Do not silently demote UIAI Engine to an optional browser candidate, Pi to an incidental third-party tool, or Focusa Desktop to a competing authority.
+
+Constrained, public-demo, headless and special-purpose profiles may omit surfaces explicitly. Omission does not redefine the canonical full Agent Computer composition.
+
 ## Personal/customer identity minimization
 
 Current public product architecture documentation SHOULD avoid naming customers, customer agents, or unrelated people when anonymous evidence is sufficient. Customer-specific names must never be used as authority labels, architecture nodes, canonical roles, or product primitives.
