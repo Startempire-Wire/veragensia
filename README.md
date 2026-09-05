@@ -23,9 +23,10 @@ The next implementation target is a **native Omarchy developer preview**, with p
 - [195 — resource identity, runtime incarnation, and state transfer](docs/195-veragensia-resource-identity-runtime-incarnation-and-state-transfer-spec.md)
 - [196 — platform trust, genesis, supply chain, and runtime attestation](docs/196-veragensia-platform-trust-genesis-supply-chain-and-runtime-attestation-spec.md)
 - [197 — voice-native Agent Computer, Audio UI, and conversation continuity](docs/197-veragensia-voice-native-agent-computer-audio-ui-and-conversation-continuity-spec.md)
+- [198 — foundation integration and native-v0.1 scope guard](docs/198-veragensia-foundation-integration-and-native-v0.1-scope-guard-addendum.md)
 - [Machine-readable candidate/dependency inventory](config/v0.1-release-candidate.json)
 
-These documents distinguish existing capabilities, selected engineering proposals, implementation gaps, and device evidence. Downloading Focusa binaries or booting Omarchy does not establish Veragensia release readiness.
+These documents distinguish existing capabilities, selected engineering proposals, implementation gaps, and device evidence. Downloading Focusa binaries or booting Omarchy does not establish Veragensia release readiness. Doc 198 explicitly prevents the constrained native v0.1 proof from being mistaken for the limits of the full enforcement- and voice-native Agent Computer.
 
 ## Composition and ownership
 
@@ -142,6 +143,7 @@ See [Doc 197](docs/197-veragensia-voice-native-agent-computer-audio-ui-and-conve
 - `docs/195-*` — stable ResourceRefs, runtime incarnations, replicas and typed state transfer.
 - `docs/196-*` — boot/platform trust, genesis, supply-chain binding and runtime attestation.
 - `docs/197-*` — voice-native Audio UI, keyboard/mouse independence, group conversation and transcript/audit continuity.
+- `docs/198-*` — explicit amendment keeping the constrained Chromebook v0.1 proof subordinate to the full enforcement/voice-native architecture.
 
 ## Run the existing lab
 
