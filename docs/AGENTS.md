@@ -17,16 +17,67 @@ Before writing, revising, interpreting, consolidating, or promoting any Veragens
 
 ## Agent Computer architecture reading rule
 
-When documentation touches Agent Computer composition, software defaults, cloud execution, fleet topology, applications, computer use, telemetry, or agent/human desktop collaboration, read the relevant companions before editing:
+When documentation touches Agent Computer composition, software defaults, cloud execution, fleet topology, applications, computer use, telemetry, security/isolation, platform trust, human takeover, voice/audio, transcripts or agent/human collaboration, read the relevant companions before editing:
 
 - `182-veragensia-focusa-agent-os-spec.md` — product/root composition;
 - `190-veragensia-agent-first-software-and-capability-resolution-spec.md` — canonical full-profile defaults, Agentability, capability profiles and Agent App resolution;
-- `191-veragensia-elastic-agent-computing-and-cloud-runtime-spec.md` — full Cloud Agent Computers, workcells, Silent Sessions, Agent Apps, Agent Assist and elastic topology;
-- `192-veragensia-telemetry-and-improvement-plane-spec.md` — privacy-tiered telemetry and improvement loop.
+- `191-veragensia-elastic-agent-computing-and-cloud-runtime-spec.md` — full Cloud Agent Computers, workcells, Silent Sessions, Agent Apps, Agent Assist, TopologyGrant and elastic topology;
+- `192-veragensia-telemetry-and-improvement-plane-spec.md` — privacy-tiered telemetry, anti-exfiltration and improvement loop;
+- `193-veragensia-execution-substrate-workload-identity-and-capability-enforcement-spec.md` — ExecutionPrincipal, WorkloadIdentity and machine EnforcementPlan;
+- `194-veragensia-trusted-human-control-secure-attention-and-desktop-observation-spec.md` — Secure Attention, DesktopObservation, computer-control leases and takeover reconciliation;
+- `195-veragensia-resource-identity-runtime-incarnation-and-state-transfer-spec.md` — ResourceRefs, revisions, runtime incarnations, replicas and transfer;
+- `196-veragensia-platform-trust-genesis-supply-chain-and-runtime-attestation-spec.md` — first-boot/genesis, platform trust and attestation;
+- `197-veragensia-voice-native-agent-computer-audio-ui-and-conversation-continuity-spec.md` — keyboard/mouse independence, Audio UI, full-duplex interaction and voice-complete acceptance;
+- Focusa `docs/181-focusa-voice-conversation-expression-and-auditable-interaction-spec.md` — Conversation/Utterance/Expression/Transcript primitive ownership.
 
-The deliberately listed full-profile first-party defaults are **Focusa daemon/core, Focusa Desktop, Pi + Focusa Pi extension, UIAI Engine + Cockpit/browser surfaces, and Veragensia session/shell integration**. Do not silently demote UIAI Engine to an optional browser candidate, Pi to an incidental third-party tool, or Focusa Desktop to a competing authority.
+## Full Agent Computer composition hard stop
+
+The deliberately listed full-profile first-party defaults are:
+
+1. **Focusa daemon/core**;
+2. **Focusa Desktop**;
+3. **Pi + Focusa Pi extension**;
+4. **UIAI Engine + Cockpit/browser/computer surfaces**;
+5. **Veragensia enforcement/control substrate**;
+6. **Voice/Conversation service bound to Focusa Spec 181**;
+7. **Veragensia native shell/session integration**.
+
+Do not silently demote UIAI Engine to an optional browser candidate, Pi to incidental third-party tooling, Focusa Desktop to a competing authority, machine enforcement to documentation-only policy, or voice to an accessibility add-on.
 
 Constrained, public-demo, headless and special-purpose profiles may omit surfaces explicitly. Omission does not redefine the canonical full Agent Computer composition.
+
+## Enforcement invariants
+
+Documentation MUST preserve these distinctions:
+
+```text
+Focusa Capability/Authority
+!=
+Veragensia EnforcementPlan
+!=
+Linux/root/UID transport capability
+```
+
+- Same Unix UID is not an agent security boundary.
+- D-Bus, accessibility, compositor/input, microphone, screen capture, devices, keyrings and network are independently scoped capabilities.
+- A governed workload requires verified EnforcementPlan/WorkloadIdentity posture where the profile requires it.
+- Path/PID/window/container names are locators, not stable identity; use Doc-195 ResourceRef/incarnation semantics.
+- Human secure-attention/stop/takeover paths remain protected from agent resource exhaustion.
+- UIAI control-lease generation/fencing and re-observation semantics are reused rather than replaced by looser Veragensia concepts.
+
+## Voice-native invariants
+
+- **Keyboard and mouse are optional peripherals** for a declared `voice_complete` full profile.
+- Voice invokes the same canonical operations and authority as other modalities; do not create voice-only business/work semantics.
+- Focusa Doc 08 Expression Engine owns semantic expression; ASR/TTS are capture/render adapters.
+- Focusa Spec 181 Conversation Ledger preserves complete attributable conversational provenance while retaining the rule **conversation is not memory**.
+- Every agent/expert speaker is bound to a stable principal independently of synthetic voice presentation.
+- Speaker recognition/voiceprint/voice similarity never creates authority by itself.
+- ASR output is a hypothesis with confidence/correction lineage; consequential ambiguity fails closed.
+- Human barge-in/new steering beats stale agent speech.
+- Trusted spoken approvals use Doc-194 Secure Attention and normal Focusa authority, not ordinary application audio.
+- Conversation/audio content is not generic telemetry; Doc 192 field-allowlist/cardinality protections apply.
+- A full `voice_complete` acceptance run must physically work with keyboard and pointer absent or disabled for the representative workflow.
 
 ## Personal/customer identity minimization
 
