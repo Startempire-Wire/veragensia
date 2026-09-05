@@ -9,6 +9,9 @@ purpose: >-
   companion sync, UIAI execution, and Startempire Wirebot adapters. Mutable work
   status belongs in repository-local br, not this file.
 
+implementation_plan: docs/200-veragensia-living-agent-computer-implementation-tranche-plan.md
+platform_qualification_evidence: docs/199a-veragensia-current-platform-qualification-evidence-2026-09-05.md
+
 historical_provenance:
   radar:
     historical_label: "Spec 164 proposal"
@@ -61,6 +64,8 @@ canonical_owners:
       trust: docs/196-veragensia-platform-trust-genesis-supply-chain-and-runtime-attestation-spec.md
       voice: docs/197-veragensia-voice-native-agent-computer-audio-ui-and-conversation-continuity-spec.md
       ambient_omarchy: docs/199-veragensia-ambient-operator-companion-sync-and-omarchy-integration-spec.md
+      platform_evidence: docs/199a-veragensia-current-platform-qualification-evidence-2026-09-05.md
+      implementation_plan: docs/200-veragensia-living-agent-computer-implementation-tranche-plan.md
   uiai_engine:
     repository: WPUIAI/uiai-engine
     owns:
