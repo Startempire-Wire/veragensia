@@ -1,0 +1,174 @@
+schema: veragensia.system_operation_keybinding_map.v1
+status: architecture_contract_not_runtime_inventory
+canonical_human_architecture_authority: Verious Smith III
+created_at: 2026-09-05
+
+purpose: >-
+  Seed machine-readable mapping between Omarchy keyboard-first behavior and stable
+  Veragensia semantic system-operation families. Runtime implementation must discover
+  the live Omarchy/Hyprland keymap and command registry; this file is not a frozen
+  copy of today's hotkeys.
+
+principles:
+  - hotkey_is_projection_not_operation_identity
+  - direct_operation_preferred_over_key_replay
+  - focus_is_context_not_authority
+  - runtime_keymap_discovery_required
+  - user_bindings_are_preserved
+  - voice_agent_cli_and_hotkey_share_operation
+  - guarded_input_injection_is_last_resort
+
+runtime_discovery:
+  omarchy_commands:
+    preferred: "omarchy commands --all --json --check"
+  omarchy_keybindings:
+    inspect_live: true
+  hyprland:
+    inspect_live_bindings: true
+    use_direct_dispatch_for_semantic_window_workspace_ops: true
+    batch_multiple_dispatches_when_supported: true
+  user_overrides:
+    path: "~/.config/hypr/bindings.lua"
+    mutation_policy: preserve_unless_explicitly_requested
+
+classification:
+  allowed:
+    - semantic_operation
+    - text_input
+    - application_internal
+    - hardware_firmware
+    - unsupported_platform
+    - unmapped_gap
+  release_rule: "full profile requires zero unexplained unmapped_gap bindings"
+
+operation_families:
+  workspace:
+    examples:
+      - system.workspace.activate
+      - system.workspace.next
+      - system.workspace.previous
+      - system.window.move_to_workspace
+    preferred_adapter: hyprland_dispatch
+  window:
+    examples:
+      - system.window.focus
+      - system.window.close
+      - system.window.fullscreen
+      - system.window.float_toggle
+      - system.window.layout_toggle
+    preferred_adapter: hyprland_dispatch
+  application:
+    examples:
+      - app.launch
+      - app.focus_or_launch
+      - app.close
+    preferred_adapter: omarchy_cli_or_launcher
+  audio:
+    examples:
+      - system.audio.status
+      - system.audio.panel
+      - system.audio.output.select
+      - system.audio.volume.set
+    preferred_adapter: omarchy_cli_or_veragens_audiod
+  bluetooth:
+    examples:
+      - system.bluetooth.status
+      - system.bluetooth.panel
+      - system.bluetooth.connect
+      - system.bluetooth.disconnect
+    preferred_adapter: omarchy_cli_or_veragens_audiod
+  display_power:
+    examples:
+      - system.display.panel
+      - system.display.brightness.set
+      - system.power.panel
+      - system.session.lock
+      - system.power.suspend
+    preferred_adapter: omarchy_cli_or_native_service
+  clipboard_text:
+    examples:
+      - text.copy
+      - text.cut
+      - text.paste
+      - text.clipboard.history
+      - text.dictate_into_focused_input
+    preferred_adapter: semantic_clipboard_or_voxtype_compat
+  capture:
+    examples:
+      - system.capture.screenshot
+      - system.capture.screenrecord
+      - system.capture.text_extract
+    preferred_adapter: omarchy_cli_or_capture_service
+  notifications:
+    examples:
+      - system.notification.dismiss_latest
+      - system.notification.dismiss_all
+      - system.notification.history
+      - system.notification.invoke_latest
+    preferred_adapter: omarchy_cli_or_shell_service
+  agents:
+    examples:
+      - agent.default.launch
+      - agent.select
+      - agent.foreman.address
+      - agent.pause
+      - agent.stop
+    preferred_adapter: focusa_veragensia_operation
+  voice:
+    examples:
+      - voice.push_to_talk.start
+      - voice.push_to_talk.stop
+      - voice.listening_mode.set
+      - voice.mute
+      - voice.meeting.start
+      - voice.meeting.stop
+    preferred_adapter: veragens_audiod_focusa_conversation
+
+voxtype:
+  current_omarchy_role: dictation
+  architecture_role:
+    - compatibility_dictation_adapter
+    - candidate_asr_capture_adapter
+    - candidate_meeting_diarization_adapter
+  forbidden_roles:
+    - focusa_conversation_authority
+    - secure_attention_authority
+    - capability_grant_authority
+    - canonical_system_operation_registry
+  modes:
+    compat_dictation:
+      output: clipboard_or_text_injection
+    semantic_conversation:
+      output: focusa_spec181_objects
+      auto_paste: false
+    meeting_capture:
+      output: focusa_spec181_objects
+      auto_paste: false
+
+application_proof:
+  obsidian:
+    human_projection_example: "Super + Shift + O"
+    preferred_agent_interfaces:
+      - obsidian_cli
+      - filesystem_when_authorized
+      - plugin_command_registry
+    target_capabilities:
+      - vault_search
+      - note_read
+      - note_create
+      - note_edit
+      - note_move
+      - command_invoke
+      - hotkey_inspect
+      - base_query
+
+acceptance:
+  - every_live_binding_classified
+  - remap_does_not_change_semantic_operation_identity
+  - common_shell_ops_work_without_synthetic_keyboard_input
+  - voice_and_agent_share_same_operation_descriptor
+  - user_keymap_survives_install_update
+  - runtime_keymap_drift_is_detected
+  - operation_batch_is_interruptible
+  - obsidian_structured_operation_path_proven
+  - voxtype_compatibility_and_semantic_modes_are_distinct
