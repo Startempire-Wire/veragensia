@@ -1,65 +1,83 @@
 # Veragensia — the Focusa Agent OS
 
-> *ver-* (truth) + *agens* (the actor) + *-ia* (realm) — **"the realm of the true agent."**
+> *ver-* (truth) + *agens* (the actor) + *-ia* (realm) — **the realm of the true agent.**
 
-Veragensia is an **agent/human operating environment**: a real Linux desktop where governed agents and
-people work side by side. It is the product surface of the Focusa primitives, lifted from
-*browser-extension ↔ daemon* to *OS services ↔ OS GUI*.
+Veragensia is an **agent/human operating environment**: a real Linux desktop where people and governed agents work side by side. It brings Focusa's existing primitives into the operating environment rather than creating another agent framework or independent authority.
 
 **Live build-in-public demo / agent playground:** <https://os.focusa.dev>
 
-## Composition
+## Native Chromebook v0.1 — start here
 
+The next implementation target is a **native Omarchy developer preview**, with project continuity, a native Work panel, one bounded agent run, artifact review, and reliable cancellation. The recovered hardware planning target is Dell Chromebook 11 CC11260 / expected `ULDRENITE`; the actual board and Linux behavior must be checked on the device.
+
+**Current status: specification and bring-up planning, not a released native v0.1 installer.** The existing `overlay/install.sh` applies KDE/webtop branding. Do not run it on a Chromebook expecting a native Omarchy installation.
+
+- [186 — v0.1 release specification and acceptance gates](docs/186-veragensia-v0.1-native-chromebook-release-spec.md)
+- [187 — exact-device installation and bring-up runbook](docs/187-veragensia-chromebook-first-install-runbook.md)
+- [188 — engineering decisions, CLI, IPC, and integration contracts](docs/188-veragensia-v0.1-decisions-and-integration-contracts.md)
+- [Machine-readable candidate/dependency inventory](config/v0.1-release-candidate.json)
+
+These documents distinguish existing capabilities, selected engineering proposals, implementation gaps, and device evidence. Downloading Focusa binaries or booting Omarchy does not establish Veragensia release readiness.
+
+## Composition and ownership
+
+```text
+Native Omarchy shell surfaces: work, agent activity, review, status
+                    |
+Veragensia session integration: observations, presentation, OS containment
+                    |
+Existing Focusa daemon: scoped state, continuity, authorization, evidence
+                    |
+UIAI Engine / Workforce browser surface / bounded execution adapters
+                    |
+Stock Omarchy + Arch + Hyprland, consumed without a deep fork
 ```
-┌──────────────────────────────────────────────────────────────┐
-│  Custom Focusa GUI (QML shell, waybar modules, branded theme) │
-├──────────────────────────────────────────────────────────────┤
-│  System-wide Focusa layer (daemon svc, IPC, approvals,        │
-│  credentials, pairing, work-loop scheduler, audit, notify)    │
-├──────────────────────────────────────────────────────────────┤
-│  UIAI Engine (agent browser: verbs, budgets, fleet, events)   │
-├──────────────────────────────────────────────────────────────┤
-│  Omarchy base (Arch + Hyprland) — kept upstream-untouched     │
-└──────────────────────────────────────────────────────────────┘
-```
 
-- **Base:** [Omarchy](https://github.com/basecamp/omarchy) (MIT), consumed as an overlay — no deep fork.
-- **Focusa primitives:** re-homed, not rebuilt (daemon, worksets, silent sessions, `can()`, approvals,
-  credentials broker, device pairing, work loop, roles, widgets/wall, SSE, audit).
-- **UIAI Engine:** the agent's browser and perception layer.
-- **Browser + Focusa Workforce extension** ship preinstalled on every install (a native surface).
+The diagram is a responsibility map, not a second kernel or a claim that every proposed native component already exists.
 
-An **Agent Cloud Computer** is a provisioned, streamable Veragensia instance — the client-setup offer.
+- **Base:** upstream Omarchy, consumed through supported integration points. The current public proving ground is separately based on Ubuntu/KDE webtop.
+- **Focusa primitives:** re-homed, not rebuilt: project/continuity, Worksets/Workpoints, sessions, authorization, approvals, credentials, pairing, work loop, roles, surfaces, events, and audit.
+- **Native presentation:** plugin-generation Omarchy is the proposed target; validate exact versions instead of assuming compatibility or installing a second shell.
+- **Browser:** Chromium plus Focusa Workforce remains a first-class product surface; UIAI Engine supplies governed browser capabilities.
 
-## Architecture principle
-*Surfaces are interchangeable; primitives are the platform.* The browser extension, the desktop,
-mobile, and cloud runtimes are all windows into the same daemon-owned truth. Companion control plane:
-Focusa Cloud (private spec 115) — *cloud coordinates, node decides, receipts prove, private state stays local.*
+An **Agent Cloud Computer** is a provisioned, streamable Veragensia instance. Remote execution providers are optional adapters, not dependencies for ordinary local desktop use.
 
-## This repo
-- `overlay/` — the Focusa layer installed **on top of** stock Omarchy (theme, services, GUI).
-- `scripts/` — lab lifecycle, atomic deployment, browser launcher, narrow remote control, and screenshot tooling.
+## Architecture principles
+
+**Surfaces are interchangeable; primitives are the platform.**
+
+**Cloud coordinates. Node decides. Receipts prove. Private state stays local.**
+
+**Observe within scope; act under authority; preserve useful work.**
+
+[Doc 185](docs/185-veragensia-architecture-authority-provenance-and-wirebot-identity-policy.md) identifies **Verious Smith III as the sole current and final canonical human architecture authority**. Focusa operational authority, repository presence, and external proposals do not confer architecture ownership. Future Wirebot authority requires explicit verified delegation; a name or hash alone does not grant it.
+
+## Repository
+
+- `overlay/` — current webtop branding and the home of future native integrations.
+- `scripts/` — lab lifecycle, atomic deployment, browser launcher, narrow remote control, and evidence tooling.
 - `ops/sudoers/` — least-privilege deployment templates for the live lab.
-- `docs/182-…` — product/base/fleet specs (mirrors of public Focusa spec 182).
-- `docs/183-veragensia-public-agent-computer-security-and-lifecycle.md` — constant-availability, stable-sync, self-healing, and public/private browser trust contract.
+- `docs/182*` — product, base/overlay, and fleet specifications.
+- `docs/183-*` — live public-computer security and lifecycle contract.
+- `docs/185-*` — architecture authority and provenance policy.
+- `docs/186-*`, `187-*`, `188-*` — proposed native v0.1 implementation and bring-up contracts.
 
-## Run the lab (proving ground)
+## Run the existing lab
+
 ```bash
-scripts/uiai-lab-live up            # container + extension chromium + tunnel + keeper
-scripts/uiai-lab-live persist on    # always-on demo (off = idle teardown)
-scripts/uiai-lab-push               # atomic stable deploy + reload + end-to-end verification
+scripts/uiai-lab-live up
+scripts/uiai-lab-live persist on
+scripts/uiai-lab-push
 ```
 
-The public demo is a `public_demo` trust class: operator/provider credentials must use a private ephemeral browser context and must never persist in the public profile. See docs/183.
+These are existing lab operations, not Chromebook-install commands. The public demo is a `public_demo` trust class: operator/provider credentials must never persist in its public profile. Privileged authentication requires a separate authorized private context. See Doc 183 and `AGENTS.md`.
 
-## Planning and task tracking
+## Planning and releases
 
-Veragensia uses repository-local beads_rust through **`br` only**. Do not maintain duplicate backlogs in GitHub issues, markdown files, or another tracker. Public GitHub issues may remain as linked external references; `br` owns execution state and dependencies once `.beads/` is initialized.
+Use repository-local beads_rust through **`br` only**. Do not maintain duplicate execution backlogs in GitHub issues or Markdown. Specification acceptance IDs and candidate release metadata are contracts/evidence, not a second task tracker.
 
-Capture discoveries concisely first. The operator and planning agent decide which items need research, consolidation, a decision record, or a detailed numbered specification. The vision documents guide that work without prematurely fixing architecture.
-
-## Status
-Build-in-public. Phase 0 (live webtop demo) operational at os.focusa.dev. Phases 1–4 per docs/182.
+The operator and planning agent determine canonical decisions and sequencing. Proposed specifications must not be described as implemented merely because they are committed. Native release tagging requires the evidence gates in Doc 186; this documentation update does not publish a release or alter the live demo.
 
 ## License
-TBD (Omarchy base is MIT; Focusa primitives are source-available). See open questions in docs/182.
+
+TBD. Omarchy is MIT; Focusa primitives are source-available. Existing licensing and entitlement boundaries remain in force. See the product specification's open questions.

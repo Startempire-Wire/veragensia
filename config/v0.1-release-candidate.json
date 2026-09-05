@@ -1,0 +1,82 @@
+{
+  "schema": "veragensia.release_candidate.v1",
+  "target_version": "0.1.0",
+  "status": "specification_only",
+  "release_ready": false,
+  "prepared_on": "2026-09-04",
+  "baseline_commit": "948e9080efa1f52662b159193523e9c12a3d05a3",
+  "authority_policy": "docs/185-veragensia-architecture-authority-provenance-and-wirebot-identity-policy.md",
+  "implementation_spec": "docs/186-veragensia-v0.1-native-chromebook-release-spec.md",
+  "install_runbook": "docs/187-veragensia-chromebook-first-install-runbook.md",
+  "integration_contract": "docs/188-veragensia-v0.1-decisions-and-integration-contracts.md",
+  "hardware": {
+    "working_target": "Dell Chromebook 11 CC11260",
+    "expected_board": "ULDRENITE",
+    "actual_board_verified": false,
+    "ram_mib": null,
+    "storage_gib": null,
+    "ccd_equipment_available": null,
+    "firmware_version": null,
+    "hardware_evidence_ref": null
+  },
+  "platform": {
+    "mode": "native_omarchy",
+    "architecture": "x86_64",
+    "omarchy_version": null,
+    "hyprland_version": null,
+    "quickshell_version": null,
+    "iso_digest": null,
+    "compatibility_evidence_ref": null
+  },
+  "focusa_candidate": {
+    "version": "0.9.184",
+    "status": "published_dependency_not_yet_device_validated",
+    "release_url": "https://github.com/Startempire-Wire/focusa/releases/tag/v0.9.184",
+    "metadata_checked_on": "2026-09-04",
+    "artifacts": [
+      {
+        "name": "focusa",
+        "url": "https://github.com/Startempire-Wire/focusa/releases/download/v0.9.184/focusa",
+        "sha256": "7e72c30d37e77b592127841e592035a84406e0eff34b6edc98225aec84dbd004"
+      },
+      {
+        "name": "focusa-daemon",
+        "url": "https://github.com/Startempire-Wire/focusa/releases/download/v0.9.184/focusa-daemon",
+        "sha256": "1703fedf6317d8cdb39cbc349ce6b3237e778c16225bfead9a7cb51a2dc849b7"
+      }
+    ],
+    "runtime_schema_evidence_ref": null,
+    "authentication_evidence_ref": null
+  },
+  "native_artifacts": {
+    "installer_revision": null,
+    "session_bridge_revision": null,
+    "shell_plugin_revision": null,
+    "workforce_artifact_ref": null,
+    "agent_adapter_ref": null,
+    "containment_evidence_ref": null
+  },
+  "required_gates": [
+    {"id": "G00", "name": "authority", "status": "not_run", "evidence_ref": null},
+    {"id": "G01", "name": "hardware", "status": "not_run", "evidence_ref": null},
+    {"id": "G02", "name": "base", "status": "not_run", "evidence_ref": null},
+    {"id": "G03", "name": "dependencies", "status": "not_run", "evidence_ref": null},
+    {"id": "G04", "name": "install", "status": "not_run", "evidence_ref": null},
+    {"id": "G05", "name": "projection", "status": "not_run", "evidence_ref": null},
+    {"id": "G06", "name": "continuity", "status": "not_run", "evidence_ref": null},
+    {"id": "G07", "name": "isolation", "status": "not_run", "evidence_ref": null},
+    {"id": "G08", "name": "agent", "status": "not_run", "evidence_ref": null},
+    {"id": "G09", "name": "stop", "status": "not_run", "evidence_ref": null},
+    {"id": "G10", "name": "resilience", "status": "not_run", "evidence_ref": null},
+    {"id": "G11", "name": "experience", "status": "not_run", "evidence_ref": null},
+    {"id": "G12", "name": "rollback", "status": "not_run", "evidence_ref": null},
+    {"id": "G13", "name": "browser", "status": "not_run", "evidence_ref": null}
+  ],
+  "excluded_dependencies": ["fly_account", "sprites_backend", "resident_local_llm", "custom_iso"],
+  "notes": [
+    "This inventory is not a signed attestation or an authority grant.",
+    "Spec publication does not establish implementation or release readiness.",
+    "Do not populate hardware or compatibility fields from assumptions.",
+    "Task tracking remains in repository-local br; this file is release acceptance metadata."
+  ]
+}

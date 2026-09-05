@@ -1,203 +1,138 @@
-# 182 — Veragensia · Focusa Agent OS & Agent Cloud Computer Spec
+# 182 — Veragensia · Focusa Agent OS and Agent Cloud Computer
 
-**Status:** DRAFT (vision + naming locked 2026-08-26). **Live proving ground operational:** `https://os.focusa.dev` — persistent, login-free webtop + Chromium + Workforce extension, self-healing keeper, realtime iterate via `uiai-lab-push` (build-in-public demo / agent playground). Phases 0–1 remain the first formal slices; the live demo is the Phase-0 surface.
-**Owner:** Focusa product direction; extends 174 (extension MVP), 180 (widgets/wall), 181 (browser runtime).
-**Companions:** `WPUIAI/uiai-engine/docs/010-uiai-engine-web-runtime-leap-spec.md` (C-010-*); Omarchy (basecamp/omarchy, MIT).
-**Naming:** the product is **Veragensia** — *ver-* (truth, the Focusa signature root) + *agens* (the actor) + *-ia* (realm/land, as in *agentia*): "the realm of the true agent." It still ends in *-a*, rhyming with the focusa / perpetua / veribella family. It is the Focusa Agent OS: the whole stack of webtop + system-wide Focusa layer + custom GUI + UIAI Engine + browser + extension. A provisioned, streamable instance, bundled into the client setup offer, is an **Agent Cloud Computer**. (*Veragens* = official short form — the CLI/package name and the casual pair-with-Focusa, e.g. "Focusa Veragens"; *Veragensa* = considered variant; *Focusa Agent OS* = descriptor.) A pure coinage → clean trademark/domain.
+**Status:** DRAFT product direction; native v0.1 implementation proposal added 2026-09-04.
+**Canonical human architecture authority:** Verious Smith III, under Doc 185.
+**Original naming/product draft:** 2026-08-26. The prior draft is preserved in Git at `948e9080efa1f52662b159193523e9c12a3d05a3`; this revision explicitly updates the native integration and release framing rather than claiming the old GUI plan was implemented.
+**Live proving ground:** `https://os.focusa.dev`, governed separately by Doc 183.
+**Companions:** 182b (base/overlay), 182c (fleet), 183 (public lifecycle), 185 (authority), 186 (native v0.1), 187 (Chromebook bring-up), 188 (integration contracts).
 
-## Companion — Focusa Cloud control plane (private spec 115)
+## 1. Product and naming
 
-Veragensia is the **node/OS half** of a two-part architecture; the other half is the **Focusa Cloud
-control plane** (private spec 115). Division of labor, per 115's master rule *"Cloud coordinates.
-Node decides. Receipts prove. Private state stays local."*:
+**Veragensia** is the Focusa Agent OS: a human-owned operating environment with governed agents as native participants. **Veragens** is the short form and CLI/package naming direction. A provisioned, streamable instance is an **Agent Cloud Computer**.
 
-- **Cloud coordinates (115):** accounts, licensing, node registry, device pairing, governed relay, tool-gateway policy, proof/benchmark hosting.
-- **Node decides (182):** the Veragensia OS runs governed agents locally; owns work state, evidence, execution.
+The product lifts existing Focusa primitives from extension/daemon interaction into desktop services and native surfaces. It does not replace Linux, create a deep Omarchy fork, or make the browser extension the only interface.
 
-Integration points (detailed in private addendum **115a**):
-- An **Agent Cloud Computer** registers as a Focusa **node** (heartbeat, version, tier).
-- Production access matures from the demo tunnel into 115's **governed relay + device pairing** (scoped capabilities, node-side authority/redaction, no raw ports).
-- Premium OS surfaces defer to 115's **license/entitlement authority** (spec 112/118).
-- Agent tooling on the OS runs through 115's **Tool Gateway / Code Capsule** locally.
-- Agent work publishes redacted **proof receipts** (115) from the node.
+> Surfaces are interchangeable; primitives are the platform.
 
-182 defines the node/OS surface; 115 (private) defines the coordinating control plane. Neither is a
-cloud agent runtime; together they form the full product. Private addendum **115a** maps the two
-module-by-module (pricing→provisioning, relay→access, license→gating).
+The useful experience is continuous work across applications: explicit project context, recoverable progress, bounded assistance, understandable changes, and dependable stop/recovery controls. Agent-first must not make normal desktop interaction depend on a model call.
 
----
+## 2. Authority and ownership
 
-## 1. Vision
+Verious Smith III remains the architecture root. Focusa owns its scoped operational state, not the product's constitutional authority. Veragensia owns the assigned OS integration substrate; UIAI owns its browser runtime. Customer identities, issue authors, agents, repository presence, model outputs, or external platforms do not mint architecture authority. Doc 185 controls conflicts and future Wirebot delegation.
 
-Focusa today ships as a **browser extension** talking to a daemon. The primitives that power it
-(daemon authority, worksets/workstreams, silent sessions, contextual authorization, approvals,
-credentials broker, device pairing, work loop, roles, widgets/wall, SSE, audit) are **platform
-primitives**, not extension features.
+Do not introduce competing Veragensia memory, task, grant, or truth stores where an existing Focusa primitive already owns the concern. A presentation cache is not canonical state.
 
-**Focusa OS** lifts those primitives from *extension ↔ daemon* to *OS services ↔ OS GUI*, so Focusa
-stops being "a browser extension" and becomes an **agent/human operating environment**. The browser
-extension, the desktop, mobile, and cloud runtimes become interchangeable **surfaces** over the same
-daemon-owned truth.
+## 3. Platform composition
 
-The **Agent Cloud Computer** is the client-facing product: a real Linux desktop (streamable via
-webtop/Selkies) running Focusa OS, with the UIAI Engine as the agent's browser/eyes — a workspace
-where a human and one or more governed agents work side by side.
+| Layer | Responsibility |
+|---|---|
+| Stock Omarchy / Arch / Hyprland | Hardware, session, compositor, system lifecycle, supported desktop integration points |
+| Native Veragensia surfaces | Work context, agent activity, artifact review, approvals, interruption and recovery |
+| Session adapter | Bounded observation and projection; scoped requests into existing Focusa contracts |
+| Existing Focusa daemon | Project/continuity, Workpoints, Worksets, authorization, sessions, evidence, operational reduction/persistence |
+| UIAI / Workforce | Governed browser perception/action and a private surface into the same Focusa state |
+| Execution adapters | Enforced local or later remote environments under existing permission/resource semantics |
 
-> **Surfaces are interchangeable; primitives are the platform.**
+The current public demo remains a separate Ubuntu/KDE webtop implementation. Its existence does not demonstrate native Omarchy compatibility.
 
----
+### Native shell revision
 
-## 2. Composition of Focusa OS
+The earlier Waybar modules plus separate QML-shell plan is **not the selected v0.1 proposal** for plugin-generation Omarchy. The native proposal uses Omarchy's supported shell-plugin/configuration interfaces with a thin session adapter. Omarchy's current manual documents this integration model; exact installed versions and runtime compatibility remain test gates.
 
-```
-┌──────────────────────────────────────────────────────────────┐
-│  Custom Focusa GUI (QML shell, waybar modules, branded theme) │
-├──────────────────────────────────────────────────────────────┤
-│  System-wide Focusa layer (daemon svc, IPC bus, approvals,    │
-│  credentials, pairing, work-loop scheduler, audit, notify)    │
-├──────────────────────────────────────────────────────────────┤
-│  UIAI Engine (agent browser: verbs, budgets, fleet, events)   │
-├──────────────────────────────────────────────────────────────┤
-│  Omarchy base (Arch + Hyprland, themes, dotfiles) — upstream  │
-└──────────────────────────────────────────────────────────────┘
-```
+Do not rely on historical repository language percentages, assume all Omarchy versions expose the same API, or claim upstream updates merge “for free.” Keep upstream source untouched and test supported versions explicitly.
 
-- **Base:** Omarchy (MIT) — beautiful, opinionated, Hyprland/Wayland, QML GUI stack. Kept **upstream-untouched**.
-- **System-wide Focusa layer:** an **overlay** (separate repo/package) that installs *on top of* Omarchy. This is the maintainability key — no deep fork, so upstream updates merge cleanly.
-- **Custom Focusa GUI:** branded Hyprland theme + waybar Focusa modules + QML shell surfaces (start page / wall / command panel as native desktop surfaces).
-- **UIAI Engine:** the agent's browser and perception layer (intent verbs, budgets, warm fleet, artifact-ref screenshots, event stream) — already live on OVH.
+## 4. Focusa primitive-to-OS mapping
 
----
+| Focusa concern | OS projection/integration |
+|---|---|
+| ProjectIdentity + `project_root + continuity_id` | Explicit selected-project binding; no inferred authority from cwd/window focus |
+| Workpoint and Trajectory | Continue work with existing evidence/blockers/next action; preserve advisory/canonical distinctions |
+| Worksets / Workstreams | Work organization related to, but not identical with, compositor workspaces |
+| Sessions / work loop | Bounded governed work with real lifecycle, resource accounting, cancellation and recovery |
+| Authorization / approvals | Consequence-specific native prompts using existing authority; no grant stored in QML |
+| Credentials / pairing | Private enrolled surfaces and scoped credentials; no public-profile or LAN-token shortcuts |
+| Ontology / evidence / verification | Shared meaning and inspectable support; no equation of graph validity with factual truth |
+| Reflexes / secondary cognition | Bounded observation, salience and escalation through existing Focusa mechanisms |
+| Reliability / trust evidence | Contextual evidence influencing routing/verification, never overriding permission |
+| Events / audit | Freshness-aware native status and durable outcome evidence owned by the appropriate runtime |
 
-## 3. System-wide Focusa layer — primitive → OS mapping
+Implementation must resolve the actual supported operation descriptors and prove both producer and consumer behavior. A generic `can(...)` diagram is not proof of enforced OS containment.
 
-| Focusa primitive | Extension today | Focusa OS |
-|---|---|---|
-| Daemon (runtime/authority) | background service | OS init service (the agent "kernel") |
-| Worksets / Workstreams | tab views | desktop work organization |
-| Silent sessions | governed bg tasks | OS-level autonomous agent processes |
-| `can(principal, capability, context)` | route gating | OS permission model for agents (sudo/UAC for agents) |
-| Approvals | in-panel prompts | OS-wide approval prompts (human-in-the-loop) |
-| Credentials broker | extension secrets | OS keyring / secret service for agents |
-| Device pairing | pair a browser | pair any device as a trusted OS surface |
-| Work loop | polling widget | OS agent scheduler (agent-aware cron) |
-| Roles / composer | dropdown | OS-level agent identities/personas |
-| Widgets / wall | browser panels | native desktop widgets + the "wall" |
-| SSE event stream | notification center | OS notification bus (real-time agent events) |
-| Audit | in-panel log | system-wide durable audit |
+## 5. Privacy and agent execution
 
-**Accept (layer):** each primitive is exposed as a system service with a stable IPC contract; a
-reference GUI module consumes it read-only before any mutation surface exists.
+Intelligence can participate widely; perception remains purposeful and scoped. No default capture of clipboard, keystrokes, private window contents, microphone, camera, or arbitrary home-directory content. Observations may be tentative and transient; they do not automatically become memories or actions.
 
----
+The owner retains ordinary control of the computer. Veragensia must distinguish governed runs from unmanaged upstream launchers. Untrusted code needs enforced separation from user files, session sockets and credentials. A prompt, process label, systemd scope, or shell panel is not sufficient isolation.
 
-## 4. Custom Focusa GUI
+A run may prepare a draft or patch within its approved output scope. Replacing originals, publishing, spending, changing system packages, or expanding access are separate authorized operations. Lost connections and failed cancellation must appear as uncertain/pending rather than falsely complete.
 
-- **Branded Hyprland theme** in Focusa identity (colors, logo, cursor, splash).
-- **waybar modules** surfacing live Focusa state: active mission, agent activity, pending approvals, budget posture.
-- **QML Focusa shell** (Omarchy is ~31% QML — native stack): start page, wall, and command panel as desktop surfaces, not browser tabs.
-- **Notification daemon** integration for agent events (from the SSE bus).
+## 6. Native experience
 
-**Accept (GUI):** a Focusa-branded session boots under Hyprland; waybar shows live daemon state from a fixture; the shell renders the start page natively.
+Native surfaces should provide: selected work context; continuation; bounded agent activity; artifact review; understandable approvals; explicit stop; and visible stale/degraded state. Avoid a permanent giant AI dashboard or simulated cognition. Useful state changes should be visible without notification floods.
 
----
+A workspace association is an aid to navigation, not proof of intent. Agents should work in separate bounded environments without stealing pointer/focus from the human. Accessibility, pointer use, keyboard navigation, readable scaling, reduced motion, and honest limitations are acceptance concerns, not later visual polish.
 
-## 5. UIAI Engine as the agent's browser
+## 7. Chromebook and constrained hardware
 
-The Engine (spec 010) is the agent's eyes/hands inside Focusa OS:
-- **Intent verbs / budgets / fleet** give agents governed browsing.
-- **Artifact-ref screenshots** give the human a view of what the agent sees.
-- **Event stream** feeds the OS notification bus (agent activity is visible, never silent).
-- The Engine runs as a system service; the GUI can embed an agent-view (live screenshot / stream).
+Reclaimed/constrained hardware is a design target, not an excuse for degraded foreground interaction. Reuse Focusa's existing constrained/LowMem mechanisms. Keep essential local continuity and normal desktop behavior independent of a mandatory resident model or cloud service.
 
-**Accept:** an agent browsing task produces an artifact-ref visible in the Focusa GUI; a budget pause surfaces as an OS notification.
+The initial recovered planning target is Dell Chromebook 11 CC11260 / expected ULDRENITE. Exact board, firmware procedure, resource capacity and Linux hardware qualification are device gates in Doc 187. ChromeOS Linux-container integration and remote access are distinct modes, not native Omarchy substitutes.
 
----
+Idle, locked, and suspended are different states. Absence never broadens permissions. Do not enable unattended work or lingering automatically.
 
-## 6. Architecture: overlay, not deep fork
+## 8. UIAI Engine and browser
 
-- Keep Omarchy **upstream-untouched**; consume it as a base image / install.
-- Ship Focusa as `focusa-os-layer` (its own repo): theme + services + GUI + tooling, installed on top.
-- **Fork only** what must be rebranded (logo/name/boot splash). Everything else is overlay.
-- Benefit: upstream Omarchy updates merge for free; the Focusa layer stays small, reviewable, brandable.
+Chromium plus Focusa Workforce remains a first-class product surface. The native preview must use a private profile and the same enrolled Focusa identity; current public demo browser profiles and credentials must not be copied to the laptop.
 
-**Accept:** a clean `focusa-os-layer` applies onto a stock Omarchy install with no patches to upstream files.
+UIAI's intent verbs, resource budgets, screenshots/artifact references, and event stream remain browser implementation concerns. Native messaging may become a later transport adapter; it is not required before proving the existing supported private pairing path. Do not expose raw CDP or daemon ports to make integration convenient.
 
----
+## 9. Focusa Cloud and optional execution providers
 
-## 7. Agent Cloud Computer (the client offering)
+The existing private control-plane companion remains spec 115 and its approved addenda:
 
-The deliverable bundled into client setup:
-- **webtop** (LinuxServer/Selkies) for streaming the desktop to any browser (human view), no-login ephemeral share like `gui.focusa.dev`.
-- **Focusa OS** (Omarchy + overlay) as the desktop environment.
-- **UIAI Engine** as the agent browser.
-- **Chromium + Focusa Workforce extension** preinstalled and loaded by default on every install — the extension is a native, first-class surface of the OS (not an optional add-on).
-- **Focusa daemon** as the authority, owning runtime/persistence/authorization across all surfaces.
+> Cloud coordinates. Node decides. Receipts prove. Private state stays local.
 
-Result: a human opens a URL and shares a desktop with governed agents; both act in one workspace.
+Public documentation can reference accounts, node registry, licensing, scoped pairing/relay, and redacted proof coordination without copying private implementation specifications. Native nodes retain their assigned execution/state authority.
 
-**Accept:** a provisioned Agent Cloud Computer streams to a URL with Chromium + the extension already loaded; a human and an agent both see and act on the same desktop state; teardown on idle.
+Fly/Sprites-inspired lifecycle, checkpoints and isolated work environments are candidate adapter concepts, not a required v0.1 dependency. “Workcell” specializes existing Focusa ExecutionContext/affordance concepts rather than adding a parallel permission/identity model. Infrastructure leases are not automatic authorization for application actions. Filesystem restore, process resume, cognitive continuity and reversal of external effects remain distinct.
 
----
+## 10. Packaging and update policy
 
-## 8. Licensing & entitlement
+Consume Omarchy without patching its package-owned source. Use supported user/plugin/service interfaces. v0.1 can use an idempotent, pinned native installer while later signed package distribution is developed; do not put package-repository or custom-ISO work on the initial proof's critical path.
 
-- Premium OS surfaces (agent concurrency, cloud-computer hours, persona/mesh features) are **fail-closed** without an entitled tier.
-- Authority is the existing **wpuiai.com WP-REST license validation** → `Identity{Tier}` (per spec 172 / engine licensing matrix).
-- Unknown/internal tiers get zero premium OS features. The base desktop remains usable.
+Native and webtop installers are different target adapters. The existing webtop `overlay/install.sh` is not a native installer. Update/rollback must preserve unrelated configuration, user work and Focusa data. OS snapshots do not automatically define valid cognitive-state rollback.
 
-**Accept:** an unentitled Agent Cloud Computer boots to base desktop only; entitled tier unlocks agent surfaces; validation failure never grants premium.
+## 11. Release sequence
 
----
+| Stage | Deliverable and evidence |
+|---|---|
+| Existing Phase 0 | Public webtop proving ground under Doc 183; independently maintained |
+| Native v0.1 | Stock supported Omarchy, native status/Work surface, existing Focusa continuity, one bounded real-agent task, artifact review, tested stop and rollback |
+| Native expansion | Richer work surfaces, additional approved application actions, improved packaging and accessibility |
+| Execution expansion | Optional remote work environments, provider adapters, evidence-backed handoff and lifecycle |
+| Distribution | Reproducible installation/provisioning and broader qualified hardware/fleet support |
 
-## 9. Phased plan
+The old calendar estimates are not retained as delivery promises. Each stage is evidence-gated. Doc 186 replaces the old undifferentiated native Phase-1/2 GUI framing for the immediate v0.1 proposal, without declaring future phases complete.
 
-- **Phase 0 — Prove the concept (days):** Focusa theme + preinstalled extension + daemon, on the *current* Ubuntu webtop, visible at a share URL. Validates streaming + branding cheaply.
-  **Accept:** branded desktop streams; extension loads by default.
-- **Phase 1 — Omarchy base + overlay (week):** `focusa-os-layer` (theme + daemon systemd service + preinstall) applied to an Omarchy image; runs in webtop.
-  **Accept:** Omarchy+overlay boots in webtop with Chromium + extension preinstalled; daemon service healthy; share URL shows Focusa OS.
-- **Phase 2 — System layer (weeks):** OS IPC bus, waybar Focusa modules, approvals/notify integration, credentials broker as secret service.
-  **Accept:** waybar shows live daemon state; an agent action triggers an OS approval prompt.
-- **Phase 3 — Custom GUI (weeks):** QML Focusa shell (start/wall/command as native surfaces); agent-view embed (Engine artifact-ref).
-  **Accept:** shell renders start page natively; agent screenshot visible in GUI.
-- **Phase 4 — Ship (weeks):** installable image (real agent computers) + streamable webtop (human view) + licensing gate.
-  **Accept:** provisioned cloud computer passes §7 + §8 acceptance.
+## 12. Licensing and trust classes
 
-Sequencing: 0 → 1 → 2 → 3 → 4. Each phase is independently valuable and releasable.
+Existing Focusa/UIAI licensing and entitlement authority remain in force. Unknown, invalid, stale or unsupported entitlement never grants premium capabilities. Normal base desktop use remains available. No testing flag, internal tier, or fake lease may unlock a real user's capabilities.
 
----
+The public demo is explicitly `public_demo`; private operator/authentication contexts have separate identity, retention and revocation requirements. Doc 183 and AGENTS.md remain authoritative for live behavior and credential handling.
 
-## 10. Non-goals
+## 13. Acceptance and open boundaries
 
-- A new kernel / from-scratch distro (Omarchy is the base).
-- Deep-forking Omarchy (overlay only).
-- Making the extension the only surface (it becomes one of many).
-- Real-time GUI streaming from Cloudflare containers (CF DO/containers are for *headless* scale; interactive streaming stays on webtop/VM).
+Doc 186 defines the required native gate IDs. A native release is not accepted from a theme screenshot or a fixture alone. Required evidence includes exact hardware, compatible dependencies, actual Focusa state projection, a real bounded agent result, isolation, cancellation, recovery and install rollback.
 
-## 11. Risks & caveats
+Still requiring implementation evidence: native installer; session bridge and plugin; exact Omarchy version set; compatible private Workforce build; chosen governed runner and containment; owner/device acceptance. These are explicit gaps, not claimed finished components.
 
-- **Containerizing Arch+Hyprland** (for streaming) is harder than Ubuntu-KDE; Phase 0 stays Ubuntu, Phase 1 invests in an Omarchy container or ships Omarchy as installable-only.
-- **Upstream velocity:** Omarchy moves fast (6k+ commits); overlay design is the mitigation.
-- **Scope:** this is a real product effort; phases keep it incremental. No phase is wasted.
-- **GPU/encoding** for streaming lives in the webtop/Selkies stack, not in Focusa.
+## 14. Planning discipline and references
 
-## 12. Open questions
+Use repository-local `br` for tasks/dependencies. Specifications and release gate metadata are contracts, not duplicate execution backlogs. Do not edit other repositories or the live lab implicitly when revising this product proposal.
 
-- Omarchy-in-container vs installable-image-first for Phase 1?
-- Which premium OS surfaces map to which license tiers (extend spec 172 matrix)?
-- Branding: fork-and-rebrand vs overlay-only theming?
-- How do device-paired mobile surfaces render the shared desktop (read-only stream vs interactive)?
-
----
-
-## 13. Relation to existing work
-
-- **Done primitives** (daemon, worksets, silent sessions, `can()`, approvals, credentials, pairing, work loop, roles, widgets/wall, SSE, audit) are **re-homed**, not rebuilt. The OS is packaging + surfacing.
-- **GUI lab** (`gui.focusa.dev`, `uiai-lab-live`) is the live proving ground for Phases 0–1.
-- **Extension** (174/180) remains a first-class surface and the fastest demo path.
-
----
-
-## 14. Planning discipline
-
-This document supplies high-level vision and locked product principles, not a requirement to design every future phase immediately. Capture discoveries as concise repository-local `br` items without duplicating GitHub issues. The operator and planning agent decide sequencing, consolidation, and when an architectural choice needs a detailed numbered specification. Open questions remain open until that decision is recorded.
+- [182b — base and overlay](182b-veragensia-base-os-and-overlay-detailed-spec.md)
+- [185 — architecture authority](185-veragensia-architecture-authority-provenance-and-wirebot-identity-policy.md)
+- [186 — native v0.1 requirements](186-veragensia-v0.1-native-chromebook-release-spec.md)
+- [187 — Chromebook installation](187-veragensia-chromebook-first-install-runbook.md)
+- [188 — decisions and wire contracts](188-veragensia-v0.1-decisions-and-integration-contracts.md)
+- [Omarchy shell plugins](https://omarchy.org/manual/shell-plugins/) and [supported user configuration](https://omarchy.org/manual/dotfiles/), checked 2026-09-04.
