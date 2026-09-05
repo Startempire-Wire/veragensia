@@ -20,9 +20,15 @@ This file governs work in the `Startempire-Wire/veragensia` repository. It appli
 
 Veragensia is an agent/human operating environment built from an upstream base, a Veragensia overlay, Focusa primitives, UIAI Engine, Chromium, and the Focusa Workforce extension. It is not a new kernel, a deep Omarchy fork, or an unaudited cloud-agent runtime.
 
-Core principle:
+Core principles:
 
 > Surfaces are interchangeable; primitives are the platform.
+
+> Focusa decides what a governed actor may do. Veragensia makes the machine behave as though that decision is real.
+
+> Keyboard and mouse are optional peripherals in a full `voice_complete` Agent Computer.
+
+> Ambient does not mean globally omniscient, always-recording, or globally authoritative.
 
 Control-plane principle:
 
@@ -45,14 +51,15 @@ Use this precedence when instructions conflict:
 2. This `AGENTS.md`.
 3. `docs/183-veragensia-public-agent-computer-security-and-lifecycle.md` for the live public demo.
 4. `docs/182-veragensia-focusa-agent-os-spec.md` for product direction.
-5. `docs/182b-veragensia-base-os-and-overlay-detailed-spec.md` for base/overlay boundaries.
-6. `docs/182c-veragensia-fleet-scale-tailnet-spec.md` for fleet growth.
-7. `README.md` and subtree documentation.
-8. Existing implementation patterns, only when they do not conflict with the authorities above.
+5. primitive-owning Docs 190–199 for their respective domains.
+6. `docs/182b-veragensia-base-os-and-overlay-detailed-spec.md` for base/overlay boundaries.
+7. `docs/182c-veragensia-fleet-scale-tailnet-spec.md` for fleet growth.
+8. `README.md` and subtree documentation.
+9. Existing implementation patterns, only when they do not conflict with the authorities above.
 
-Status matters: Doc 183 is a **live operational contract**; Docs 182/182b/182c contain draft product direction. Do not silently turn an open question in a draft spec into permanent architecture.
+Status matters: Doc 183 is a **live operational contract**; Docs 182/182b/182c and 190–199 contain product/architecture direction with their own stated status. Do not silently turn an open question in a draft spec into permanent architecture, and do not describe a committed spec as shipped implementation.
 
-If a required decision is absent, document the ambiguity and ask. Do not invent deployment targets, control planes, ports, credentials, pricing, licensing tiers, or fleet topology.
+If a required decision is absent, document the ambiguity and ask. Do not invent deployment targets, control planes, ports, credentials, pricing, licensing tiers, fleet topology, microphone authority, Foreman scope, Radar semantics, or mobile sync behavior.
 
 ## 3. Read before changing
 
@@ -63,7 +70,17 @@ Before modifying a relevant area, read the corresponding authority completely:
 | Live demo, browser profiles, lifecycle, deployment, security | `docs/183-veragensia-public-agent-computer-security-and-lifecycle.md` |
 | Product or UX architecture | `docs/182-veragensia-focusa-agent-os-spec.md` |
 | Base image, overlay, themes, services, installer | `docs/182b-veragensia-base-os-and-overlay-detailed-spec.md` |
-| Fleet, tailnet, spawning, headless workers | `docs/182c-veragensia-fleet-scale-tailnet-spec.md` |
+| Fleet, tailnet, spawning, headless workers | `docs/182c-veragensia-fleet-scale-tailnet-spec.md`, `docs/191-*` |
+| Agent-first software, Agent Apps, resolver | `docs/190-*` |
+| Telemetry/privacy/anti-exfiltration | `docs/192-*` |
+| Linux capability enforcement, workload identity, sandboxing | `docs/193-*` |
+| Secure Attention, takeover, desktop observation/control leases | `docs/194-*` |
+| ResourceRef/runtime incarnation/state transfer | `docs/195-*` |
+| Boot/platform trust, runtime attestation | `docs/196-*` |
+| Voice/audio/full-duplex/no-keyboard operation | `docs/197-*`, Focusa Spec 181 |
+| Native v0.1 vs full-profile interpretation | `docs/198-*` |
+| Omarchy plugin + trusted audio/sync services + mobile/wearable Ambient Operator | `docs/199-*`, `docs/contracts/ambient-operator-convergence-map.v1.yaml`, Focusa Specs 182–184 |
+| Browser/computer execution from voice/mobile/Radar/Foreman | UIAI Veragensia computer-control/voice binding + applicable UIAI contracts |
 | Repository orientation | `README.md` |
 
 Before edits:
@@ -78,31 +95,55 @@ Before edits:
 
 - `overlay/` — the only Veragensia mutation layer applied over a stock base.
 - `overlay/themes/` — branded visual assets and desktop theme material.
-- `overlay/services/` — future OS service definitions.
-- `overlay/gui/` — future native shell and desktop surfaces.
+- `overlay/services/` — OS service definitions and service integration.
+- `overlay/gui/` — native presentation components where appropriate.
+- `overlay/omarchy/` — proposed stock-Omarchy adapter/install/plugin/session integration.
 - `scripts/` — repository-managed lifecycle, browser, deployment, and evidence helpers.
 - `ops/` — auditable operational templates, including least-privilege boundaries.
 - `tests/` — static and behavioral regression tests.
 - `docs/182*` — product, base/overlay, and fleet specifications.
 - `docs/183-*` — live public Agent Computer security and lifecycle contract.
+- `docs/190-*` through `199-*` — current Agent Computer software, cloud, telemetry, enforcement, control, resource, trust, voice and Ambient Operator architecture.
+- `docs/contracts/ambient-operator-convergence-map.v1.yaml` — ownership/dependency/slice map; not task status.
 
 Do not place durable implementation in `/tmp`, an operator home directory, a transient Focusa checkout, or an unmanaged live-host script. Temporary experiments must either be removed or promoted into this repository with tests and documentation.
 
 ## 5. Base and overlay invariants
 
 - Keep Omarchy and webtop upstream code untouched.
-- Implement Veragensia behavior as an overlay, package, service, or bounded integration.
+- Implement Veragensia behavior as an overlay, package, service, plugin, or bounded integration.
 - Do not deep-fork the base to simplify a short-term change.
 - Fork or replace only an explicitly approved branding surface.
-- Keep `overlay/install.sh` idempotent and non-destructive.
+- Keep installers idempotent and non-destructive for their declared target.
 - A repeated overlay application must converge rather than accumulate state.
 - GUI surfaces consume daemon-owned truth; they do not become independent authorities.
 - Read-only integration comes before mutation controls.
 - Mutating agent actions require the applicable Focusa authorization and approval path.
 
+### 5.1 Omarchy plugin boundary
+
+A normal Omarchy/Quickshell plugin is a **presenter/operation-forwarder**, not an isolation or authority boundary.
+
+Therefore:
+
+- do not store credential values or broad secrets in plugin/QML state;
+- do not make a plugin the Focusa reducer, Foreman/Radar state store, microphone authority, credential broker, EnforcementPlan compiler, or direct canonical database writer;
+- use supported user plugin/config paths and validate manifests;
+- do not modify package-owned Omarchy source under the upstream installation;
+- keep trusted audio/sync/enforcement logic in separate bounded workloads/services;
+- a visually trusted QML approval dialog is not hardened Secure Attention by itself.
+
+### 5.2 Ambient ownership
+
+- Focusa owns Project Foreman, Radar, Conversation and Ambient semantic primitives.
+- Veragensia owns Linux/Omarchy/audio/sync/enforcement integration.
+- UIAI owns browser/computer execution and proof.
+- Wirebot/Context Core may own broader life/portfolio context in the Startempire reference deployment.
+- phone/earbuds/wearables are paired surfaces and observation endpoints, never automatic application/architecture authority.
+
 ## 6. Trust classes
 
-Every browser or desktop workflow must identify its trust class before credentials or privileged actions are considered.
+Every browser, desktop, audio, mobile-sync, or Agent App workflow must identify its trust class before credentials or privileged actions are considered.
 
 ### `public_demo`
 
@@ -113,7 +154,8 @@ It must never retain:
 - operator or customer identities;
 - GitHub, AppVeyor, cloud, DNS, payment, or vault sessions;
 - passwords, API keys, tokens, OTP seeds, recovery codes, cookies, or OAuth grants;
-- personal browsing data or customer content.
+- personal browsing data or customer content;
+- private Ambient Operator conversation/location streams.
 
 The public profile is for demonstrations, synthetic data, public research, and governed product interaction only.
 
@@ -132,9 +174,13 @@ Prefer an authenticated API-native action before launching a privileged browser.
 
 ### `private_operator`
 
-A future private operator context must have explicit identity, authorization, retention, audit, and revocation contracts. Do not treat root, SSH, CDP, Docker, tailnet, or filesystem access as implicit permission.
+A private operator/Ambient context must have explicit identity, authorization, retention, audit, revocation and paired-device contracts. Do not treat root, SSH, CDP, Docker, tailnet, Bluetooth, filesystem access, paired-phone status, or voice recognition as implicit permission.
 
 **Transport capability is not authorization.**
+
+### Platform trust class
+
+Do not overclaim signed/measured/hardware-attested trust. Current stock Omarchy developer hardware defaults to the evidenced Doc-196 trust posture (normally `T1_DEVELOPER`) unless a stronger boot/attestation path is separately implemented and proven.
 
 ## 7. Secret and customer-data handling
 
@@ -148,6 +194,7 @@ A future private operator context must have explicit identity, authorization, re
 - Redact receipts so they prove the action without carrying credentials or personal data.
 - If a secret reaches a public or persistent surface, stop the exposure, report it, revoke/rotate as applicable, scrub storage, and record value-free evidence.
 - Public demo data must be clearly synthetic and safe to reset.
+- Raw conversation/audio, exact GPS and other high-sensitivity Ambient content follow their explicit privacy/retention contracts and are not generic telemetry.
 
 ## 8. Live-demo invariants
 
@@ -177,16 +224,19 @@ owner_drift: none
 
 Do not weaken a hard gate into a warning to make a deployment appear green.
 
+Doc 199 does not authorize adding private Ambient Operator credentials, phone context or meeting data to the public demo.
+
 ## 9. Permission and self-healing boundaries
 
 Self-healing must be narrow and deterministic.
 
 - Repair ownership only on the stable extension and demo-data scopes named in Doc 183.
 - Never recursively `chown`, `chmod`, delete, or rebuild unrelated `/home/wirebot` content.
-- Never use broad wildcard cleanup against user, customer, daemon, browser, or evidence data.
+- Never use broad wildcard cleanup against user, customer, daemon, browser, conversation, sync-queue, or evidence data.
 - Preserve live databases, audit ledgers, credentials, user files, and unknown state.
 - Cleanup is limited to verified rebuildable staging, rollback, cache, and temporary artifacts.
 - Keep at most the bounded rollback state defined by the deployment transaction.
+- A stuck mobile/audio service does not justify deleting canonical Focusa conversation/work state.
 
 ## 10. Deployment contract
 
@@ -207,6 +257,8 @@ Remote privilege is limited to `scripts/uiai-lab-remote-control` and the matchin
 
 Never deploy by manually copying selected files into live locations as a substitute for this transaction. Do not run live deployment commands without explicit operator authorization and a current spec/acceptance path.
 
+Native Omarchy/Companion implementation uses its own target-specific transaction and acceptance gates; do not reuse the webtop public-demo transaction as proof of native readiness.
+
 ## 11. Failure handling
 
 No silent failures.
@@ -215,9 +267,10 @@ No silent failures.
 - Do not append `|| true` to required operations.
 - Best-effort behavior is allowed only when explicitly non-critical and documented as such.
 - Report the exact failing command, bounded error, and suspected cause.
-- File an issue for real product, infrastructure, or workflow defects.
+- File an issue for real product, infrastructure, or workflow defects only when a public external reference is needed; canonical execution state remains in `br`.
 - Include a concrete fix plan and acceptance criteria.
 - If the canonical lifecycle or deployment mechanism breaks, fix that mechanism rather than inventing an unmanaged bypass.
+- Mobile/audio/background suspension, stale sync, route changes and unavailable microphone are explicit runtime states, not silent fallbacks.
 
 ## 12. Testing and acceptance
 
@@ -237,6 +290,12 @@ Additional requirements by scope:
 - Overlay changes: prove idempotency and that upstream base files remain untouched.
 - Browser/security changes: prove context isolation, cleanup, closed private endpoints, zero public auth residue, and public health restoration.
 - Product contracts: test producer and consumer behavior, cross-version compatibility, and live end-to-end delivery where applicable.
+- **Omarchy plugin changes:** run `omarchy plugin validate` on the plugin in a qualified target environment; prove plugin unload/reload/rescan and no package-owned upstream modifications.
+- **Trusted audio changes:** prove microphone/output endpoint inventory, headset route/profile changes, hardware/software mute posture where available, no ambient microphone grant to unrelated worker/browser/plugin, and safe behavior on Bluetooth disconnect.
+- **Companion sync changes:** prove device pairing/revocation, encryption, sequence/replay defense, idempotency, offline queue restart, acknowledgement/reconciliation and stale-state labeling.
+- **Foreman/Radar/Ambient changes:** prove exact Workstream identity, no cross-Workstream state bleed, no observation-to-authority shortcut, and no direct mobile writes into Focusa persistence.
+- **Voice-complete changes:** run at least one representative workflow with keyboard/pointer absent or disabled and preserve utterance → operation → Evidence/Receipt lineage.
+- **UIAI Ambient changes:** prove normal UIAI observation/control/verification path, control-lease fencing, and re-observation after human takeover.
 
 Tests must use synthetic fixtures and leave zero residue. A green producer test does not prove a consumer received or enforced the contract.
 
@@ -254,7 +313,7 @@ Use **`br` only** for repository-local task tracking. Do not introduce alternate
 - Bounded documentation corrections, test additions, and implementation work under an existing exact contract may use acceptance criteria directly in the `br` item.
 - A planning item closes when its decision or approved plan is durable; an implementation item closes only when its acceptance evidence is durable.
 
-The high-level vision in Docs 182/182b/182c guides planning; it does not force premature architecture or speculative implementation.
+The stable implementation slices in Docs 182/190–199 and `docs/contracts/ambient-operator-convergence-map.v1.yaml` are **requirements/decomposition inputs, not task status**. Materialize them into `br`; never update the specs as a substitute for the task graph.
 
 ## 14. Documentation rules
 
@@ -265,6 +324,7 @@ The high-level vision in Docs 182/182b/182c guides planning; it does not force p
 - Record acceptance criteria, rollback, and evidence steps for infrastructure changes.
 - Preserve historical decisions; supersede them explicitly rather than rewriting history invisibly.
 - Never copy private control-plane specifications or secrets into this public repository. Public docs may reference private spec numbers and bounded interfaces only.
+- Historical proposal labels such as Radar `Spec 164` or Ambient Voice `135M` must not overwrite current Focusa numbering; use current Focusa Specs 182–184.
 
 ## 15. Change and Git discipline
 
@@ -274,7 +334,7 @@ The high-level vision in Docs 182/182b/182c guides planning; it does not force p
 - Do not overwrite unrelated or unrecognized work.
 - Run required checks before committing.
 - Push normal code/documentation changes to the intended remote before declaring them complete.
-- Link the relevant issue and leave a concise evidence-backed handoff.
+- Link the relevant issue when appropriate and leave a concise evidence-backed handoff.
 
 The canonical tracker is a repository-local beads_rust workspace operated with `br`. If `.beads/` has not yet been initialized, do not create a parallel backlog elsewhere; initialize it once under operator authorization, then link any existing GitHub issue as an external reference.
 
@@ -284,15 +344,23 @@ Veragensia is expected to grow, but growth must preserve its contracts.
 
 ### New base targets
 
-Add target-specific adapters behind the base/overlay contract. Do not let Chromebook, Omarchy, VM, container, or future platform details leak into every overlay component.
+Add target-specific adapters behind the base/overlay contract. Do not let Chromebook, Omarchy, VM, container, mobile OS, or future platform details leak into every component.
 
 ### New services and GUI surfaces
 
 Define stable, versioned IPC contracts. Keep daemon/node authority separate from presenters. Start read-only, then add governed mutation and approval behavior.
 
+For Omarchy specifically, keep first-party trusted behavior behind service contracts; Quickshell plugins remain thin presenters/operation-forwarders.
+
+### Audio and Ambient services
+
+Trusted audio capture, Companion sync and owner-context projection remain independently scoped workloads. No broad same-UID microphone, phone-context, or precise-location authority.
+
 ### Fleet and tailnet
 
 Keep daemons private, enrollment scoped, budgets bounded, and teardown explicit. Do not expose unauthenticated daemon ports or permit unbounded agent/LLM spend.
+
+Tailscale/private networking may carry Companion bulk sync, but transport reachability is not Focusa application authority.
 
 ### Licensing
 
@@ -302,9 +370,13 @@ Premium behavior fails closed. Unknown, invalid, stale, or internal tiers receiv
 
 Model trust class, identity, scope, retention, cleanup, and evidence as first-class inputs. Prefer reusable UIAI capabilities over one-off CDP scripts, but do not claim a capability exists before it is implemented and proven.
 
+### Mobile clients
+
+Use supported Android/iOS APIs and model background/suspension restrictions honestly. A mobile app is a paired edge adapter, not a replacement Focusa daemon or Veragensia kernel.
+
 ### Repository structure
 
-A future subtree may add its own `AGENTS.md` for specialized rules. It may tighten this contract, add platform-specific gates, or define local ownership. It may not weaken public-demo isolation, secret handling, immutable authority, least privilege, or evidence requirements.
+A future subtree may add its own `AGENTS.md` for specialized rules. It may tighten this contract, add platform-specific gates, or define local ownership. It may not weaken public-demo isolation, secret handling, immutable authority, least privilege, conversation/privacy boundaries, or evidence requirements.
 
 ## 17. Definition of done
 
@@ -315,11 +387,11 @@ A change is complete only when applicable items are true:
 - tests and syntax checks pass;
 - rollback and failure paths are tested or documented;
 - live behavior matches repository state;
-- no credentials, personal data, temporary helpers, or test residue remain;
+- no credentials, personal data, temporary helpers, raw test conversation/location data, or test residue remain;
 - documentation reflects current behavior;
 - canonical `br` item updated with bounded evidence;
 - changes committed and pushed;
-- public demo health remains green.
+- public demo health remains green when it is in scope.
 
 Handoff should state:
 
