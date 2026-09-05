@@ -24,6 +24,8 @@ The next implementation target is a **native Omarchy developer preview**, with p
 - [196 — platform trust, genesis, supply chain, and runtime attestation](docs/196-veragensia-platform-trust-genesis-supply-chain-and-runtime-attestation-spec.md)
 - [197 — voice-native Agent Computer, Audio UI, and conversation continuity](docs/197-veragensia-voice-native-agent-computer-audio-ui-and-conversation-continuity-spec.md)
 - [198 — foundation integration and native-v0.1 scope guard](docs/198-veragensia-foundation-integration-and-native-v0.1-scope-guard-addendum.md)
+- [199 — Ambient Operator, Companion sync, and Omarchy integration](docs/199-veragensia-ambient-operator-companion-sync-and-omarchy-integration-spec.md)
+- [Ambient Operator convergence map](docs/contracts/ambient-operator-convergence-map.v1.yaml)
 - [Machine-readable candidate/dependency inventory](config/v0.1-release-candidate.json)
 
 These documents distinguish existing capabilities, selected engineering proposals, implementation gaps, and device evidence. Downloading Focusa binaries or booting Omarchy does not establish Veragensia release readiness. Doc 198 explicitly prevents the constrained native v0.1 proof from being mistaken for the limits of the full enforcement- and voice-native Agent Computer.
@@ -49,6 +51,7 @@ The diagram is a responsibility map, not a second kernel or a claim that every p
 - **UIAI Engine + Cockpit:** deliberately listed first-party browser/computer execution, observation, diagnostics, oversight, and proof surfaces for the Agent Computer. They are foundational, not one browser candidate among many.
 - **Veragensia enforcement substrate:** converts Focusa semantic authority into real filesystem/network/session/device/credential/resource restrictions. Same Unix UID or root transport does not count as authorization.
 - **Voice / Audio UI:** a canonical full-profile surface. Keyboard and mouse are optional peripherals: supported ordinary work must be achievable through natural spoken interaction, with full agent audio response and Focusa's speaker-attributed Conversation Ledger.
+- **Ambient Operator:** optional but first-class personal/ambient profile extending the same Focusa/Veragensia environment through a paired phone, earbuds or future wearable. Project Foreman, Radar and Conversation remain Focusa-owned; Veragensia supplies trusted Linux audio, Companion sync and native integration.
 - **Native presentation:** plugin-generation Omarchy is the proposed target; validate exact versions instead of assuming compatibility or installing a second shell.
 
 An **Agent Cloud Computer** is a provisioned, streamable Veragensia instance. Remote execution providers are optional adapters, not dependencies for ordinary local desktop use.
@@ -110,6 +113,54 @@ Every participant remains attributable. Every governed conversation remains sear
 
 See [Doc 197](docs/197-veragensia-voice-native-agent-computer-audio-ui-and-conversation-continuity-spec.md) and Focusa Spec 181.
 
+## Ambient Operator doctrine
+
+The Agent Computer can remain continuously reachable when the owner leaves the desk without cloning its cognition onto a phone.
+
+```text
+phone / earbuds / wearable
+        ↓
+Focusa Ambient Operator
+        ↓
+Wirebot Chief of Staff or exact Project Foreman
+        ↓
+Focusa authority / Radar / Conversation
+        ↓
+Veragensia + UIAI execution
+```
+
+Key laws:
+
+- **phone and earbuds are paired surfaces, not new brains;**
+- **Project Foreman is one Workstream's persistent project-intelligence projection;**
+- **Radar notices and scores developing situations; it does not mint authority or become hidden surveillance;**
+- **Wirebot may hold broader owner-authorized life/portfolio context and delegate to exact Foremen;**
+- **meeting/audio history is auditable provenance, not automatic canonical memory;**
+- **raw phone GPS/sensor state remains in its owner domain by default and enters Focusa through bounded projections;**
+- **Bluetooth is useful for nearby audio/control/proximity, while authenticated LAN/Tailscale/private-network sync carries bulk conversation/evidence data;**
+- **mobile sync never writes Focusa persistence directly.**
+
+See [Doc 199](docs/199-veragensia-ambient-operator-companion-sync-and-omarchy-integration-spec.md) and Focusa Specs 182–184.
+
+## Omarchy/Linux integration doctrine
+
+Stock Omarchy remains the native base. Veragensia uses supported user/plugin/session integration and keeps upstream package-owned source untouched.
+
+A Quickshell/Omarchy plugin is intentionally a **thin presenter**. Trusted responsibilities such as microphone capture, Companion sync, enforcement, credentials and canonical Focusa state live in separate bounded services/workloads. A QML panel does not become Secure Attention or authority merely because it looks first-party.
+
+The intended full-profile native topology is:
+
+```text
+focusa-daemon       cognition / authority / Foreman / Radar / Conversation
+veragens-sessiond   native session + Omarchy/Hyprland projection
+veragens-audiod     trusted audio endpoint/capture/playback broker
+veragens-syncd      paired Companion sync / offline queue reconciliation
+uiai-engine         browser/computer execution + proof
+Pi + extension      reference harness
+```
+
+Early developer builds may use smaller adapters, but must report the difference honestly.
+
 ## Architecture principles
 
 **Surfaces are interchangeable; primitives are the platform.**
@@ -123,6 +174,8 @@ See [Doc 197](docs/197-veragensia-voice-native-agent-computer-audio-ui-and-conve
 **Semantic authority is not enough until the machine enforces it.**
 
 **Keyboard and mouse are optional; conversation is a first-class operating surface.**
+
+**Ambient does not mean omniscient, always-recording, or globally authoritative.**
 
 [Doc 185](docs/185-veragensia-architecture-authority-provenance-and-wirebot-identity-policy.md) identifies **Verious Smith III as the sole current and final canonical human architecture authority**. Focusa operational authority, repository presence, and external proposals do not confer architecture ownership. Future Wirebot authority requires explicit verified delegation; a name or hash alone does not grant it.
 
@@ -144,6 +197,8 @@ See [Doc 197](docs/197-veragensia-voice-native-agent-computer-audio-ui-and-conve
 - `docs/196-*` — boot/platform trust, genesis, supply-chain binding and runtime attestation.
 - `docs/197-*` — voice-native Audio UI, keyboard/mouse independence, group conversation and transcript/audit continuity.
 - `docs/198-*` — explicit amendment keeping the constrained Chromebook v0.1 proof subordinate to the full enforcement/voice-native architecture.
+- `docs/199-*` — Focusa Ambient Operator, Companion sync, Android/iOS/wearable edge, Omarchy plugin/service topology and UIAI execution convergence.
+- `docs/contracts/ambient-operator-convergence-map.v1.yaml` — machine-readable ownership/dependency/acceptance map; mutable execution work remains in `br`.
 
 ## Run the existing lab
 
