@@ -15,6 +15,7 @@ The next implementation target is a **native Omarchy developer preview**, with p
 - [186 — v0.1 release specification and acceptance gates](docs/186-veragensia-v0.1-native-chromebook-release-spec.md)
 - [187 — exact-device installation and bring-up runbook](docs/187-veragensia-chromebook-first-install-runbook.md)
 - [188 — engineering decisions, CLI, IPC, and integration contracts](docs/188-veragensia-v0.1-decisions-and-integration-contracts.md)
+- [190 — agent-first software and capability resolution](docs/190-veragensia-agent-first-software-and-capability-resolution-spec.md)
 - [Machine-readable candidate/dependency inventory](config/v0.1-release-candidate.json)
 
 These documents distinguish existing capabilities, selected engineering proposals, implementation gaps, and device evidence. Downloading Focusa binaries or booting Omarchy does not establish Veragensia release readiness.
@@ -28,7 +29,7 @@ Veragensia session integration: observations, presentation, OS containment
                     |
 Existing Focusa daemon: scoped state, continuity, authorization, evidence
                     |
-UIAI Engine / Workforce browser surface / bounded execution adapters
+Focusa Desktop + Pi reference harness + UIAI Engine/Cockpit
                     |
 Stock Omarchy + Arch + Hyprland, consumed without a deep fork
 ```
@@ -37,10 +38,28 @@ The diagram is a responsibility map, not a second kernel or a claim that every p
 
 - **Base:** upstream Omarchy, consumed through supported integration points. The current public proving ground is separately based on Ubuntu/KDE webtop.
 - **Focusa primitives:** re-homed, not rebuilt: project/continuity, Worksets/Workpoints, sessions, authorization, approvals, credentials, pairing, work loop, roles, surfaces, events, and audit.
+- **Focusa Desktop:** default governed human work/cognition presentation on supported full Agent Computer profiles; it remains a presenter over Focusa authority rather than an independent state or authority layer.
+- **Pi:** default/reference Focusa-aware agent harness on supported profiles. The Focusa Pi extension is fundamental to the reference integration, while canonical cognition/state remains in Focusa daemon/core and non-Pi harnesses remain supported through thin adapters.
+- **UIAI Engine + Cockpit:** deliberately listed first-party browser/computer execution, observation, diagnostics, oversight, and proof surfaces for the Agent Computer. They are foundational, not one browser candidate among many.
 - **Native presentation:** plugin-generation Omarchy is the proposed target; validate exact versions instead of assuming compatibility or installing a second shell.
-- **Browser:** Chromium plus Focusa Workforce remains a first-class product surface; UIAI Engine supplies governed browser capabilities.
 
 An **Agent Cloud Computer** is a provisioned, streamable Veragensia instance. Remote execution providers are optional adapters, not dependencies for ordinary local desktop use.
+
+## Agent-first software doctrine
+
+A Veragensia Agent Computer is intentionally stocked for **agent leverage**, not merely human familiarity. Default software should expose structured, semantic, inspectable machine surfaces wherever possible while remaining good human software. Full visual computer use remains the universal fallback.
+
+The preferred interaction hierarchy is:
+
+```text
+structured capability
+→ semantic application automation
+→ visual computer use
+```
+
+Applications are ranked by agentability: Veragensia-native typed integration first, then agent-native protocols, programmatic automation, semantic UI, and finally pixel-only control. Profiles should request **capabilities** rather than freezing package names, with an Agent App Resolver choosing the best compatible implementation for platform, trust class, entitlement, resources, privacy, and user preference.
+
+See [Doc 190](docs/190-veragensia-agent-first-software-and-capability-resolution-spec.md). The detailed default application catalog is intentionally deferred for a later evidence-based software evaluation.
 
 ## Architecture principles
 
@@ -49,6 +68,8 @@ An **Agent Cloud Computer** is a provisioned, streamable Veragensia instance. Re
 **Cloud coordinates. Node decides. Receipts prove. Private state stays local.**
 
 **Observe within scope; act under authority; preserve useful work.**
+
+**Prefer structured capability, then semantic automation, then visual computer use.**
 
 [Doc 185](docs/185-veragensia-architecture-authority-provenance-and-wirebot-identity-policy.md) identifies **Verious Smith III as the sole current and final canonical human architecture authority**. Focusa operational authority, repository presence, and external proposals do not confer architecture ownership. Future Wirebot authority requires explicit verified delegation; a name or hash alone does not grant it.
 
@@ -61,6 +82,7 @@ An **Agent Cloud Computer** is a provisioned, streamable Veragensia instance. Re
 - `docs/183-*` — live public-computer security and lifecycle contract.
 - `docs/185-*` — architecture authority and provenance policy.
 - `docs/186-*`, `187-*`, `188-*` — proposed native v0.1 implementation and bring-up contracts.
+- `docs/190-*` — Agent Computer software doctrine, agentability, capability profiles, and Agent App resolution.
 
 ## Run the existing lab
 
