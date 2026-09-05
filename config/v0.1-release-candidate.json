@@ -9,15 +9,22 @@
   "implementation_spec": "docs/186-veragensia-v0.1-native-chromebook-release-spec.md",
   "install_runbook": "docs/187-veragensia-chromebook-first-install-runbook.md",
   "integration_contract": "docs/188-veragensia-v0.1-decisions-and-integration-contracts.md",
+  "hardware_profile": "docs/189-veragensia-cc11260-reference-hardware-profile.md",
   "hardware": {
     "working_target": "Dell Chromebook 11 CC11260",
+    "form_factor": "clamshell",
+    "cpu": "Intel Processor N150",
     "expected_board": "ULDRENITE",
     "actual_board_verified": false,
-    "ram_mib": null,
-    "storage_gib": null,
+    "ram_mib": 4096,
+    "storage_gib": 64,
+    "storage_kind": "eMMC",
+    "display_inches": 11.6,
+    "seller_listing_confirmed": true,
+    "oem_reference_correlated": true,
     "ccd_equipment_available": null,
     "firmware_version": null,
-    "hardware_evidence_ref": null
+    "hardware_evidence_ref": "docs/189-veragensia-cc11260-reference-hardware-profile.md"
   },
   "platform": {
     "mode": "native_omarchy",
@@ -58,7 +65,7 @@
   },
   "required_gates": [
     {"id": "G00", "name": "authority", "status": "not_run", "evidence_ref": null},
-    {"id": "G01", "name": "hardware", "status": "not_run", "evidence_ref": null},
+    {"id": "G01", "name": "hardware", "status": "not_run", "evidence_ref": "docs/189-veragensia-cc11260-reference-hardware-profile.md"},
     {"id": "G02", "name": "base", "status": "not_run", "evidence_ref": null},
     {"id": "G03", "name": "dependencies", "status": "not_run", "evidence_ref": null},
     {"id": "G04", "name": "install", "status": "not_run", "evidence_ref": null},
@@ -76,7 +83,8 @@
   "notes": [
     "This inventory is not a signed attestation or an authority grant.",
     "Spec publication does not establish implementation or release readiness.",
-    "Do not populate hardware or compatibility fields from assumptions.",
+    "Seller/OEM hardware class is now recorded; actual board and Linux behavior remain arrival-day gates.",
+    "Do not populate compatibility or device-health fields from assumptions.",
     "Task tracking remains in repository-local br; this file is release acceptance metadata."
   ]
 }
