@@ -25,10 +25,12 @@ The next implementation target is a **native Omarchy developer preview**, with p
 - [197 — voice-native Agent Computer, Audio UI, and conversation continuity](docs/197-veragensia-voice-native-agent-computer-audio-ui-and-conversation-continuity-spec.md)
 - [198 — foundation integration and native-v0.1 scope guard](docs/198-veragensia-foundation-integration-and-native-v0.1-scope-guard-addendum.md)
 - [199 — Ambient Operator, Companion sync, and Omarchy integration](docs/199-veragensia-ambient-operator-companion-sync-and-omarchy-integration-spec.md)
+- [199A — dated Omarchy/Android/iOS platform qualification evidence](docs/199a-veragensia-current-platform-qualification-evidence-2026-09-05.md)
+- [200 — ordered Living Agent Computer implementation tranches](docs/200-veragensia-living-agent-computer-implementation-tranche-plan.md)
 - [Ambient Operator convergence map](docs/contracts/ambient-operator-convergence-map.v1.yaml)
 - [Machine-readable candidate/dependency inventory](config/v0.1-release-candidate.json)
 
-These documents distinguish existing capabilities, selected engineering proposals, implementation gaps, and device evidence. Downloading Focusa binaries or booting Omarchy does not establish Veragensia release readiness. Doc 198 explicitly prevents the constrained native v0.1 proof from being mistaken for the limits of the full enforcement- and voice-native Agent Computer.
+These documents distinguish existing capabilities, selected engineering proposals, implementation gaps, and device evidence. Downloading Focusa binaries or booting Omarchy does not establish Veragensia release readiness. Doc 198 explicitly prevents the constrained native v0.1 proof from being mistaken for the limits of the full enforcement- and voice-native Agent Computer. Doc 200 is the implementation sequencing contract; mutable execution state belongs in repository-local `br`, not in the spec.
 
 ## Composition and ownership
 
@@ -140,7 +142,7 @@ Key laws:
 - **Bluetooth is useful for nearby audio/control/proximity, while authenticated LAN/Tailscale/private-network sync carries bulk conversation/evidence data;**
 - **mobile sync never writes Focusa persistence directly.**
 
-See [Doc 199](docs/199-veragensia-ambient-operator-companion-sync-and-omarchy-integration-spec.md) and Focusa Specs 182–184.
+See [Doc 199](docs/199-veragensia-ambient-operator-companion-sync-and-omarchy-integration-spec.md), [Doc 200](docs/200-veragensia-living-agent-computer-implementation-tranche-plan.md), and Focusa Specs 182–184.
 
 ## Omarchy/Linux integration doctrine
 
@@ -159,7 +161,7 @@ uiai-engine         browser/computer execution + proof
 Pi + extension      reference harness
 ```
 
-Early developer builds may use smaller adapters, but must report the difference honestly.
+Early developer builds may use smaller adapters, but must report the difference honestly. Current upstream/platform assumptions are recorded as dated evidence in Doc 199A and must be re-verified before release qualification.
 
 ## Architecture principles
 
@@ -198,6 +200,8 @@ Early developer builds may use smaller adapters, but must report the difference 
 - `docs/197-*` — voice-native Audio UI, keyboard/mouse independence, group conversation and transcript/audit continuity.
 - `docs/198-*` — explicit amendment keeping the constrained Chromebook v0.1 proof subordinate to the full enforcement/voice-native architecture.
 - `docs/199-*` — Focusa Ambient Operator, Companion sync, Android/iOS/wearable edge, Omarchy plugin/service topology and UIAI execution convergence.
+- `docs/199a-*` — dated upstream-platform qualification evidence for Omarchy/Android/iOS.
+- `docs/200-*` — ordered Living Agent Computer implementation tranches and acceptance gates.
 - `docs/contracts/ambient-operator-convergence-map.v1.yaml` — machine-readable ownership/dependency/acceptance map; mutable execution work remains in `br`.
 
 ## Run the existing lab
@@ -212,7 +216,7 @@ These are existing lab operations, not Chromebook-install commands. The public d
 
 ## Planning and releases
 
-Use repository-local beads_rust through **`br` only**. Do not maintain duplicate execution backlogs in GitHub issues or Markdown. Specification acceptance IDs and candidate release metadata are contracts/evidence, not a second task tracker.
+Use repository-local beads_rust through **`br` only**. Do not maintain duplicate execution backlogs in GitHub issues or Markdown. Specification acceptance IDs, convergence maps and tranche plans are contracts/decomposition inputs, not a second task tracker.
 
 The operator and planning agent determine canonical decisions and sequencing. Proposed specifications must not be described as implemented merely because they are committed. Native release tagging requires the evidence gates in Doc 186; this documentation update does not publish a release or alter the live demo.
 
