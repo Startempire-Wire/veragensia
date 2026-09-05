@@ -17,7 +17,7 @@ Before writing, revising, interpreting, consolidating, or promoting any Veragens
 
 ## Agent Computer architecture reading rule
 
-When documentation touches Agent Computer composition, software defaults, cloud execution, fleet topology, applications, computer use, telemetry, security/isolation, platform trust, human takeover, voice/audio, transcripts or agent/human collaboration, read the relevant companions before editing:
+When documentation touches Agent Computer composition, software defaults, cloud execution, fleet topology, applications, computer use, telemetry, security/isolation, platform trust, human takeover, voice/audio, transcripts, native v0.1 scope, or agent/human collaboration, read the relevant companions before editing:
 
 - `182-veragensia-focusa-agent-os-spec.md` — product/root composition;
 - `190-veragensia-agent-first-software-and-capability-resolution-spec.md` — canonical full-profile defaults, Agentability, capability profiles and Agent App resolution;
@@ -28,6 +28,7 @@ When documentation touches Agent Computer composition, software defaults, cloud 
 - `195-veragensia-resource-identity-runtime-incarnation-and-state-transfer-spec.md` — ResourceRefs, revisions, runtime incarnations, replicas and transfer;
 - `196-veragensia-platform-trust-genesis-supply-chain-and-runtime-attestation-spec.md` — first-boot/genesis, platform trust and attestation;
 - `197-veragensia-voice-native-agent-computer-audio-ui-and-conversation-continuity-spec.md` — keyboard/mouse independence, Audio UI, full-duplex interaction and voice-complete acceptance;
+- `198-veragensia-foundation-integration-and-native-v0.1-scope-guard-addendum.md` — explicit rule that the constrained first Chromebook proof cannot redefine the full enforcement/voice-native architecture;
 - Focusa `docs/181-focusa-voice-conversation-expression-and-auditable-interaction-spec.md` — Conversation/Utterance/Expression/Transcript primitive ownership.
 
 ## Full Agent Computer composition hard stop
@@ -44,7 +45,7 @@ The deliberately listed full-profile first-party defaults are:
 
 Do not silently demote UIAI Engine to an optional browser candidate, Pi to incidental third-party tooling, Focusa Desktop to a competing authority, machine enforcement to documentation-only policy, or voice to an accessibility add-on.
 
-Constrained, public-demo, headless and special-purpose profiles may omit surfaces explicitly. Omission does not redefine the canonical full Agent Computer composition.
+Constrained, public-demo, headless and special-purpose profiles may omit surfaces explicitly. Omission does not redefine the canonical full Agent Computer composition. Doc 198 controls interpretation of older native-v0.1 omissions.
 
 ## Enforcement invariants
 
