@@ -17,7 +17,7 @@ Before writing, revising, interpreting, consolidating, or promoting any Veragens
 
 ## Agent Computer architecture reading rule
 
-When documentation touches Agent Computer composition, software defaults, cloud execution, fleet topology, applications, computer use, telemetry, security/isolation, platform trust, human takeover, voice/audio, transcripts, native v0.1 scope, mobile/wearable integration, proactive Radar, Project Foreman, Ambient Operator, Omarchy plugins, Bluetooth/audio routing, Companion sync, or agent/human collaboration, read the relevant companions before editing:
+When documentation touches Agent Computer composition, software defaults, cloud execution, fleet topology, applications, computer use, telemetry, security/isolation, platform trust, human takeover, voice/audio, transcripts, native v0.1 scope, mobile/wearable integration, proactive Radar, Project Foreman, Ambient Operator, Omarchy plugins, Omarchy keybindings/system control, VoxType/dictation, Obsidian Agent App behavior, Bluetooth/audio routing, Companion sync, or agent/human collaboration, read the relevant companions before editing:
 
 - `182-veragensia-focusa-agent-os-spec.md` — product/root composition;
 - `190-veragensia-agent-first-software-and-capability-resolution-spec.md` — canonical full-profile defaults, Agentability, capability profiles and Agent App resolution;
@@ -30,11 +30,18 @@ When documentation touches Agent Computer composition, software defaults, cloud 
 - `197-veragensia-voice-native-agent-computer-audio-ui-and-conversation-continuity-spec.md` — keyboard/mouse independence, Audio UI, full-duplex interaction and voice-complete acceptance;
 - `198-veragensia-foundation-integration-and-native-v0.1-scope-guard-addendum.md` — explicit rule that the constrained first Chromebook proof cannot redefine the full enforcement/voice-native architecture;
 - `199-veragensia-ambient-operator-companion-sync-and-omarchy-integration-spec.md` — Focusa Ambient Operator binding to Linux/Omarchy, trusted audio/sync services, Android/iOS Companion, Radar/Foreman routing and UIAI execution;
+- `200-veragensia-living-agent-computer-implementation-tranche-plan.md` — ordered integrated implementation plan;
+- `200a-veragensia-semantic-operation-and-dictation-critical-path-amendment.md` — required T1A semantic-operation bridge before voice-control closure;
+- `201-veragensia-semantic-os-operation-keybinding-and-voxtype-integration-spec.md` — stable SystemOperation descriptors, Omarchy keybinding projection, direct agent control and VoxType integration;
+- `201a-veragensia-current-omarchy-keybinding-and-voxtype-evidence-2026-09-05.md` — dated upstream keymap/VoxType facts;
+- `201b-veragensia-obsidian-agent-app-vault-and-singleeye-retrieval-evidence-2026-09-05.md` — Obsidian structured Agent App direction and explicit SingleEye retrieval gap;
 - `contracts/ambient-operator-convergence-map.v1.yaml` — machine-readable cross-repository ownership/dependency/slice map; mutable task state remains in `br`;
+- `contracts/system-operation-keybinding-map.v1.yaml` — machine-readable system-operation families/keybinding classifications;
 - Focusa `docs/181-focusa-voice-conversation-expression-and-auditable-interaction-spec.md` — Conversation/Utterance/Expression/Transcript primitive ownership;
 - Focusa `docs/182-focusa-project-foreman-workstream-intelligence-projection-spec.md` — Project Foreman role projection;
 - Focusa `docs/183-focusa-radar-proactive-observation-episodes-signal-economics-and-attention-routing-spec.md` — proactive observation/attention;
-- Focusa `docs/184-focusa-ambient-operator-mobile-wearable-presence-meeting-and-sync-spec.md` — mobile/wearable Ambient Operator semantics.
+- Focusa `docs/184-focusa-ambient-operator-mobile-wearable-presence-meeting-and-sync-spec.md` — mobile/wearable Ambient Operator semantics;
+- Focusa `docs/53-focusa-device-pairing-spec.md` when pairing/trust-transfer behavior is involved.
 
 ## Full Agent Computer composition hard stop
 
@@ -44,13 +51,13 @@ The deliberately listed full-profile first-party defaults are:
 2. **Focusa Desktop**;
 3. **Pi + Focusa Pi extension**;
 4. **UIAI Engine + Cockpit/browser/computer surfaces**;
-5. **Veragensia enforcement/control substrate**;
+5. **Veragensia semantic system-operation + enforcement/control substrate**;
 6. **Voice/Conversation service bound to Focusa Spec 181**;
 7. **Veragensia native shell/session integration**.
 
 A full personal/ambient profile may additionally compose the Focusa Ambient Operator/Companion surface from Focusa 184 / Veragensia 199. That surface extends the same Agent Computer beyond the desk; it is not a second brain.
 
-Do not silently demote UIAI Engine to an optional browser candidate, Pi to incidental third-party tooling, Focusa Desktop to a competing authority, machine enforcement to documentation-only policy, or voice to an accessibility add-on.
+Do not silently demote UIAI Engine to an optional browser candidate, Pi to incidental third-party tooling, Focusa Desktop to a competing authority, machine enforcement to documentation-only policy, semantic OS operations to hotkey replay, or voice to an accessibility add-on.
 
 Constrained, public-demo, headless and special-purpose profiles may omit surfaces explicitly. Omission does not redefine the canonical full Agent Computer composition. Doc 198 controls interpretation of older native-v0.1 omissions.
 
@@ -60,6 +67,8 @@ Documentation MUST preserve these distinctions:
 
 ```text
 Focusa Capability/Authority
+!=
+Veragensia SystemOperation
 !=
 Veragensia EnforcementPlan
 !=
@@ -72,6 +81,58 @@ Linux/root/UID transport capability
 - Path/PID/window/container names are locators, not stable identity; use Doc-195 ResourceRef/incarnation semantics.
 - Human secure-attention/stop/takeover paths remain protected from agent resource exhaustion.
 - UIAI control-lease generation/fencing and re-observation semantics are reused rather than replaced by looser Veragensia concepts.
+
+## Semantic OS operation / keybinding hard stop
+
+Omarchy's keyboard-first UX is preserved for humans but MUST NOT become the canonical agent API.
+
+- **Hotkey is a projection, not operation identity.** Remapping a key cannot change the semantic system operation.
+- Prefer direct typed operation → Omarchy CLI → Hyprland/native dispatch → application structured API before semantic UI/computer-use fallback.
+- Synthetic key replay/text injection is compatibility fallback, not normal Agent Computer control.
+- Live Omarchy/Hyprland keymaps are runtime facts. Do not freeze one manual/version into permanent architecture.
+- User `~/.config/hypr/bindings.lua` remains owner-controlled; installation/update does not overwrite it merely to keep agent actions working.
+- Every active system hotkey must be mapped or explicitly classified; unexplained `unmapped_gap` is a full-profile defect.
+- Operation batches remain interruptible and authority-bounded operation by operation.
+- Focused window/application is context, not project/task authority.
+- Voice and Pi/Wirebot/Ambient Operator use the same SystemOperation descriptors rather than phrase→hotkey lookup tables.
+
+## VoxType hard stop
+
+Current Omarchy uses VoxType for dictation. Reuse its useful machinery without promoting it into a new authority layer.
+
+Allowed roles include:
+
+```text
+compatibility dictation
+capture/ASR adapter candidate
+VAD/eager-processing adapter candidate
+meeting/diarization adapter candidate
+```
+
+Forbidden architectural promotions:
+
+```text
+Focusa Conversation authority
+Secure Attention authority
+Capability/permission authority
+canonical SystemOperation registry
+```
+
+- `type`/`paste` output is appropriate for legacy text-entry compatibility only.
+- Semantic voice control must emit Focusa Spec-181 Conversation objects and invoke canonical system/application operations; it must not auto-paste the recognized command.
+- Meeting/diarization output remains source evidence until converted into Focusa participant/utterance/transcript-revision objects.
+- VoxType post-processing may improve text but may not silently alter governed meaning/commitment/authority.
+- Broad input-group/uinput permissions are not granted casually merely for dictation; compositor-native trigger paths are preferred where feasible.
+
+## Obsidian / private-vault hard stop
+
+- Treat a compatible current Obsidian installation as a structured Agent App where its CLI/plugin/filesystem interfaces support the requested operation.
+- Prefer structured vault/search/read/create/edit/query/command operations to hotkey/mouse choreography.
+- The Omarchy Obsidian launch hotkey is a human projection, not the application API.
+- The Startempire Obsidian vault documented in Focusa organism/integration docs is an **owner-knowledge domain**, separate from installing the Obsidian desktop app on an Agent Computer.
+- Current GitHub-visible docs prove that external vault connectivity/sync exists but do not expose every vault note.
+- `SingleEye` is currently a **known retrieval gap**, not a discovered/current spec. Do not invent its contents.
+- When the authorized SingleEye source is recovered, reconcile any pairing ideas against Focusa Spec 53 + Focusa Ambient Operator + Veragensia Companion/trust primitives before promotion. A historical vault note is advisory/provenance until Verious Smith III promotes the exact architectural changes.
 
 ## Omarchy plugin hard stop
 
