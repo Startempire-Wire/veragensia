@@ -27,15 +27,20 @@ The next implementation target is a **native Omarchy developer preview**, with p
 - [199 — Ambient Operator, Companion sync, and Omarchy integration](docs/199-veragensia-ambient-operator-companion-sync-and-omarchy-integration-spec.md)
 - [199A — dated Omarchy/Android/iOS platform qualification evidence](docs/199a-veragensia-current-platform-qualification-evidence-2026-09-05.md)
 - [200 — ordered Living Agent Computer implementation tranches](docs/200-veragensia-living-agent-computer-implementation-tranche-plan.md)
+- [200A — semantic-operation/dictation critical-path amendment](docs/200a-veragensia-semantic-operation-and-dictation-critical-path-amendment.md)
+- [201 — semantic OS operations, keybinding projection, and VoxType integration](docs/201-veragensia-semantic-os-operation-keybinding-and-voxtype-integration-spec.md)
+- [201A — current Omarchy keybinding and VoxType evidence](docs/201a-veragensia-current-omarchy-keybinding-and-voxtype-evidence-2026-09-05.md)
+- [201B — Obsidian Agent App/vault and SingleEye retrieval evidence](docs/201b-veragensia-obsidian-agent-app-vault-and-singleeye-retrieval-evidence-2026-09-05.md)
+- [Semantic system-operation/keybinding map](docs/contracts/system-operation-keybinding-map.v1.yaml)
 - [Ambient Operator convergence map](docs/contracts/ambient-operator-convergence-map.v1.yaml)
 - [Machine-readable candidate/dependency inventory](config/v0.1-release-candidate.json)
 
-These documents distinguish existing capabilities, selected engineering proposals, implementation gaps, and device evidence. Downloading Focusa binaries or booting Omarchy does not establish Veragensia release readiness. Doc 198 explicitly prevents the constrained native v0.1 proof from being mistaken for the limits of the full enforcement- and voice-native Agent Computer. Doc 200 is the implementation sequencing contract; mutable execution state belongs in repository-local `br`, not in the spec.
+These documents distinguish existing capabilities, selected engineering proposals, implementation gaps, and device evidence. Downloading Focusa binaries or booting Omarchy does not establish Veragensia release readiness. Doc 198 explicitly prevents the constrained native v0.1 proof from being mistaken for the limits of the full enforcement- and voice-native Agent Computer. Doc 200 is the implementation sequencing contract; Doc 200A inserts the semantic-operation layer between native shell projection and voice-control closure. Mutable execution state belongs in repository-local `br`, not in these specs.
 
 ## Composition and ownership
 
 ```text
-Veragensia trusted shell / secure attention / audio UI / enforcement
+Veragensia trusted shell / semantic OS operations / secure attention / audio UI / enforcement
                     |
 Focusa Desktop + Pi reference harness + UIAI Engine/Cockpit
                     |
@@ -51,6 +56,7 @@ The diagram is a responsibility map, not a second kernel or a claim that every p
 - **Focusa Desktop:** default governed human work/cognition presentation on supported full Agent Computer profiles; it remains a presenter over Focusa authority rather than an independent state or authority layer.
 - **Pi:** default/reference Focusa-aware agent harness on supported profiles. The Focusa Pi extension is fundamental to the reference integration, while canonical cognition/state remains in Focusa daemon/core and non-Pi harnesses remain supported through thin adapters.
 - **UIAI Engine + Cockpit:** deliberately listed first-party browser/computer execution, observation, diagnostics, oversight, and proof surfaces for the Agent Computer. They are foundational, not one browser candidate among many.
+- **Veragensia semantic OS operations:** Omarchy/Hyprland keybindings become human projections of stable system operations that agents, voice, mobile and CLI can call directly. Agent speed comes from the operation underneath the key, not from replaying human shortcuts.
 - **Veragensia enforcement substrate:** converts Focusa semantic authority into real filesystem/network/session/device/credential/resource restrictions. Same Unix UID or root transport does not count as authorization.
 - **Voice / Audio UI:** a canonical full-profile surface. Keyboard and mouse are optional peripherals: supported ordinary work must be achievable through natural spoken interaction, with full agent audio response and Focusa's speaker-attributed Conversation Ledger.
 - **Ambient Operator:** optional but first-class personal/ambient profile extending the same Focusa/Veragensia environment through a paired phone, earbuds or future wearable. Project Foreman, Radar and Conversation remain Focusa-owned; Veragensia supplies trusted Linux audio, Companion sync and native integration.
@@ -73,6 +79,39 @@ structured capability
 Applications are ranked by agentability: Veragensia-native typed integration first, then agent-native protocols, programmatic automation, semantic UI, and finally pixel-only control. Profiles should request **capabilities** rather than freezing package names, with an Agent App Resolver choosing the best compatible implementation for platform, trust class, entitlement, resources, privacy, enforceability, runtime attestation, and user preference.
 
 See [Doc 190](docs/190-veragensia-agent-first-software-and-capability-resolution-spec.md). The detailed default application catalog is intentionally deferred for a later evidence-based software evaluation.
+
+## Semantic OS operation doctrine
+
+**Omarchy's keyboard speed is the floor, not the ceiling. Humans keep the hotkeys; agents get the operations underneath them.**
+
+A meaningful system hotkey is not the canonical machine interface. Veragensia maps the live Omarchy/Hyprland keymap onto stable `SystemOperationDescriptor` objects so the same behavior can be invoked through:
+
+```text
+human hotkey
+voice
+Pi / Foreman / Wirebot
+Ambient Operator
+CLI / API
+automation / hardware control
+```
+
+Preferred execution for shell/system work is:
+
+```text
+Focusa/Veragensia typed operation
+→ Omarchy CLI
+→ Hyprland/native dispatcher
+→ application API/CLI/protocol
+→ semantic/accessibility UI
+→ UIAI observation-bound computer use
+→ guarded key/text injection only as compatibility fallback
+```
+
+User `~/.config/hypr/bindings.lua` customizations remain owner-controlled. Key remapping changes the human projection, not the operation identity. A full profile requires live keymap discovery and zero unexplained `unmapped_gap` entries.
+
+Current Omarchy already uses VoxType for dictation. Veragensia therefore treats VoxType as a preferred capture/ASR/dictation/meeting adapter candidate instead of inventing a redundant desktop dictation stack. VoxType's normal “type/paste at cursor” behavior is compatibility dictation; semantic voice control still flows through Focusa Conversation and Veragensia system operations. See Docs 201/201A.
+
+Obsidian is an early structured Agent App proof: when a compatible Obsidian CLI is installed, agents should use vault/search/read/edit/command/query operations rather than launch it and emulate its hotkeys. The separate Startempire Obsidian knowledge vault remains an owner-knowledge domain, not the same thing as the local Obsidian application profile. See Doc 201B.
 
 ## Enforcement doctrine
 
@@ -104,7 +143,7 @@ A voice-complete full Agent Computer supports natural full-duplex interaction fo
 ```text
 human speech
 → Focusa Conversation / current ask
-→ canonical operation
+→ semantic system/application operation
 → governed execution
 → Evidence / Receipt
 → Focusa ExpressionOutput
@@ -113,7 +152,7 @@ human speech
 
 Every participant remains attributable. Every governed conversation remains searchable and auditable. The user can go back through what they said, what each agent/expert said, transcript corrections, interruptions, actions, Evidence and Receipts. Conversation history remains distinct from canonical memory/authority.
 
-See [Doc 197](docs/197-veragensia-voice-native-agent-computer-audio-ui-and-conversation-continuity-spec.md) and Focusa Spec 181.
+See [Doc 197](docs/197-veragensia-voice-native-agent-computer-audio-ui-and-conversation-continuity-spec.md), [Doc 201](docs/201-veragensia-semantic-os-operation-keybinding-and-voxtype-integration-spec.md), and Focusa Spec 181.
 
 ## Ambient Operator doctrine
 
@@ -154,14 +193,14 @@ The intended full-profile native topology is:
 
 ```text
 focusa-daemon       cognition / authority / Foreman / Radar / Conversation
-veragens-sessiond   native session + Omarchy/Hyprland projection
+veragens-sessiond   native session + Omarchy/Hyprland + SystemOperation projection
 veragens-audiod     trusted audio endpoint/capture/playback broker
 veragens-syncd      paired Companion sync / offline queue reconciliation
 uiai-engine         browser/computer execution + proof
 Pi + extension      reference harness
 ```
 
-Early developer builds may use smaller adapters, but must report the difference honestly. Current upstream/platform assumptions are recorded as dated evidence in Doc 199A and must be re-verified before release qualification.
+Early developer builds may use smaller adapters, but must report the difference honestly. Current upstream/platform assumptions are recorded as dated evidence in Docs 199A and 201A and must be re-verified before release qualification.
 
 ## Architecture principles
 
@@ -173,13 +212,15 @@ Early developer builds may use smaller adapters, but must report the difference 
 
 **Prefer structured capability, then semantic automation, then visual computer use.**
 
+**Hotkeys are projections, not APIs.**
+
 **Semantic authority is not enough until the machine enforces it.**
 
 **Keyboard and mouse are optional; conversation is a first-class operating surface.**
 
 **Ambient does not mean omniscient, always-recording, or globally authoritative.**
 
-[Doc 185](docs/185-veragensia-architecture-authority-provenance-and-wirebot-identity-policy.md) identifies **Verious Smith III as the sole current and final canonical human architecture authority**. Focusa operational authority, repository presence, and external proposals do not confer architecture ownership. Future Wirebot authority requires explicit verified delegation; a name or hash alone does not grant it.
+[Doc 185](docs/185-veragensia-architecture-authority-provenance-and-wirebot-identity-policy.md) identifies **Verious Smith III as the sole current and final canonical human architecture authority**. Focusa operational authority, repository presence, external proposals, external software, and historical vault notes do not confer architecture ownership. Future Wirebot authority requires explicit verified delegation; a name or hash alone does not grant it.
 
 ## Repository
 
@@ -201,8 +242,10 @@ Early developer builds may use smaller adapters, but must report the difference 
 - `docs/198-*` — explicit amendment keeping the constrained Chromebook v0.1 proof subordinate to the full enforcement/voice-native architecture.
 - `docs/199-*` — Focusa Ambient Operator, Companion sync, Android/iOS/wearable edge, Omarchy plugin/service topology and UIAI execution convergence.
 - `docs/199a-*` — dated upstream-platform qualification evidence for Omarchy/Android/iOS.
-- `docs/200-*` — ordered Living Agent Computer implementation tranches and acceptance gates.
+- `docs/200-*` / `200a-*` — Living Agent Computer tranches plus required semantic-operation bridge before voice-control closure.
+- `docs/201-*` — semantic OS operation/keybinding/VoxType architecture plus Obsidian/SingleEye retrieval evidence.
 - `docs/contracts/ambient-operator-convergence-map.v1.yaml` — machine-readable ownership/dependency/acceptance map; mutable execution work remains in `br`.
+- `docs/contracts/system-operation-keybinding-map.v1.yaml` — machine-readable semantic operation/keybinding families and acceptance map.
 
 ## Run the existing lab
 
