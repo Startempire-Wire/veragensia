@@ -1,0 +1,195 @@
+schema: veragensia.ambient_operator_convergence_map.v1
+status: architecture_contract_not_task_tracker
+canonical_human_architecture_authority: Verious Smith III
+created_at: 2026-09-05
+
+purpose: >-
+  Machine-readable ownership, dependency, implementation-slice, and acceptance map
+  for Project Foreman, Radar, Ambient Operator, Omarchy/Linux integration, mobile
+  companion sync, UIAI execution, and Startempire Wirebot adapters. Mutable work
+  status belongs in repository-local br, not this file.
+
+historical_provenance:
+  radar:
+    historical_label: "Spec 164 proposal"
+    current_canonical_spec: "Startempire-Wire/focusa:docs/183-focusa-radar-proactive-observation-episodes-signal-economics-and-attention-routing-spec.md"
+    collision_resolution: >-
+      Current Focusa Spec 164 already canonically owns Workstream-rooted runtime;
+      historical Radar 164 numbering is provenance only.
+  ambient_voice:
+    historical_label: "Proposal 135M"
+    current_canonical_spec: "Startempire-Wire/focusa:docs/184-focusa-ambient-operator-mobile-wearable-presence-meeting-and-sync-spec.md"
+    collision_resolution: >-
+      Current Spec 135 series is frozen at 135A-135K; historical 135M numbering is
+      proposal provenance only.
+  foreman:
+    historical_label: "Project Foreman"
+    current_canonical_spec: "Startempire-Wire/focusa:docs/182-focusa-project-foreman-workstream-intelligence-projection-spec.md"
+
+canonical_owners:
+  focusa:
+    repository: Startempire-Wire/focusa
+    owns:
+      - workstream_project_identity
+      - project_foreman_role_projection
+      - radar_observations_episodes_signals
+      - voice_conversation_ledger_expression
+      - workpoint_trajectory_context_authority
+      - evidence_receipts_settlement_refs
+    specs:
+      conversation: docs/181-focusa-voice-conversation-expression-and-auditable-interaction-spec.md
+      foreman: docs/182-focusa-project-foreman-workstream-intelligence-projection-spec.md
+      radar: docs/183-focusa-radar-proactive-observation-episodes-signal-economics-and-attention-routing-spec.md
+      ambient_operator: docs/184-focusa-ambient-operator-mobile-wearable-presence-meeting-and-sync-spec.md
+      presence_placement: docs/139-distributed-presence-environment-awareness-execution-placement-and-multi-daemon-coordination-spec.md
+      workstream_root: docs/164-workstream-rooted-canonical-runtime-design.md
+  veragensia:
+    repository: Startempire-Wire/veragensia
+    owns:
+      - linux_omarchy_host_integration
+      - execution_principal_workload_identity_enforcement
+      - secure_attention_and_computer_control_composition
+      - desktop_audio_endpoint_broker
+      - companion_sync_service
+      - resource_runtime_incarnation
+      - platform_runtime_attestation
+      - voice_complete_agent_computer_experience
+    specs:
+      enforcement: docs/193-veragensia-execution-substrate-workload-identity-and-capability-enforcement-spec.md
+      control: docs/194-veragensia-trusted-human-control-secure-attention-and-desktop-observation-spec.md
+      identity: docs/195-veragensia-resource-identity-runtime-incarnation-and-state-transfer-spec.md
+      trust: docs/196-veragensia-platform-trust-genesis-supply-chain-and-runtime-attestation-spec.md
+      voice: docs/197-veragensia-voice-native-agent-computer-audio-ui-and-conversation-continuity-spec.md
+      ambient_omarchy: docs/199-veragensia-ambient-operator-companion-sync-and-omarchy-integration-spec.md
+  uiai_engine:
+    repository: WPUIAI/uiai-engine
+    owns:
+      - browser_computer_execution
+      - browser_observation_semantic_refs
+      - actuator_control_leases
+      - diagnostics_execution_capsules_proof
+    binding: docs/UIAI_VERAGENSIA_COMPUTER_CONTROL_AND_VOICE_BINDING_2026-09-04.md
+  wirebot_core:
+    repository: Startempire-Wire/wirebot-core
+    owns_reference_deployment:
+      - chief_of_staff_cross_project_context
+      - context_core_raw_phone_owner_context
+      - legacy_phone_bridge_adapter
+      - legacy_wbt_voice_adapter
+    convergence_target: docs/FOCUSA_AMBIENT_OPERATOR_CONVERGENCE_2026-09-05.md
+  portable_os:
+    repository: Startempire-Wire/agent-driven-life-business-os
+    owns:
+      - portable_owner_rooted_life_business_contract
+      - replaceable_adapter_semantics
+    convergence_target: AMBIENT_OPERATOR_REFERENCE_PROFILE.md
+
+omarchy_integration:
+  base:
+    os: Arch Linux
+    compositor: Hyprland
+    shell: Quickshell / Omarchy shell
+  rules:
+    - upstream_package_owned_source_is_not_modified
+    - third_party_plugin_is_presenter_not_authority_boundary
+    - canonical_mutations_use_typed_focusa_veragensia_operations
+    - trusted_audio_sync_enforcement_live_in_separate_services
+    - plugin_contains_no_secrets_or_direct_reducer_database_writes
+  proposed_plugin:
+    path: overlay/omarchy/plugins/veragensia.ambient
+    kinds:
+      - bar_widget
+      - panel
+    data:
+      - foreman_binding
+      - radar_attention
+      - voice_listening_mode
+      - companion_health
+      - audio_route
+      - sync_state
+      - trust_degradation
+  proposed_services:
+    - veragens-sessiond
+    - veragens-audiod
+    - veragens-syncd
+
+mobile_reference:
+  android:
+    rationale: existing Wirebot Phone Bridge and Context Core provide a real Android proving ground
+    legacy_bridge_role: context_only
+    native_companion_required_for:
+      - wake_listening
+      - background_conversation
+      - meeting_capture
+      - bluetooth_audio_route_lifecycle
+      - encrypted_offline_conversation_queue
+  ios:
+    status: parity_target_after_reference_path
+    restrictions_are_runtime_facts: true
+  sync:
+    nearby:
+      - BLE
+      - bluetooth_small_control
+    bulk_preferred:
+      - trusted_LAN
+      - Tailscale_private_network
+      - explicit_relay
+    offline: encrypted_idempotent_queue
+
+implementation_slices:
+  focusa_182_foreman:
+    - F182-S1_core_binding_types
+    - F182-S2_hydration_packet
+    - F182-S3_operation_registry_api_cli_pi
+    - F182-S4_worker_supervision
+    - F182-S5_runtime_model_transfer
+    - F182-S6_desktop_mobile_voice_projection
+    - F182-S7_radar_inbox
+    - F182-S8_wirebot_delegation_adapter
+  focusa_183_radar:
+    - F183-S1_core_objects
+    - F183-S2_native_event_adapters
+    - F183-S3_dedup_episode_engine
+    - F183-S4_signal_economics
+    - F183-S5_foreman_inbox_investigation
+    - F183-S6_uiai_observation_bridge
+    - F183-S7_ambient_external_adapter_boundary
+    - F183-S8_desktop_mobile_cli_projections
+  focusa_184_ambient:
+    - F184-S1_core_ambient_contracts
+    - F184-S2_pairing_device_identity
+    - F184-S3_conversation_meeting_profile
+    - F184-S4_foreman_wirebot_identity_router
+    - F184-S5_radar_attention_channel
+    - F184-S6_reference_phone_bridge_adapter
+    - F184-S7_legacy_voice_convergence
+    - F184-S8_android_companion
+    - F184-S9_ios_parity
+    - F184-S10_wearable_physical_controls
+  veragensia_199:
+    - V199-S1_omarchy_plugin_skeleton
+    - V199-S2_native_session_bridge
+    - V199-S3_audio_endpoint_broker_preflight
+    - V199-S4_focusa_conversation_binding
+    - V199-S5_companion_sync_service
+    - V199-S6_android_companion_alpha
+    - V199-S7_foreman_radar_ambient_route
+    - V199-S8_meeting_flight_recorder_path
+    - V199-S9_uiai_voice_mobile_execution
+    - V199-S10_enforcement_trust_closure
+    - V199-S11_voice_complete_dogfood
+    - V199-S12_ios_wearable_parity
+
+cross_system_acceptance:
+  - same_workstream_same_foreman_across_model_surface_restart
+  - radar_signal_does_not_mint_workpoint_or_authority
+  - ambient_phone_earbuds_do_not_become_canonical_cognition
+  - conversation_transcript_is_auditable_but_not_automatic_memory
+  - raw_phone_context_stays_in_owner_domain_until_bounded_projection
+  - mobile_sync_never_writes_focusa_database_directly
+  - omarchy_plugin_is_not_trusted_microphone_or_secret_boundary
+  - microphone_capability_limited_to_attested_audio_workload
+  - uiai_actions_use_normal_observation_control_verification_path
+  - offline_mobile_queue_is_encrypted_replay_safe_idempotent
+  - voice_complete_claim_requires_no_keyboard_no_pointer_e2e_proof
+  - every_repo_materializes_mutable_work_into_local_br
