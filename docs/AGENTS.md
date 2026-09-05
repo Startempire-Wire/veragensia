@@ -17,7 +17,7 @@ Before writing, revising, interpreting, consolidating, or promoting any Veragens
 
 ## Agent Computer architecture reading rule
 
-When documentation touches Agent Computer composition, software defaults, cloud execution, fleet topology, applications, computer use, telemetry, security/isolation, platform trust, human takeover, voice/audio, transcripts, native v0.1 scope, or agent/human collaboration, read the relevant companions before editing:
+When documentation touches Agent Computer composition, software defaults, cloud execution, fleet topology, applications, computer use, telemetry, security/isolation, platform trust, human takeover, voice/audio, transcripts, native v0.1 scope, mobile/wearable integration, proactive Radar, Project Foreman, Ambient Operator, Omarchy plugins, Bluetooth/audio routing, Companion sync, or agent/human collaboration, read the relevant companions before editing:
 
 - `182-veragensia-focusa-agent-os-spec.md` — product/root composition;
 - `190-veragensia-agent-first-software-and-capability-resolution-spec.md` — canonical full-profile defaults, Agentability, capability profiles and Agent App resolution;
@@ -29,7 +29,12 @@ When documentation touches Agent Computer composition, software defaults, cloud 
 - `196-veragensia-platform-trust-genesis-supply-chain-and-runtime-attestation-spec.md` — first-boot/genesis, platform trust and attestation;
 - `197-veragensia-voice-native-agent-computer-audio-ui-and-conversation-continuity-spec.md` — keyboard/mouse independence, Audio UI, full-duplex interaction and voice-complete acceptance;
 - `198-veragensia-foundation-integration-and-native-v0.1-scope-guard-addendum.md` — explicit rule that the constrained first Chromebook proof cannot redefine the full enforcement/voice-native architecture;
-- Focusa `docs/181-focusa-voice-conversation-expression-and-auditable-interaction-spec.md` — Conversation/Utterance/Expression/Transcript primitive ownership.
+- `199-veragensia-ambient-operator-companion-sync-and-omarchy-integration-spec.md` — Focusa Ambient Operator binding to Linux/Omarchy, trusted audio/sync services, Android/iOS Companion, Radar/Foreman routing and UIAI execution;
+- `contracts/ambient-operator-convergence-map.v1.yaml` — machine-readable cross-repository ownership/dependency/slice map; mutable task state remains in `br`;
+- Focusa `docs/181-focusa-voice-conversation-expression-and-auditable-interaction-spec.md` — Conversation/Utterance/Expression/Transcript primitive ownership;
+- Focusa `docs/182-focusa-project-foreman-workstream-intelligence-projection-spec.md` — Project Foreman role projection;
+- Focusa `docs/183-focusa-radar-proactive-observation-episodes-signal-economics-and-attention-routing-spec.md` — proactive observation/attention;
+- Focusa `docs/184-focusa-ambient-operator-mobile-wearable-presence-meeting-and-sync-spec.md` — mobile/wearable Ambient Operator semantics.
 
 ## Full Agent Computer composition hard stop
 
@@ -42,6 +47,8 @@ The deliberately listed full-profile first-party defaults are:
 5. **Veragensia enforcement/control substrate**;
 6. **Voice/Conversation service bound to Focusa Spec 181**;
 7. **Veragensia native shell/session integration**.
+
+A full personal/ambient profile may additionally compose the Focusa Ambient Operator/Companion surface from Focusa 184 / Veragensia 199. That surface extends the same Agent Computer beyond the desk; it is not a second brain.
 
 Do not silently demote UIAI Engine to an optional browser candidate, Pi to incidental third-party tooling, Focusa Desktop to a competing authority, machine enforcement to documentation-only policy, or voice to an accessibility add-on.
 
@@ -65,6 +72,39 @@ Linux/root/UID transport capability
 - Path/PID/window/container names are locators, not stable identity; use Doc-195 ResourceRef/incarnation semantics.
 - Human secure-attention/stop/takeover paths remain protected from agent resource exhaustion.
 - UIAI control-lease generation/fencing and re-observation semantics are reused rather than replaced by looser Veragensia concepts.
+
+## Omarchy plugin hard stop
+
+A stock Omarchy/Quickshell plugin is a **presentation and operation-forwarding surface**, not a trusted isolation/authority boundary.
+
+For Ambient/Agent Computer work:
+
+- keep first/third-party plugin state free of credential values and broad secrets;
+- do not make the plugin the microphone owner, credential broker, authority evaluator, Focusa reducer, EnforcementPlan compiler, or direct canonical-state writer;
+- route mutations through typed Focusa/Veragensia operations;
+- keep trusted audio capture/sync/enforcement in separate bounded services/workloads;
+- use supported Omarchy plugin/config/session paths rather than modifying package-owned upstream source;
+- an attractive QML approval panel is not hardened Secure Attention by itself;
+- validate plugin manifests and declare exact supported Omarchy shell generation/version.
+
+## Foreman / Radar / Ambient Operator ownership hard stop
+
+- **Foreman** is Focusa's Workstream-scoped persistent project-intelligence projection, not a model/session/persona owned by Veragensia.
+- **Radar** is Focusa's scoped proactive observation/Signal/Episode/attention layer, not a Veragensia monitoring daemon and not hidden surveillance.
+- **Ambient Operator** is Focusa's mobile/wearable interaction/presence/conversation semantic surface. Veragensia supplies host audio/sync/integration, not a second Ambient state store.
+- Wirebot/Chief-of-Staff may aggregate life/portfolio context and delegate to exact Foremen; that does not make Wirebot a global Focusa project singleton.
+- UIAI observations/evidence may feed Radar through Focusa contracts; Veragensia MUST NOT duplicate browser monitoring.
+- historical proposal labels `Radar Spec 164` and `135M` are provenance only. Current Focusa Spec 164 owns Workstream-rooted runtime; current Focusa Specs 183/184 own Radar/Ambient Operator.
+
+## Mobile / Companion sync invariants
+
+- the existing Wirebot Phone Bridge is a context-signal prototype, not the raw-audio Conversation transport;
+- raw phone GPS/sensor context stays in its owner domain by default and reaches Focusa through bounded presence projections;
+- mobile/Companion sync sends authenticated proposals, observations and conversation segments, never direct Focusa database writes;
+- offline queues are encrypted, replay-safe and idempotent;
+- Bluetooth/BLE may handle nearby discovery/proximity/small control but is not the only bulk-sync architecture;
+- Android/iOS background microphone/lifecycle restrictions are modeled as runtime state, not hidden behind an `always_listening=true` fiction;
+- phone/earbuds/wearables never become architecture or application authority merely by being paired.
 
 ## Voice-native invariants
 
