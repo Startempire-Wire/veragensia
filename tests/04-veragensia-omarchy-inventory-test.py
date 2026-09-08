@@ -66,6 +66,12 @@ class InventoryTests(unittest.TestCase):
             with self.subTest(raw=raw):
                 self.assertEqual(inv.commands(lambda _: ({"status": "ok"}, raw))["status"], expected)
 
+    def test_upstream_registry_preserves_full_route(self):
+        raw = b'{"ok":true,"commands":[{"route":"launch browser","name":"browser","group":"launch","binary":"omarchy-launch-browser","args":"SECRET"}]}'
+        result = inv.commands(lambda _: ({"status": "ok"}, raw))
+        self.assertEqual(result["items"], [{"name": "launch browser"}])
+        self.assertNotIn("SECRET", json.dumps(result))
+
     def test_binding_schema_and_field_types(self):
         data = [{"dispatcher": "exec", "key": "X", "modmask": True, "keycode": -1}]
         result = inv.bindings(lambda _: ({"status": "ok"}, json.dumps(data).encode()))
@@ -126,7 +132,8 @@ class InventoryTests(unittest.TestCase):
         self.assertNotIn("SECRET", json.dumps(result))
 
     def test_cli_consumer_success(self):
-        self.fixture("omarchy", "import json,sys\nassert sys.argv[1:]==['commands','--all','--json','--check']\nprint(json.dumps({'commands':['launch browser']}))")
+        # Upstream parse_commands_args gives --check precedence over --json.
+        self.fixture("omarchy", "import json,sys\nassert sys.argv[1:3]==['commands','--all']\nif '--check' in sys.argv: print('Command registry valid')\nelse: print(json.dumps({'ok':True,'commands':[{'route':'launch browser','name':'browser','group':'launch'}]}))")
         self.fixture("hyprctl", "import json,sys\nassert sys.argv[1:]==['-j','binds']\nprint(json.dumps([{'key':'B','dispatcher':'exec','arg':'SECRET'}]))")
         self.fixture("xdg-mime", "import sys\nassert sys.argv[1:3]==['query','default']\nprint('browser.desktop')")
         env = {**os.environ, "HOME": str(self.home), "PATH": str(self.home),
@@ -137,6 +144,7 @@ class InventoryTests(unittest.TestCase):
         report = json.loads(result.stdout)
         self.assertEqual(report["schema"], inv.SCHEMA)
         self.assertEqual(report["status"], "observed")
+        self.assertEqual(report["sources"]["omarchy_commands"]["items"], [{"name": "launch browser"}])
         self.assertNotIn(b"SECRET", result.stdout)
 
     def test_cli_consumer_missing_runtime(self):

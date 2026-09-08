@@ -99,7 +99,7 @@ def identifier(value):
 
 
 def commands(runner):
-    state, data = json_probe(["omarchy", "commands", "--all", "--json", "--check"], runner)
+    state, data = json_probe(["omarchy", "commands", "--all", "--json"], runner)
     if state["status"] != "ok":
         return state
     rows = data.get("commands") if isinstance(data, dict) else data
@@ -108,7 +108,8 @@ def commands(runner):
     items = []
     rejected = 0
     for row in rows[:MAX_ITEMS]:
-        name = row if isinstance(row, str) else row.get("name") if isinstance(row, dict) else None
+        name = (row if isinstance(row, str) else
+                row.get("route", row.get("name")) if isinstance(row, dict) else None)
         if not identifier(name):
             rejected += 1
             continue
