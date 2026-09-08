@@ -1,0 +1,33 @@
+* {
+    font-family: "Inter", "Symbols Nerd Font", sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: #e6e0f8;
+    background: transparent;
+}
+
+window#waybar {
+    background: rgba(22, 18, 34, 0.88);
+    border-bottom: 2px solid rgba(139, 126, 200, 0.55);
+    border-radius: 0 0 8px 8px;
+}
+
+#custom-veragens-work {
+    color: #c4b5fd;
+    font-weight: 600;
+    padding: 0 10px;
+}
+
+#custom-veragens-snapshot {
+    color: #9d8ec8;
+    padding: 0 10px;
+}
+
+#clock {
+    color: #e6e0f8;
+    font-weight: 500;
+}
+
+#tray {
+    padding: 0 8px;
+}

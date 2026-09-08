@@ -1,0 +1,33 @@
+// Veragensia Omarchy public demo — Waybar presenter.
+// Public-safe: renders the dated, curated public Work snapshot packaged with
+// the Chrome extension (/extroot/dist/public-work.json). No daemon connection.
+// Native installs use scripts/veragens status --waybar against the local
+// Focusa daemon instead (see docs/187 first-install runbook).
+{
+    "layer": "top",
+    "position": "top",
+    "height": 30,
+    "margin-top": 4,
+    "margin-left": 8,
+    "margin-right": 8,
+    "modules-left": ["custom/veragens-work", "tray"],
+    "modules-center": ["clock"],
+    "modules-right": ["custom/veragens-snapshot"],
+    "custom/veragens-work": {
+        "exec": "/veragensia/docker/omarchy-demo/overlay/waybar/veragens-public-waybar.sh work",
+        "restart-interval": 5,
+        "return-type": ""
+    },
+    "custom/veragens-snapshot": {
+        "exec": "/veragensia/docker/omarchy-demo/overlay/waybar/veragens-public-waybar.sh published",
+        "restart-interval": 30
+    },
+    "clock": {
+        "format": "{:%a %b %d  %H:%M}",
+        "tooltip": false
+    },
+    "tray": {
+        "icon-size": 16,
+        "spacing": 8
+    }
+}
