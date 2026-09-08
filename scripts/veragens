@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""Veragens preview CLI: read-only diagnostics, not release certification."""
+"""Veragens preview CLI: scoped read-only Work views and diagnostics."""
 import argparse
 import hashlib
+import html
 import importlib.util
 import json
 import os
@@ -14,9 +15,10 @@ ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "config/v0.1-release-candidate.json"
 MAX_MANIFEST_BYTES = 65536
 MAX_ARTIFACT_BYTES = 512 * 1024 * 1024
+FOCUSA_READ_TIMEOUT = 5.0  # Daemon-backed reads need more headroom than local inventory probes.
 REQUIRED_GATES = tuple(f"G{i:02}" for i in range(14))
 REQUIRED_FIELDS = {
-    "platform": ("architecture", "omarchy_version", "hyprland_version", "quickshell_version",
+    "platform": ("architecture", "omarchy_version", "hyprland_version", "waybar_version",
                  "iso_digest", "compatibility_evidence_ref"),
     "focusa_candidate": ("version", "runtime_schema_evidence_ref", "authentication_evidence_ref"),
     "native_artifacts": ("installer_revision", "session_bridge_revision", "shell_plugin_revision",
@@ -184,7 +186,8 @@ def resume(project_root, continuity_id, runner=None):
     module = inventory_module()
     state, data = module.json_probe(
         ["focusa", "workpoint", "resume", f"--project-root={root}",
-         f"--continuity-id={continuity_id}", "--json"], runner or module.probe)
+         f"--continuity-id={continuity_id}", "--json"],
+        runner or (lambda argv: module.probe(argv, timeout=FOCUSA_READ_TIMEOUT)))
     if state["status"] != "ok":
         failure = {"status": "blocked", "reason": f"focusa_{state['status']}"}
         if "exit_code" in state:
@@ -201,6 +204,36 @@ def resume(project_root, continuity_id, runner=None):
             or packet.get("canonical") is not True or data.get("degraded") is True):
         return {"status": "blocked", "reason": "focusa_continuation_unavailable"}, 2
     return data, 0
+
+
+def waybar_frame(report, code):
+    """Render a validated continuation, not scheduler/worker health or authority."""
+    def text(value, limit):
+        if not isinstance(value, str):
+            return "unknown"
+        clean = " ".join("".join(c for c in value if c.isprintable() or c.isspace()).split())
+        if not clean:
+            return "unknown"
+        return html.escape(clean[:limit] + ("…" if len(clean) > limit else ""))
+
+    if code:
+        return {"text": "Work: unavailable", "alt": "unavailable", "class": "unavailable",
+                "tooltip": "Scoped Focusa read unavailable; no prior state retained.\n"
+                           + text(report.get("reason"), 120)}
+    packet = report["resume_packet"]
+    stale = bool(packet.get("stale_note"))
+    label = "stale" if stale else "checkpoint"
+    return {"text": ("Work (stale): " if stale else "Work: ") + text(packet.get("mission"), 64),
+            "alt": label, "class": label,
+            "tooltip": "\n".join([
+                "Focusa Work — " + label + " (not live worker status)",
+                "Project: " + text(packet.get("project_root"), 240),
+                "Mission: " + text(packet.get("mission"), 240),
+                "Workpoint state: " + text(packet.get("status"), 64),
+                "Next: " + text(packet.get("next_slice"), 512),
+                "Checkpoint updated: " + text(packet.get("updated_at"), 64),
+                *(["Stale: " + text(packet.get("stale_note"), 160)] if stale else []),
+                "Read-only; no execution or scope changes."])}
 
 
 def doctor(path=MANIFEST, collector=runtime_inventory, artifact_dir=None):
@@ -230,9 +263,20 @@ def main():
     continuation.add_argument("--project-root", required=True)
     continuation.add_argument("--continuity-id", required=True)
     continuation.add_argument("--json", action="store_true", help="JSON output (also the default)")
+    status = commands.add_parser("status", help="read scoped Work state; optionally render a Waybar frame")
+    status.add_argument("--project-root", required=True)
+    status.add_argument("--continuity-id", required=True)
+    output = status.add_mutually_exclusive_group(required=True)
+    output.add_argument("--json", action="store_true", help="unchanged validated Focusa continuation envelope")
+    output.add_argument("--waybar", action="store_true", help="bounded read-only Work text and tooltip")
     args = parser.parse_args()
-    if args.command == "resume":
+    if args.command in ("resume", "status"):
         report, code = resume(args.project_root, args.continuity_id)
+        if args.command == "status" and args.waybar:
+            report = waybar_frame(report, code)
+            # A valid unavailable frame must reach Waybar rather than hide the widget.
+            # Zero means frame emitted, never that Focusa is available or work is done.
+            code = 0
     else:
         report, code = doctor(args.manifest, artifact_dir=args.artifact_dir), 2
     print(json.dumps(report, sort_keys=True))

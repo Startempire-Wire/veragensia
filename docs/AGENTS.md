@@ -136,7 +136,7 @@ canonical SystemOperation registry
 
 ## Omarchy plugin hard stop
 
-A stock Omarchy/Quickshell plugin is a **presentation and operation-forwarding surface**, not a trusted isolation/authority boundary.
+A native Omarchy adapter is a **presentation and operation-forwarding surface**, not a trusted isolation/authority boundary. Doc 182b §A.4 governs fast upstream changes: preserve operations, verify the actual host, and adapt only the necessary boundary. QML examples elsewhere are conditional on a verified host, not a mandatory stock-Omarchy capability.
 
 For Ambient/Agent Computer work:
 
@@ -146,7 +146,7 @@ For Ambient/Agent Computer work:
 - keep trusted audio capture/sync/enforcement in separate bounded services/workloads;
 - use supported Omarchy plugin/config/session paths rather than modifying package-owned upstream source;
 - an attractive QML approval panel is not hardened Secure Attention by itself;
-- validate plugin manifests and declare exact supported Omarchy shell generation/version.
+- validate the selected presenter's configuration/manifests and declare the exact supported Omarchy/presenter versions.
 
 ## Foreman / Radar / Ambient Operator ownership hard stop
 

@@ -31,6 +31,34 @@ Use the stock Omarchy ISO/install procedure after the hardware's valid UEFI path
 
 The recovered first bring-up target is Dell Chromebook 11 CC11260 / expected ULDRENITE. Actual HWID, resources, firmware prerequisites and compatibility are validated by Doc 187. Do not assert native support from a CPU brand alone. Do not silently replace the requested native target with a remote webpage.
 
+### A.4 Rapid upstream change: stable operations, replaceable integration
+
+Operator direction (2026-09-08): adapt necessary docs/code as Omarchy evolves while
+keeping Veragensia's essence and operations unchanged. This rule governs older
+renderer/path assumptions; it does not replace their authority/security contracts.
+
+- Keep mission/state/next-action semantics, explicit scope, Focusa ownership,
+  privacy, stop/approval behavior and full-profile composition stable.
+- Verify the installed or selected upstream revision and actual capabilities before
+  changing an integration. Rumored or unreleased changes are not implementation facts.
+- Adapt the smallest existing presenter/adapter boundary and update its docs and
+  producer/consumer tests together. Ordinary in-scope adjustments need no repeated
+  design permission. Never invent a plugin host, command, path or capability.
+- Support verified requirements, not hypothetical versions. Add compatibility
+  branches only for demonstrated supported-version differences with test coverage;
+  do not create a general compatibility framework or parallel authority/store.
+- Pin and qualify intentional upgrades; preserve user configuration and a rollback
+  path. Do not track floating latest, auto-upgrade, auto-install or replace the base.
+- Escalate changes to core operations, trust boundaries, new services/dependencies,
+  installation or deployment scope. Unknown compatibility stays explicit rather
+  than being silently treated as working.
+
+Inspected upstream `f4378f0de5b44d331ee943746a97872b718a6c18` uses Waybar;
+its complete source tree has no desktop Quickshell/plugin host. The QML file found
+is an SDDM login theme, not an integration host. Use stock Waybar for the current
+compact Work surface; a future renderer must earn support through actual evidence.
+This is source evidence, not qualification of the still-unverified native hardware.
+
 ## B. Native v0.1 integration layer
 
 ### B.1 Responsibility boundaries
@@ -63,12 +91,9 @@ overlay/omarchy/uninstall.sh
 overlay/omarchy/bin/veragens
 overlay/omarchy/lib/veragens.py
 overlay/omarchy/services/veragens-session.service
-overlay/omarchy/plugins/veragensia.work/manifest.json
-overlay/omarchy/plugins/veragensia.work/Status.qml
-overlay/omarchy/plugins/veragensia.work/WorkPanel.qml
 ```
 
-The native preview uses Python 3 standard-library adapter code and QML presentation as the selected engineering default. Existing Focusa binaries are pinned external artifacts. No resident model, new on-device Rust toolchain, or browser compilation is an installation prerequisite.
+The first read-only slice uses existing Python 3 standard-library `scripts/veragens` and stock Waybar presentation. `status --json` reuses the validated scoped continuation envelope; `status --waybar` renders its mission, Workpoint state, next slice and checkpoint timestamp. `config/waybar-work.jsonc` is an inert explicit-scope example, not an installer. No resident bridge, extra shell, model call or new toolchain is required for this slice. Existing Focusa binaries remain external dependencies.
 
 The preview `WorkPanel` is not a replacement Focusa Desktop implementation. It is a bounded native shell projection for the first proof. Full-profile Focusa Desktop integration follows the shared presenter/operation contracts.
 
@@ -80,11 +105,11 @@ The preview `WorkPanel` is not a replacement Focusa Desktop implementation. It i
 | Private adapter configuration | `${XDG_CONFIG_HOME:-$HOME/.config}/veragensia/` |
 | Install/rollback metadata | `${XDG_STATE_HOME:-$HOME/.local/state}/veragensia/` |
 | Session IPC | `${XDG_RUNTIME_DIR}/veragensia/session.sock`; private ownership/modes required |
-| Native plugin | `~/.config/omarchy/plugins/veragensia.work/`; validated real files, not unsafe internal symlinks |
+| Native presenter | Merge only the owned custom module into the verified user Waybar configuration; preserve existing module lists and user edits |
 | CLI entry | User-owned `~/.local/bin/veragens`, only after conflict/ownership checks |
 | Focusa canonical data | Existing supported Focusa data directory; never relocated/erased implicitly |
 
-Respect existing custom XDG configuration where the actual upstream consumer supports it; do not assume a relocated plugin path works when Omarchy's selected version expects `~/.config/omarchy`. Record actual paths locally and redact them in shared evidence.
+Discover the actual Waybar configuration path and respect supported XDG overrides; do not assume an Omarchy plugin directory or copy a complete replacement configuration. Record actual paths locally and redact them in shared evidence. The current CLI slice creates no socket or service; those rows describe the proposed fuller session bridge.
 
 The native installer must not modify `/usr/share/omarchy`, replace whole user dotfiles, enable passwordless privilege, add public listeners, or change firmware/partitions. Third-party shell plugins are unsandboxed user code, not a place for secrets or authority enforcement.
 
@@ -106,17 +131,17 @@ These are future interfaces. README and Doc 187 must continue to say they are un
 
 Check actual architecture, base generation, dependency presence, manifest completeness, artifact hashes, free space, private runtime ownership, existing daemon identity, and supported Focusa operations. A preflight failure explains the exact unmet condition. It never runs a firmware utility, package update, browser login, or duplicate daemon as a surprise repair.
 
-Pin Omarchy/Hyprland/Quickshell and the Focusa/Workforce/agent artifacts in the compatibility record. Do not silently adopt a newer release because a mutable latest URL changed. Draft artifacts require a separately explicit experimental choice; the published inspected Focusa candidate is v0.9.184, not proof of hardware compatibility.
+Pin Omarchy/Hyprland and the selected presenter (currently Waybar), plus the Focusa/Workforce/agent artifacts, in the compatibility record. `platform.waybar_version` is required for this profile; legacy `quickshell_version` metadata is retained for compatibility, not required or proof of an installed host. Do not silently adopt a newer release because a mutable latest URL changed. Draft artifacts require a separately explicit experimental choice; the published inspected Focusa candidate is v0.9.184, not proof of hardware compatibility.
 
 A full-profile installer/resolver will later need profile-specific checks for Focusa Desktop, Pi/plugin, UIAI Engine/Cockpit, Agent Apps and application capability descriptors. Those later checks must not be falsely reported as native v0.1 requirements before their implementation contracts exist.
 
 ### C.3 Apply and activation
 
-Stage on the target filesystem; validate plugin schema/entry points and each planned shared-config edit. Capture only the config fragments owned by the integration, with preimage hashes. Abort on conflicting edits or non-owned destinations.
+Stage on the target filesystem; validate the selected presenter's configuration/entry points and each planned shared-config edit. Capture only the config fragments owned by the integration, with preimage hashes. Abort on conflicting edits or non-owned destinations.
 
-Use supported plugin/config/Omarchy menu interfaces and an optional conflict-checked user keybinding. Do not overwrite stock launcher bindings. Adding the whole repository through `omarchy plugin add` is not valid unless a plugin-root manifest actually exists; install the validated plugin subtree instead.
+Use verified configuration/menu interfaces and optional conflict-checked user bindings. Do not overwrite stock launcher bindings or invent `omarchy plugin` commands. The first slice has no click/launch binding; full-view opening must use a verified installed Focusa Desktop entry point.
 
-Install/enable the session service only after its inputs validate. Follow the actual graphical-session lifecycle; no default linger. Authenticate private Focusa access, verify the bridge/projection, then record committed install state. A successful copy is not successful activation.
+If a later approved profile needs the proposed session service, install/enable it only after its inputs validate. Follow the actual graphical-session lifecycle; no default linger. Authenticate private Focusa access, verify the bridge/projection, then record committed install state. A successful copy is not successful activation.
 
 ### C.4 Idempotency and uninstall
 
@@ -188,7 +213,7 @@ The exact default productivity/development/knowledge/communications software cat
 
 ## Sources
 
-- [Omarchy plugin interfaces](https://omarchy.org/manual/shell-plugins/) and [supported configuration/hooks](https://omarchy.org/manual/dotfiles/), inspected 2026-09-04.
+- [Complete Omarchy source tree](https://api.github.com/repos/basecamp/omarchy/git/trees/f4378f0de5b44d331ee943746a97872b718a6c18?recursive=1), [base packages](https://github.com/basecamp/omarchy/blob/f4378f0de5b44d331ee943746a97872b718a6c18/install/omarchy-base.packages), and [session autostart](https://github.com/basecamp/omarchy/blob/f4378f0de5b44d331ee943746a97872b718a6c18/default/hypr/autostart.conf), inspected 2026-09-08. These replace the earlier unsupported shell-plugin baseline assumptions.
 - [186 — release requirements](186-veragensia-v0.1-native-chromebook-release-spec.md).
 - [187 — hardware and first installation](187-veragensia-chromebook-first-install-runbook.md).
 - [188 — decisions and integration contracts](188-veragensia-v0.1-decisions-and-integration-contracts.md).

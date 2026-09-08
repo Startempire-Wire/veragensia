@@ -123,15 +123,21 @@ Do not place durable implementation in `/tmp`, an operator home directory, a tra
 - Read-only integration comes before mutation controls.
 - Mutating agent actions require the applicable Focusa authorization and approval path.
 
-### 5.1 Omarchy plugin boundary
+### 5.1 Omarchy presenter boundary and upstream changes
 
-A normal Omarchy/Quickshell plugin is a **presenter/operation-forwarder**, not an isolation or authority boundary.
+**Keep operations stable; adapt the integration to verified upstream changes.**
+Use `docs/182b-veragensia-base-os-and-overlay-detailed-spec.md` §A.4 as the single
+adjustment rule. Do not infer a QML host or plugin API from older plans, and do not
+build speculative compatibility layers or upgrade/install automatically.
+
+A native presentation adapter (currently Waybar; QML only where a host is verified)
+is a **presenter/operation-forwarder**, not an isolation or authority boundary.
 
 Therefore:
 
 - do not store credential values or broad secrets in plugin/QML state;
 - do not make a plugin the Focusa reducer, Foreman/Radar state store, microphone authority, credential broker, EnforcementPlan compiler, or direct canonical database writer;
-- use supported user plugin/config paths and validate manifests;
+- use verified user configuration paths and validate the selected adapter's configuration/manifests;
 - do not modify package-owned Omarchy source under the upstream installation;
 - keep trusted audio/sync/enforcement logic in separate bounded workloads/services;
 - a visually trusted QML approval dialog is not hardened Secure Attention by itself.

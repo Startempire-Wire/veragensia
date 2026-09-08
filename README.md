@@ -288,7 +288,40 @@ PYTHONDONTWRITEBYTECODE=1 python3 tests/06-veragensia-resume-test.py
 
 This is a transparent, read-only adapter to `focusa workpoint resume --json`. Both scope arguments are mandatory; the project must be an existing absolute local directory. There is no current-directory fallback, project initialization, execution resumption, model call, or new state store. Argument values are forwarded as argv data, never evaluated as shell commands.
 
-The adapter reuses the inventory subprocess limits and accepts the current `focusa.workpoint_resume_packet.v2` contract only when its canonical packet matches the requested project and continuity. Successful JSON is preserved, not translated into a competing state model. Missing tools, process errors, timeout, oversize/invalid replies, unsupported schemas, unavailable continuation and scope mismatch exit 2 with a bounded diagnostic; foreign packet contents and stderr are not echoed. A saved continuation is not permission to execute its next action. Run as the owning user and keep returned project context private.
+The adapter retains the inventory byte/process-group bounds with a five-second daemon-read deadline (local inventory probes remain two seconds), and accepts the current `focusa.workpoint_resume_packet.v2` contract only when its canonical packet matches the requested project and continuity. Successful JSON is preserved, not translated into a competing state model. Missing tools, process errors, timeout, oversize/invalid replies, unsupported schemas, unavailable continuation and scope mismatch exit 2 with a bounded diagnostic; foreign packet contents and stderr are not echoed. A saved continuation is not permission to execute its next action. Run as the owning user and keep returned project context private.
+
+## Scoped Work surface (source-only; native integration not yet qualified)
+
+Keep operations stable; adapt the integration to verified upstream changes. The
+single rule is [Doc 182b §A.4](docs/182b-veragensia-base-os-and-overlay-detailed-spec.md).
+The inspected Omarchy baseline uses Waybar, not the formerly assumed QML host.
+
+```bash
+scripts/veragens status --project-root /absolute/project --continuity-id EXPLICIT_ID --json
+scripts/veragens status --project-root /absolute/project --continuity-id EXPLICIT_ID --waybar
+```
+
+JSON is the same validated, scoped Focusa continuation returned by `resume`, not a
+new state authority. Waybar shows a bounded mission label and a tooltip containing
+project, Workpoint state, next slice and checkpoint timestamp. Text is markup-escaped;
+stale/unknown/unavailable states remain explicit. This is checkpoint information,
+not proof that a worker is running or a task is complete. Failed reads replace the
+frame with unavailable, never retained foreign/old state. Waybar's exit zero means
+that a frame was emitted; JSON retains the existing error exit behavior.
+
+`config/waybar-work.jsonc` is an **example fragment**, not an installer: replace its
+three placeholders with verified shell-quoted local literals, add the custom module
+to one existing module list, and preserve user configuration. The example polls
+read-only every 15 seconds; daemon reads have a five-second deadline and bounded output. It has no
+click action, implicit scope, model invocation, new service or automatic installation.
+Full Focusa Desktop opening and other planned operations remain unchanged in scope,
+but are not implemented by this slice. A tooltip is not the full accessible Work
+panel: keyboard/full-view launch and native rendering remain unverified. No native
+pixels/activation are claimed.
+
+```bash
+PYTHONDONTWRITEBYTECODE=1 python3 tests/07-veragensia-work-status-test.py
+```
 
 ## Run the existing lab
 

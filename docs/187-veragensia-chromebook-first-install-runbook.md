@@ -61,11 +61,11 @@ uname -m
 uname -r
 free -h
 lsblk -o NAME,SIZE,TYPE,FSTYPE,MOUNTPOINTS
-pacman -Q omarchy hyprland quickshell
-omarchy plugin list --json
+pacman -Q hyprland waybar
+omarchy commands --all --json
 ```
 
-A missing package or plugin command is evidence of a platform-generation mismatch; it is not permission to edit `/usr/share/omarchy` or install a second shell blindly. Keep raw output local and redact before publishing.
+Record the actual Omarchy revision using its advertised version interface as well. These commands reflect the inspected Waybar-based upstream; follow Doc 182b §A.4 when interfaces change. Missing Quickshell is not a default failure. A missing advertised interface requires verification, not edits to `/usr/share/omarchy` or installation of a second shell. Keep raw output local and redact before publishing.
 
 ## 5. Inspect Veragensia before running any installer
 

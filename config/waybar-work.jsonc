@@ -1,0 +1,13 @@
+// Example fragment, not an installer or a complete replacement Waybar config.
+// Replace the three explicit literals with verified, shell-quoted local values.
+// Add custom/veragensia-work to ONE existing modules-* list; preserve user edits.
+{
+  "custom/veragensia-work": {
+    "exec": "'/ABSOLUTE/PATH/TO/veragens' status --waybar --project-root='/ABSOLUTE/PROJECT' --continuity-id='EXPLICIT_CONTINUITY'",
+    "return-type": "json",
+    "interval": 15,
+    "format": "{}",
+    "tooltip": true,
+    "escape": false
+  }
+}

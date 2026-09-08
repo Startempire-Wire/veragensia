@@ -55,9 +55,9 @@ Deferred: Fly/Sprites backend; custom ISO; distributed task migration; local mod
 
 Omarchy owns the graphical session, compositor, system controls, and shell host. Focusa owns its existing operational state and authorization. Veragensia owns adapters and presentation.
 
-The always-on application services are the existing Focusa daemon and **one lightweight session bridge**. The QML plugin lives in Omarchy's shell process; cognition and execution workers are started only when needed. CLI/watch clients are bounded subprocesses, not additional authorities. Do not create one daemon per primitive.
+Reuse the existing Focusa daemon. The first read-only Work slice uses bounded CLI reads rendered by stock Waybar, with no new resident service. A fuller session bridge remains proposed; cognition/execution workers start only when needed. Do not create one daemon per primitive.
 
-Selected implementation default: Python 3 standard-library session adapter/CLI for v0.1, QML for the Omarchy plugin, shell for installation. This avoids a new on-device compiler/toolchain requirement. These choices do not fix the long-term implementation language; the versioned adapter contract must permit replacement.
+Selected implementation default: Python 3 standard-library adapter/CLI, the verified upstream presenter (currently Waybar), and shell for future installation. Doc 182b §A.4 governs adaptation to rapid upstream changes: preserve operations and authority, replace only the necessary integration detail, and qualify actual versions rather than assuming a QML host.
 
 Proposed repository layout (not present at the baseline):
 
@@ -67,9 +67,6 @@ overlay/omarchy/uninstall.sh
 overlay/omarchy/bin/veragens
 overlay/omarchy/lib/veragens.py
 overlay/omarchy/services/veragens-session.service
-overlay/omarchy/plugins/veragensia.work/manifest.json
-overlay/omarchy/plugins/veragensia.work/Status.qml
-overlay/omarchy/plugins/veragensia.work/WorkPanel.qml
 overlay/omarchy/fixtures/
 tests/native/
 ```
@@ -78,9 +75,9 @@ Focusa binaries, Workforce build output, and UIAI artifacts are consumed at pinn
 
 ## 6. Supported integration seams
 
-Use `~/.config/omarchy/plugins/veragensia.work/` and the supported shell configuration interface. Validate the staged plugin using `omarchy plugin validate`; preserve existing bar entries and other plugins. The repository is not itself a plugin-root repository: **do not run `omarchy plugin add` against this repository and assume a root manifest exists**.
+Use the verified user Waybar configuration interface. The inert `config/waybar-work.jsonc` example requires explicit CLI/project/continuity values and a deliberate merge into an existing module list. Preserve other entries and custom configuration; do not invent an Omarchy plugin directory or validation command.
 
-Use an additive user menu entry and an optional conflict-checked binding. Do not take over Omarchy's default launcher keys. On plugin-generation Omarchy, use supported user Lua overrides; on an unsupported generation, report `unsupported_platform` rather than rewriting legacy configs opportunistically. Compatibility requires an exact recorded Omarchy/Hyprland/Quickshell version set, not merely the word “latest.”
+A later launch/menu binding must use a verified installed entry point and conflict checks. Do not take over default launcher keys or rewrite legacy configs opportunistically. Compatibility requires the recorded Omarchy/Hyprland/presenter versions (currently Waybar), not merely “latest.” An unsupported interface stays an explicit gap; neither a second shell nor a dependency installation is an automatic repair.
 
 The bridge may consume Hyprland events after per-session opt-in. Default payload contains workspace identity and allowlisted application class, not full window titles or document contents. Workspace association is user-confirmed metadata; it cannot change Focusa project authority on its own. Reconnect or compositor restart causes resynchronization, not replayed agent launches.
 

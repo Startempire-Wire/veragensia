@@ -48,8 +48,8 @@ The Chromebook v0.1 MAY omit full-profile surfaces until their dependency, resou
 |---|---|---|
 | D01 | Stock supported Omarchy plus additive native integration | No deep fork, custom ISO, or replacement DE for v0.1 |
 | D02 | Existing Focusa daemon and existing project/continuity/Workpoint model | No parallel “OS brain,” task database, or new canonical world-state service |
-| D03 | One session bridge; QML plugin inside Omarchy shell | No standalone Veragensia shell beside Omarchy; no service per cognitive primitive |
-| D04 | Python 3 stdlib bridge/CLI for the preview; QML rendering | Minimize build/dependency setup; language can change behind the contract |
+| D03 | Reuse the existing scoped read adapter; stock Waybar for the first compact Work surface | No standalone shell or new service; a fuller session bridge remains a separate planned slice |
+| D04 | Python 3 stdlib CLI with a thin replaceable presenter | Preserve operations while adapting to verified upstream interfaces under Doc 182b §A.4 |
 | D05 | Explicit user-selected project binding; workspace context advisory | Window focus or folder selection does not assert user intent or ownership |
 | D06 | One isolated local governed run and a reviewable artifact | No unrestricted broad computer-control agent as the first proof; full product computer use remains required under Docs 190/191 |
 | D07 | Pin and verify existing Focusa/Workforce/UIAI/agent artifacts as applicable | No floating latest download, on-device full build, or license bypass |
@@ -77,14 +77,32 @@ These selections are concrete implementation inputs, not an alternative-choice m
 
 Focusa's current operational authority is not organizational architecture authority. Linux root is not an architectural signature. Omarchy shell plugins run with user-account access; do not use an unsandboxed plugin or peer UID alone as the security boundary against same-user hostile code.
 
-## 4. Proposed public CLI
+## 4. Public CLI and implemented read-only subset
 
-The product's existing short form is **Veragens**; use `veragens`, not a second competing `veragensctl` name. This interface is **specified, not yet implemented at the planning baseline**.
+The operator's 2026-09-08 adjustment preserves operations while replacing unsupported
+QML-host assumptions with the verified Waybar seam. Doc 182b §A.4 owns the upstream
+change rule; do not infer future support from planned releases.
+
+`doctor` and `resume` remain available. `status --project-root PATH --continuity-id ID
+--json` now reuses `resume`'s unchanged, canonical scoped Focusa envelope, **not** the
+full proposed session/IPC schema below. `--waybar` renders bounded, markup-escaped
+mission/state/next-slice text and checkpoint time. It labels checkpoint/stale data,
+not live worker health, and clears to unavailable on failed/foreign/noncanonical
+reads. Unknown display fields remain unknown. JSON retains the existing blocked
+exit code; Waybar returns zero for a successfully emitted unavailable frame, not
+for dependency health or completed work. No cache, service or model is introduced.
+
+Watch, open/full-view launch, run, pause, stop and the fuller bridge contracts below
+remain planned; this slice does not delete or claim to implement those operations.
+`config/waybar-work.jsonc` requires explicit local scope and deliberate integration;
+it does not install itself or change the selected project.
+
+The product's existing short form is **Veragens**; use `veragens`, not a second competing `veragensctl` name. The remaining target interface is specified below; implementation status is bounded by the subset above.
 
 | Command | Meaning | Side-effect rule |
 |---|---|---|
 | `veragens doctor --json` | Platform, dependency, auth, compatibility, profile and release-gate report | No install, enrollment, network-exposure, or repair side effects |
-| `veragens status --json` | One bounded current projection | Read-only; explicit unavailable/stale states |
+| `veragens status --project-root PATH --continuity-id ID --json` | One bounded scoped continuation projection | Read-only; exact scope required; Waybar presentation available with `--waybar` |
 | `veragens status --watch` | JSON Lines projection stream | Bounded subscriber; no model calls |
 | `veragens open` | Summon the native Work panel | No change of project, grant, or agent state |
 | `veragens resume --project-root PATH --continuity-id ID` | Read the scoped Focusa continuation | Does not resume execution automatically |
@@ -237,7 +255,7 @@ Implement deterministic rules through existing Focusa signal/governance paths, n
 
 Each observer result includes cause/correlation identity so a response does not repeatedly trigger itself. Debounce/coalesce observations; retained raw observations are bounded and short-lived. Surface meaningful state changes, not every event.
 
-Secondary cognition uses existing Focusa workers when justified by a bounded task. Ontology extensions, trust/reliability evidence, and RDF/semantic verification remain Focusa-owned mechanisms; this release projects their results rather than reimplementing them in QML or the bridge.
+Secondary cognition uses existing Focusa workers when justified by a bounded task. Ontology extensions, trust/reliability evidence, and RDF/semantic verification remain Focusa-owned mechanisms; this release projects their results rather than reimplementing them in a presenter or the bridge.
 
 ## 11. Install transaction details
 

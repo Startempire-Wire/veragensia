@@ -6,29 +6,30 @@
 
 ## 1. Omarchy base reality
 
-Current Omarchy describes itself as Arch Linux + Hyprland + Quickshell.
+Correction, 2026-09-08: the inspected upstream revision
+`f4378f0de5b44d331ee943746a97872b718a6c18` installs Hyprland and Waybar and
+starts Waybar in its default session. The previous Quickshell baseline assertion
+was not supported by this source verification and must not guide installation.
 
-Source: <https://omarchy.org/manual/>
+Source: [base packages](https://github.com/basecamp/omarchy/blob/f4378f0de5b44d331ee943746a97872b718a6c18/install/omarchy-base.packages)
+and [autostart](https://github.com/basecamp/omarchy/blob/f4378f0de5b44d331ee943746a97872b718a6c18/default/hypr/autostart.conf).
 
 Implementation implication:
 
-- Veragensia native integration targets normal Arch/Hyprland/Quickshell contracts;
+- use verified Arch/Hyprland/presenter interfaces under Doc 182b §A.4;
 - do not assume KDE/webtop integration behavior applies to native Omarchy;
 - exact installed Omarchy/shell version remains a release-gate fact.
 
 ## 2. Omarchy shell/plugin model
 
-Current Omarchy documentation states:
+The complete inspected [source tree](https://api.github.com/repos/basecamp/omarchy/git/trees/f4378f0de5b44d331ee943746a97872b718a6c18?recursive=1)
+contains 1,389 entries, Waybar configuration, and an SDDM greeter QML file—not a
+desktop QML/Quickshell plugin host. Earlier `omarchy-shell`/plugin-kind/path/CLI
+claims in this section are superseded for the current integration baseline.
+Native hardware and future upstream generations still require separate proof.
 
-- the desktop is one long-lived Quickshell process named `omarchy-shell`;
-- first-party plugins live beneath `$OMARCHY_PATH/shell/plugins/`;
-- user/third-party plugins live beneath `~/.config/omarchy/plugins/`;
-- supported plugin kinds include `bar-widget`, `panel`, `overlay`, `menu`, `service`, and `bar`;
-- user plugins run as arbitrary **unsandboxed** code inside the long-lived shell process with the user's permissions;
-- `omarchy plugin validate` validates plugin manifests;
-- package-owned Omarchy plugin source should be cloned/overridden rather than edited directly.
-
-Source: <https://omarchy.org/manual/shell-plugins/>
+A native presenter/custom command runs with its user's privileges; rendering or
+same-UID execution is not a security boundary. Preserve package-owned source.
 
 ### Qualification decision
 
@@ -47,13 +48,11 @@ Trusted audio/sync/enforcement behavior stays in separate bounded services/workl
 
 ## 3. Supported session/user configuration
 
-Current Omarchy documents:
-
-- `~/.config/hypr/autostart.lua` for additional session-start processes;
-- `~/.config/omarchy/shell.json` for shell/bar/plugin configuration;
-- user config beneath `~/.config` rather than modifications to package-owned source.
-
-Source: <https://omarchy.org/manual/dotfiles/>
+The inspected revision provides `config/hypr/autostart.conf` and
+`config/waybar/config.jsonc`. Verify their actual installed/XDG locations and merge
+only owned entries. Do not assume earlier `autostart.lua` or `shell.json` examples
+are active interfaces. User configuration remains separate from package-owned
+source; exact version/path qualification is required by Doc 182b §A.4.
 
 ### Qualification decision
 
