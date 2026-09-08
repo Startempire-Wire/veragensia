@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 import re
 import stat
+import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "config/v0.1-release-candidate.json"
@@ -118,11 +119,42 @@ def manifest_gaps(path, artifact_dir=None):
             "evidence_verification": "not_performed"}
 
 
-def runtime_inventory():
+def inventory_module():
     spec = importlib.util.spec_from_file_location("veragens_inventory", ROOT / "scripts/veragens-omarchy-inventory.py")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    return module.inventory(Path.home())
+    return module
+
+
+def runtime_inventory():
+    return inventory_module().inventory(Path.home())
+
+
+def resume(project_root, continuity_id, runner=None):
+    """Forward one explicit read to Focusa; never dispatch or resume execution."""
+    root = Path(project_root)
+    if not root.is_absolute() or not root.is_dir() or not continuity_id.strip():
+        return {"status": "blocked", "reason": "explicit_local_scope_required"}, 2
+    module = inventory_module()
+    state, data = module.json_probe(
+        ["focusa", "workpoint", "resume", f"--project-root={root}",
+         f"--continuity-id={continuity_id}", "--json"], runner or module.probe)
+    if state["status"] != "ok":
+        failure = {"status": "blocked", "reason": f"focusa_{state['status']}"}
+        if "exit_code" in state:
+            failure["exit_code"] = state["exit_code"]
+        if "reason" in state:
+            failure["upstream_reason"] = state["reason"]
+        return failure, 2
+    if not isinstance(data, dict) or data.get("schema_version") != "focusa.workpoint_resume_packet.v2":
+        return {"status": "blocked", "reason": "unsupported_focusa_reply"}, 2
+    packet = data.get("resume_packet")
+    if not isinstance(packet, dict) or packet.get("project_root") != str(root) or packet.get("continuity_id") != continuity_id:
+        return {"status": "blocked", "reason": "focusa_scope_mismatch"}, 2
+    if (data.get("status") != "completed" or data.get("canonical") is not True
+            or packet.get("canonical") is not True or data.get("degraded") is True):
+        return {"status": "blocked", "reason": "focusa_continuation_unavailable"}, 2
+    return data, 0
 
 
 def doctor(path=MANIFEST, collector=runtime_inventory, artifact_dir=None):
@@ -145,11 +177,20 @@ def main():
     diagnostic.add_argument("--manifest", type=Path, default=MANIFEST, help="candidate metadata to inspect locally")
     diagnostic.add_argument("--artifact-dir", type=Path,
                             help="opt in to hashing local pinned dependency files; never executes them")
+    continuation = commands.add_parser("resume", help="read an explicitly scoped Focusa continuation; never start execution")
+    continuation.add_argument("--project-root", required=True)
+    continuation.add_argument("--continuity-id", required=True)
+    continuation.add_argument("--json", action="store_true", help="JSON output (also the default)")
     args = parser.parse_args()
-    print(json.dumps(doctor(args.manifest, artifact_dir=args.artifact_dir), sort_keys=True))
-    # Explicitly incomplete until native artifact/evidence verification exists.
-    return 2
+    if args.command == "resume":
+        report, code = resume(args.project_root, args.continuity_id)
+    else:
+        report, code = doctor(args.manifest, artifact_dir=args.artifact_dir), 2
+    print(json.dumps(report, sort_keys=True))
+    return code
 
 
 if __name__ == "__main__":
+    # Read-only commands must not create cache files beside the source scripts.
+    sys.dont_write_bytecode = True
     raise SystemExit(main())

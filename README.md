@@ -275,6 +275,17 @@ Optional `--artifact-dir` compares local `focusa` and `focusa-daemon` bytes with
 
 The current preview always exits **2** with `status: incomplete` and `release_ready: false`: matching local bytes do not verify the manifest's authority, evidence references, installed runtime or native compatibility. Even a manifest claiming every gate passed cannot certify itself. This is manifest-gap reporting, not the completed release evaluator or native doctor. No installs, downloads, repairs, enrollment, file changes or new services occur. Run as the intended desktop owner.
 
+## Read scoped continuation (Doc 188)
+
+```bash
+python3 scripts/veragens resume --project-root /absolute/project --continuity-id existing-workstream-id
+PYTHONDONTWRITEBYTECODE=1 python3 tests/06-veragensia-resume-test.py
+```
+
+This is a transparent, read-only adapter to `focusa workpoint resume --json`. Both scope arguments are mandatory; the project must be an existing absolute local directory. There is no current-directory fallback, project initialization, execution resumption, model call, or new state store. Argument values are forwarded as argv data, never evaluated as shell commands.
+
+The adapter reuses the inventory subprocess limits and accepts the current `focusa.workpoint_resume_packet.v2` contract only when its canonical packet matches the requested project and continuity. Successful JSON is preserved, not translated into a competing state model. Missing tools, process errors, timeout, oversize/invalid replies, unsupported schemas, unavailable continuation and scope mismatch exit 2 with a bounded diagnostic; foreign packet contents and stderr are not echoed. A saved continuation is not permission to execute its next action. Run as the owning user and keep returned project context private.
+
 ## Run the existing lab
 
 ```bash
