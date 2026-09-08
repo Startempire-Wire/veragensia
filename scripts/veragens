@@ -63,7 +63,14 @@ def host_platform():
             "scope": "current_host_only", "native_qualification": "not_verified"}
 
 
-def manifest_gaps(path, artifact_dir=None, observed_architecture=None):
+def pin_match(expected, observed):
+    if not all(isinstance(value, str) and value.strip() and value.lower() != "unknown"
+               for value in (expected, observed)):
+        return None
+    return expected == observed
+
+
+def manifest_gaps(path, artifact_dir=None, observed_architecture=None, observed_focusa_version=None):
     """Report metadata gaps; never treat a supplied evidence ref as verified proof."""
     try:
         fd = os.open(path, os.O_RDONLY | os.O_NONBLOCK | os.O_NOFOLLOW)
@@ -95,16 +102,17 @@ def manifest_gaps(path, artifact_dir=None, observed_architecture=None):
                 gaps.append({"field": f"{section}.{field}", "reason": "missing_or_invalid_value"})
     platform = data.get("platform")
     expected_architecture = platform.get("architecture") if isinstance(platform, dict) else None
-    architecture_match = None
-    if all(isinstance(value, str) and value.strip() and value.lower() != "unknown"
-           for value in (expected_architecture, observed_architecture)):
-        architecture_match = expected_architecture == observed_architecture
-        if not architecture_match:
-            gaps.append({"field": "platform.architecture", "reason": "host_architecture_mismatch"})
+    architecture_match = pin_match(expected_architecture, observed_architecture)
+    if architecture_match is False:
+        gaps.append({"field": "platform.architecture", "reason": "host_architecture_mismatch"})
     hardware = data.get("hardware")
     if not isinstance(hardware, dict) or hardware.get("actual_board_verified") is not True:
         gaps.append({"field": "hardware.actual_board_verified", "reason": "not_asserted"})
     candidate = data.get("focusa_candidate")
+    cli_version_match = pin_match(candidate.get("version") if isinstance(candidate, dict) else None,
+                                  observed_focusa_version)
+    if cli_version_match is False:
+        gaps.append({"field": "focusa_candidate.version", "reason": "focusa_cli_version_mismatch"})
     artifacts = candidate.get("artifacts") if isinstance(candidate, dict) else None
     # Names are declared by the existing candidate contract, never executed or downloaded.
     if not isinstance(artifacts, list):
@@ -139,7 +147,8 @@ def manifest_gaps(path, artifact_dir=None, observed_architecture=None):
         "matched" if all(c["status"] == "match" for c in artifact_checks) else "failed")
     return {"status": "gaps_found" if gaps else "metadata_present_unverified", "gaps": gaps,
             "artifact_hash_verification": hash_status, "artifact_checks": artifact_checks,
-            "architecture_match": architecture_match, "evidence_verification": "not_performed"}
+            "architecture_match": architecture_match, "focusa_cli_version_match": cli_version_match,
+            "evidence_verification": "not_performed"}
 
 
 def inventory_module():
@@ -151,6 +160,20 @@ def inventory_module():
 
 def runtime_inventory():
     return inventory_module().inventory(Path.home())
+
+
+def focusa_cli_version(runner=None):
+    state, raw = (runner or inventory_module().probe)(["focusa", "--version"])
+    if state["status"] != "ok":
+        return {**state, "version": None}
+    try:
+        text = raw.decode("utf-8").strip()
+    except UnicodeError:
+        return {"status": "invalid_output", "version": None}
+    match = re.fullmatch(r"focusa ([0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?)", text)
+    if not match:
+        return {"status": "invalid_output", "version": None}
+    return {"status": "observed", "version": match[1]}
 
 
 def resume(project_root, continuity_id, runner=None):
@@ -182,13 +205,15 @@ def resume(project_root, continuity_id, runner=None):
 
 def doctor(path=MANIFEST, collector=runtime_inventory, artifact_dir=None):
     platform = host_platform()
-    manifest = manifest_gaps(path, artifact_dir, platform["architecture"])
+    cli = focusa_cli_version()
+    manifest = manifest_gaps(path, artifact_dir, platform["architecture"], cli["version"])
     remaining = ["native_target_qualification", "release_evidence_verification"]
     if manifest.get("artifact_hash_verification") != "matched":
         remaining.append("dependency_artifact_hash_verification")
     return {"schema": "veragensia.doctor.v1", "mode": "read_only",
             "status": "incomplete", "release_ready": False,
-            "manifest": manifest, "platform": platform, "runtime": collector(),
+            "manifest": manifest, "platform": platform, "dependencies": {"focusa_cli": cli},
+            "runtime": collector(),
             "remaining_checks": remaining,
             "note": "Candidate assertions are not verified release evidence; this diagnostic never certifies readiness."}
 

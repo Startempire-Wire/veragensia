@@ -23,6 +23,10 @@ class DoctorTests(unittest.TestCase):
         self.addCleanup(self.temp.cleanup)
         self.path = Path(self.temp.name) / "candidate.json"
         self.candidate = json.loads((ROOT / "config/v0.1-release-candidate.json").read_text())
+        version_stub = patch.dict(api["doctor"].__globals__, {
+            "focusa_cli_version": lambda: {"status": "unavailable", "version": None}})
+        version_stub.start()
+        self.addCleanup(version_stub.stop)
 
     def write(self, value):
         self.path.write_text(json.dumps(value))
@@ -198,6 +202,43 @@ class DoctorTests(unittest.TestCase):
             self.assertEqual(result["platform"]["status"], "partial")
             self.assertIsNone(result["platform"]["architecture"])
             self.assertIsNone(result["manifest"]["architecture_match"])
+
+    def test_cli_version_parser_uses_fixed_command(self):
+        calls = []
+        def runner(argv):
+            calls.append(argv)
+            return {"status": "ok"}, b"focusa 0.9.184\n"
+        result = api["focusa_cli_version"](runner)
+        self.assertEqual(result, {"status": "observed", "version": "0.9.184"})
+        self.assertEqual(calls, [["focusa", "--version"]])
+        result = api["focusa_cli_version"](lambda argv: ({"status": "ok"}, b"focusa 0.10.0-rc.1+abc\n"))
+        self.assertEqual(result["version"], "0.10.0-rc.1+abc")
+
+    def test_cli_version_unknown_and_failed_outputs_are_not_exposed(self):
+        for raw in (b"0.9.184", b"focusa latest", b"\xff", b"focusa 0.9.184\nPRIVATE_FOOTER"):
+            result = api["focusa_cli_version"](lambda argv: ({"status": "ok"}, raw))
+            self.assertEqual(result, {"status": "invalid_output", "version": None})
+        for state in ({"status": "unavailable"}, {"status": "timeout"}, {"status": "oversized"},
+                      {"status": "error", "exit_code": 7}):
+            result = api["focusa_cli_version"](lambda argv: (state, b"PRIVATE_OUTPUT"))
+            self.assertEqual(result, {**state, "version": None})
+            self.assertNotIn("PRIVATE_OUTPUT", json.dumps(result))
+
+    def test_doctor_cli_pin_match_mismatch_and_unknown(self):
+        self.candidate["focusa_candidate"]["version"] = "0.9.184"
+        self.write(self.candidate)
+        for observed, expected in (("0.9.184", True), ("0.9.183", False), (None, None)):
+            with patch.dict(api["doctor"].__globals__, {
+                    "focusa_cli_version": lambda: {"status": "observed" if observed else "unavailable", "version": observed}}):
+                result = api["doctor"](self.path, lambda: {"status": "degraded"})
+            self.assertIs(result["manifest"]["focusa_cli_version_match"], expected)
+            self.assertEqual(result["dependencies"]["focusa_cli"]["version"], observed)
+            self.assertFalse(result["release_ready"])
+            mismatch = {"field": "focusa_candidate.version", "reason": "focusa_cli_version_mismatch"}
+            self.assertEqual(mismatch in result["manifest"]["gaps"], expected is False)
+        self.candidate["focusa_candidate"]["version"] = None
+        self.write(self.candidate)
+        self.assertIsNone(api["manifest_gaps"](self.path, observed_focusa_version="0.9.184")["focusa_cli_version_match"])
 
     def test_cli_json_and_no_manifest_changes(self):
         self.write(self.candidate)
