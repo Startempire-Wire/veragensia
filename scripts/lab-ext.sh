@@ -32,8 +32,8 @@ try:
       print(t["url"].split("/")[2]); break
 except Exception: pass')
 if [ -n "$EXT_ID" ]; then
-  curl -s -X PUT "http://127.0.0.1:9333/json/new?chrome-extension://$EXT_ID/startpage.html" >/dev/null 2>&1 || \
-    curl -s "http://127.0.0.1:9333/json/new?chrome-extension://$EXT_ID/startpage.html" >/dev/null 2>&1
+  curl -s -X PUT "http://127.0.0.1:9333/json/new?chrome-extension://$EXT_ID/startpage.html?public-work=1" >/dev/null 2>&1 || \
+    curl -s "http://127.0.0.1:9333/json/new?chrome-extension://$EXT_ID/startpage.html?public-work=1" >/dev/null 2>&1
   echo "$EXT_ID" > /tmp/uiai-ext-id
   echo "EXT_ID=$EXT_ID"
 else

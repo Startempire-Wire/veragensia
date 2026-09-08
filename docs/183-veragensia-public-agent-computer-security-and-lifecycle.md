@@ -16,7 +16,7 @@
 
 The public Veragensia demo is constantly available as a real agent computer and build-in-public product surface, while remaining isolated from operator/provider credentials and independent of transient Focusa build workspaces.
 
-Architecturally, this runtime is the first crude implementation of the **Veragensia Cloud Agent Computer Runtime shape** described by Doc 191: streamed Linux desktop, persistent desktop state, Chromium/Workforce, local Focusa daemon, streaming/tunnel and keeper lifecycle.
+Architecturally, this runtime is the first crude implementation of the **Veragensia Cloud Agent Computer Runtime shape** described by Doc 191: streamed Linux desktop, persistent desktop state, the Focusa Chrome extension, KH-owned Focusa projections, streaming/tunnel and keeper lifecycle. Historical references to a local demo daemon do not establish a second authority.
 
 That architectural role changes **nothing** about this contract's trust posture. `os.focusa.dev` is a deliberately constrained `public_demo` profile, not the canonical full private Agent Computer profile. It is not required to contain every Doc-190 full-profile default, and any missing surface must never be used to demote Focusa Desktop, Pi, UIAI Engine/Cockpit, or other canonical full-profile components. Conversely, the full-profile defaults never authorize adding private credentials or customer state to this public runtime.
 
@@ -51,8 +51,22 @@ Canonical stable parent:
 Canonical deploy command on KH:
 
 ```text
-uiai-lab-push
+uiai-lab-push --public-work /absolute/path/to/approved-public-work.json
 ```
+
+The optional snapshot is produced by `python3 scripts/veragens-public-work.py
+--project-root ABSOLUTE_PROJECT_ROOT --continuity-id CONTINUITY_ID`. It reuses the
+scoped read adapter and only publishes wording matching the committed public
+profile. Root paths, continuity/session identifiers, private notes, evidence and
+credentials are excluded. An unknown mission/action/next slice fails closed.
+
+The existing extension's `startpage.html?public-work=1` consumes the packaged
+`focusa.public_work_snapshot.v1` artifact (maximum 16 KiB). It shows mission,
+checkpoint state, stage, next action and timestamps, explicitly **not live worker
+telemetry or execution authority**. Refresh reads the packaged artifact, not a
+private daemon. Normal private-mode behavior, manifest identity and browser
+profile remain intact. The activation wrapper reloads the existing desktop only;
+it must not call `up` or start/repair an OVH Focusa daemon.
 
 Transaction:
 
@@ -62,7 +76,7 @@ Transaction:
 4. Move current `dist` to one bounded rollback directory.
 5. Atomically promote staged `dist`.
 6. Invoke the narrow root lifecycle wrapper.
-7. Verify Chromium CDP, exact extension ID, owner drift, demo daemon, and public HTTP 200.
+7. Verify Chromium CDP, exact extension ID, owner drift, public HTTP 200, and rendered Work content. Snapshot bytes must match across staging; browser/profile identity must survive activation.
 8. Restore rollback if activation fails.
 
 ## 4. Lifecycle and self-healing
@@ -83,7 +97,7 @@ Keeper cadence: 30 seconds. It reconciles:
 - stable extension and demo-data ownership = `wirebot:wirebot`;
 - Chromium CDP healthy;
 - expected extension loaded;
-- in-container demo daemon healthy;
+- historical demo-daemon health may appear in legacy status output, but is not Work-view readiness or authority;
 - public URL available.
 
 `status` must expose:
@@ -94,7 +108,6 @@ connector: running
 keeper: alive
 chrome: healthy
 extension: ready
-demo_daemon: healthy
 owner_drift: none
 ext_id: ohfbbkpacpcapicpgplnnmifmlnmjggj
 ```
@@ -107,19 +120,16 @@ A recreated webtop generates a new per-session DBus address. Launchers must deri
 
 Missing desktop environment, extension manifest, CDP, service worker, or expected extension ID is a hard failure—not an informational warning.
 
-## 6. Demo daemon
+## 6. Focusa authority and legacy runtime
 
-The canonical released `/usr/local/bin/focusa-daemon` is copied into each recreated container. Persistent sample data lives at `/home/wirebot/uiai-lab/veragensia-demo` and mounts at `/veragensia-demo`.
+KH is the sole current Focusa authority. The public Work view uses an explicitly
+curated, dated projection from KH, not a local test-mode daemon or a production
+credential in the browser. It never claims that a snapshot is a live connection.
 
-Runtime:
-
-```text
-FOCUSA_BIND=127.0.0.1:8790
-FOCUSA_DATA_DIR=/veragensia-demo/data
-FOCUSA_TEST_MODE=1
-```
-
-Health: `http://127.0.0.1:8790/v1/health` from inside the container. The daemon never binds publicly.
+Legacy lifecycle code/status may still describe a container-local demo daemon and
+sample-data mount. This delivery does not start, repair, connect to, or promote it.
+Its separate retirement must preserve the existing desktop; the extension
+activation path must not depend on it.
 
 ## 7. Narrow remote authority
 

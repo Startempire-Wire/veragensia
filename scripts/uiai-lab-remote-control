@@ -3,8 +3,13 @@
 set -euo pipefail
 case "${1:-}" in
   sync-activate)
+    # Extension activation is not authority to start containers or a Focusa daemon.
+    state=$(/usr/local/bin/uiai-lab-live status)
+    if ! grep -Eq '^container:[[:space:]]+running$' <<<"$state"; then
+      echo 'extension activation requires the existing running desktop' >&2
+      exit 1
+    fi
     /usr/local/bin/uiai-lab-live reload-chrome
-    /usr/local/bin/uiai-lab-live up
     /usr/local/bin/uiai-lab-live status
     ;;
   status)

@@ -1,0 +1,19 @@
+{
+  "schema": "veragensia.public_work_profile.v1",
+  "project": "Veragensia",
+  "mission": "Deliver Veragensia's public Work view through the existing Focusa Chrome extension.",
+  "actions": {
+    "implement_public_work_view": {
+      "stage": "Building the Work view",
+      "next_action": "Build and verify the Work view in the existing Focusa Chrome extension."
+    },
+    "verify_public_work_view": {
+      "stage": "Verifying the deployed Work view",
+      "next_action": "Verify visible Work information and extension/profile preservation on the public desktop."
+    },
+    "public_work_view_verified": {
+      "stage": "Public Work view verified",
+      "next_action": "Continue developing the Focusa Chrome extension while preserving its public/private boundaries."
+    }
+  }
+}
