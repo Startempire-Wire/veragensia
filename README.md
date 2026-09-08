@@ -247,6 +247,20 @@ Early developer builds may use smaller adapters, but must report the difference 
 - `docs/contracts/ambient-operator-convergence-map.v1.yaml` — machine-readable ownership/dependency/acceptance map; mutable execution work remains in `br`.
 - `docs/contracts/system-operation-keybinding-map.v1.yaml` — machine-readable semantic operation/keybinding families and acceptance map.
 
+## Read-only Omarchy inventory (Doc 201 V201-S1)
+
+```bash
+python3 scripts/veragens-omarchy-inventory.py
+python3 scripts/veragens-omarchy-inventory.py --require-complete
+PYTHONDONTWRITEBYTECODE=1 python3 tests/04-veragensia-omarchy-inventory-test.py
+```
+
+Run as the desktop owner inside the intended session, never as root on behalf of another user. This source-only diagnostic emits `veragensia.omarchy_inventory.v1` JSON: Omarchy command names, Hyprland binding keys/dispatchers, user `bindings.lua` size/digest, and desktop defaults for plain text, HTML and HTTP. It never executes discovered commands or bindings, edits configuration, installs software, or grants control. Binding arguments and override contents are excluded; their digests support change detection. The report is local diagnostic evidence, not an automatic public-upload payload.
+
+Each fixed probe has a two-second deadline and a combined 64 KiB stdout/stderr limit; command/binding projections cap at 200 entries. Missing tools/session, unknown schemas, invalid output, truncation and unresolved defaults remain explicit. Unknown command-registry shapes are **not** guessed: the initial parser accepts a list of names/name records or an object with a `commands` list. A symlinked or non-regular override file is not followed. `--require-complete` exits 2 on incomplete observations; ordinary diagnostic mode still emits a degraded report and exits 0.
+
+Synthetic tests prove the collector and CLI boundaries. Actual Omarchy command-schema compatibility, native target qualification, full keybinding parity and semantic invocation are **not yet verified or implemented** by this slice. `qualification: not_performed` is always present. Rollback is a normal source revert; no service or desktop installation is involved.
+
 ## Run the existing lab
 
 ```bash

@@ -7,7 +7,9 @@
 >
 > **Mandatory provider-auth preflight:** `bash tests/02-veragensia-nonrenewable-resource-policy-static-test.sh` must pass before any login, OAuth, credential recovery, or provider-auth mutation.
 
-This file governs work in the `Startempire-Wire/veragensia` repository. It applies to human contributors and automated agents from the repository root downward. A more specific `AGENTS.md` may refine rules for a future subtree, but it must not weaken the security, authority, or evidence requirements here.
+This file supplies project-specific rules for `Startempire-Wire/veragensia`; it is not a replacement operating framework. Load the deployment-wide `AGENTS.md` first: on the Startempire servers, that foundation is `/root/AGENTS.md`. Its authority, safety, scope, autonomous engineering lifecycle, recovery, evidence, and delivery rules govern this repository even when the agent starts under `/home/wirebot/veragensia` and ancestor discovery does not load `/root/AGENTS.md` automatically.
+
+Portable deployments use their owner's explicitly designated deployment-wide contract instead of inheriting Startempire paths, identity, credentials, or services. This file and subtree instructions supplement that foundation with technical requirements; they cannot weaken it or create a competing workflow authority. If the foundation is unavailable or instructions conflict, preserve state, continue safe read-only investigation, and resolve the affected boundary before consequential action. Do not copy deployment-private policy or values into this public repository.
 
 ## 1. Product identity
 
@@ -47,15 +49,16 @@ Control-plane principle:
 
 Use this precedence when instructions conflict:
 
-1. Explicit operator direction and repository security requirements.
-2. This `AGENTS.md`.
-3. `docs/183-veragensia-public-agent-computer-security-and-lifecycle.md` for the live public demo.
-4. `docs/182-veragensia-focusa-agent-os-spec.md` for product direction.
-5. primitive-owning Docs 190–199 for their respective domains.
-6. `docs/182b-veragensia-base-os-and-overlay-detailed-spec.md` for base/overlay boundaries.
-7. `docs/182c-veragensia-fleet-scale-tailnet-spec.md` for fleet growth.
-8. `README.md` and subtree documentation.
-9. Existing implementation patterns, only when they do not conflict with the authorities above.
+1. System/developer constraints, verified operator direction within that authority, and hard safety/security requirements.
+2. The deployment-wide `AGENTS.md` operating foundation (`/root/AGENTS.md` on Startempire), including its owner-authority constitution and interpretation rules.
+3. This project `AGENTS.md` and applicable subtree instructions, within that foundation.
+4. `docs/183-veragensia-public-agent-computer-security-and-lifecycle.md` for the live public demo.
+5. `docs/182-veragensia-focusa-agent-os-spec.md` for product direction.
+6. Primitive-owning Docs 190–199 for their respective domains and explicit later amendments for the affected concern.
+7. `docs/182b-veragensia-base-os-and-overlay-detailed-spec.md` for base/overlay boundaries.
+8. `docs/182c-veragensia-fleet-scale-tailnet-spec.md` for fleet growth.
+9. `README.md` and other documentation.
+10. Existing implementation patterns, only when they do not conflict with the authorities above.
 
 Status matters: Doc 183 is a **live operational contract**; Docs 182/182b/182c and 190–199 contain product/architecture direction with their own stated status. Do not silently turn an open question in a draft spec into permanent architecture, and do not describe a committed spec as shipped implementation.
 

@@ -34,7 +34,15 @@ grep -Fq 'advisory_external' "$POLICY" \
   || fail "external provenance advisory posture missing"
 grep -Fq 'Architecture authority hard stop' "$DOC_AGENTS" \
   || fail "docs/AGENTS.md does not enforce authority policy"
-pass "constitutional architecture authority contract present"
+grep -Fq 'Load the deployment-wide `AGENTS.md` first' "$ROOT_AGENTS" \
+  || fail "project contract does not load the deployment foundation first"
+grep -Fq '/root/AGENTS.md' "$ROOT_AGENTS" \
+  || fail "Startempire foundation location missing"
+grep -Fq "Portable deployments use their owner's explicitly designated deployment-wide contract" "$ROOT_AGENTS" \
+  || fail "portable deployment owner binding missing"
+grep -Fq 'they cannot weaken it or create a competing workflow authority' "$ROOT_AGENTS" \
+  || fail "project foundation precedence missing"
+pass "constitutional architecture authority and deployment foundation contracts present"
 
 # Known customer/customer-agent identifiers must never re-enter current product docs.
 # Split literals keep this guard from itself becoming a searchable product-doc occurrence.
