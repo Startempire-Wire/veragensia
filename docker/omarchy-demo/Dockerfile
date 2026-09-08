@@ -21,5 +21,6 @@ COPY --chown=abc:abc docker/omarchy-demo/overlay/hypr/ /veragensia/docker/omarch
 COPY --chown=abc:abc docker/omarchy-demo/overlay/waybar/ /veragensia/docker/omarchy-demo/overlay/waybar/
 RUN chmod +x /defaults/startwm.sh /veragensia/docker/omarchy-demo/overlay/waybar/veragens-public-waybar.sh
 
-ENV DISPLAY=:1 \
+ENV PIXELFLUX_WAYLAND=false \
+    DISPLAY=:1 \
     TITLE="Veragensia — Omarchy Public Demo"
