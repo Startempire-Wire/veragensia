@@ -56,8 +56,11 @@ class DoctorTests(unittest.TestCase):
                 value[section][field] = "claimed-proof"
         for gate in value["required_gates"]:
             gate.update(status="pass", evidence_ref="claimed-proof")
+        value["platform"]["architecture"] = "x86_64"
         self.write(value)
-        result = api["doctor"](self.path, collector=lambda: {"status": "observed"})
+        info = os.uname_result(("Linux", "unused", "6.test", "unused", "x86_64"))
+        with patch.object(api["os"], "uname", return_value=info):
+            result = api["doctor"](self.path, collector=lambda: {"status": "observed"})
         self.assertFalse(result["release_ready"])
         self.assertEqual(result["status"], "incomplete")
         self.assertEqual(result["manifest"]["status"], "metadata_present_unverified")
@@ -148,6 +151,53 @@ class DoctorTests(unittest.TestCase):
         report = json.loads(result.stdout)
         self.assertEqual(report["manifest"]["artifact_hash_verification"], "matched")
         self.assertFalse(report["release_ready"])
+
+    def test_host_observation_omits_identity_and_never_qualifies_native(self):
+        self.write(self.candidate)
+        info = os.uname_result(("Linux", "PRIVATE_HOSTNAME", "6.test", "PRIVATE_BUILD", "x86_64"))
+        with patch.object(api["os"], "uname", return_value=info):
+            result = api["doctor"](self.path, lambda: {"status": "degraded"})
+        self.assertEqual(result["platform"]["status"], "observed")
+        self.assertEqual(result["platform"]["system"], "Linux")
+        self.assertEqual(result["platform"]["kernel_release"], "6.test")
+        self.assertEqual(result["platform"]["architecture"], "x86_64")
+        self.assertTrue(result["manifest"]["architecture_match"])
+        self.assertEqual(result["platform"]["native_qualification"], "not_verified")
+        self.assertIn("native_target_qualification", result["remaining_checks"])
+        self.assertFalse(result["release_ready"])
+        self.assertNotIn("PRIVATE_HOSTNAME", json.dumps(result))
+        self.assertNotIn("PRIVATE_BUILD", json.dumps(result))
+
+    def test_architecture_mismatch_and_missing_candidate_value(self):
+        self.write(self.candidate)
+        result = api["manifest_gaps"](self.path, observed_architecture="aarch64")
+        self.assertIs(result["architecture_match"], False)
+        self.assertIn({"field": "platform.architecture", "reason": "host_architecture_mismatch"}, result["gaps"])
+        for value in (None, "", [], "unknown"):
+            self.candidate["platform"]["architecture"] = value
+            self.write(self.candidate)
+            result = api["manifest_gaps"](self.path, observed_architecture="x86_64")
+            self.assertIsNone(result["architecture_match"])
+        self.candidate["platform"]["architecture"] = None
+        self.write(self.candidate)
+        self.assertIn({"field": "platform.architecture", "reason": "missing_or_invalid_value"},
+                      api["manifest_gaps"](self.path)["gaps"])
+
+    def test_unavailable_or_partial_host_observation_is_explicit(self):
+        self.write(self.candidate)
+        with patch.object(api["os"], "uname", side_effect=OSError("unavailable")):
+            result = api["doctor"](self.path, lambda: {"status": "degraded"})
+        self.assertEqual(result["platform"]["status"], "unknown")
+        self.assertEqual(result["platform"]["error_class"], "OSError")
+        self.assertIsNone(result["manifest"]["architecture_match"])
+        self.assertFalse(result["release_ready"])
+        for machine in ("", "unknown"):
+            info = os.uname_result(("Linux", "unused", "6.test", "unused", machine))
+            with patch.object(api["os"], "uname", return_value=info):
+                result = api["doctor"](self.path, lambda: {"status": "degraded"})
+            self.assertEqual(result["platform"]["status"], "partial")
+            self.assertIsNone(result["platform"]["architecture"])
+            self.assertIsNone(result["manifest"]["architecture_match"])
 
     def test_cli_json_and_no_manifest_changes(self):
         self.write(self.candidate)
