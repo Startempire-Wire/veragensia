@@ -1,17 +1,17 @@
 #!/usr/bin/with-contenv bash
-# Veragensia Omarchy demo — Wayland DE startup (Hyprland headless + Waybar presenter).
-# Replaces the stock KDE startwm_wayland.sh in the webtop base. No X11 session.
+# Veragensia Omarchy demo — DE startup: Hyprland (X11 backend on Xvfb) + Waybar.
+# Hyprland uses Aquamarine, which needs a seat (absent in containers) or a
+# parent display. Xvfb provides the parent display; selkies captures :1.
 ulimit -c 0
 
 export XDG_RUNTIME_DIR="/tmp/xdg-runtime-abc"
 mkdir -p -m700 "${XDG_RUNTIME_DIR}"
 chown abc:abc "${XDG_RUNTIME_DIR}"
 
-# Hyprland runs headless (no DRM); selkies/PIXELFLUX captures the compositor output.
-export WLR_BACKENDS=headless
-export WLR_LIBINPUT_NO_DEVICES=1
-export WLR_RENDERER_ALLOW_SOFTWARE=1
-export XDG_SESSION_TYPE=wayland
+rm -f /tmp/.X1-lock /tmp/.X11-unix/X1
+Xvfb :1 -screen 0 1280x760x24 -nolisten tcp &
+for i in $(seq 1 20); do [ -f /tmp/.X11-unix/X1 ] && break; sleep 0.3; done
+export DISPLAY=:1
 
 # Focusa extension + profile contract: identical flags and mount path as the
 # approved public delivery, so the unpacked extension identity is preserved.
