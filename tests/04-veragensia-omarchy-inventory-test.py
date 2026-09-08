@@ -89,6 +89,21 @@ class InventoryTests(unittest.TestCase):
             result = inv.inventory(self.home, lambda argv: ({"status": "ok"}, raw) if argv[0] == "omarchy" else self.good(argv))
         self.assertEqual(result["status"], "degraded")
 
+    def test_realistic_upstream_registry_capacity(self):
+        # Pinned f4378f0 emits 283 records / 137295 bytes (not a tiny fixture).
+        self.fixture("omarchy", "import json\nprint(json.dumps({'ok':True,'commands':[{'route':f'omarchy launch command{i}','name':f'command{i}','summary':'x'*420} for i in range(283)]}))")
+        with patch.dict(os.environ, {"PATH": str(self.home)}):
+            result = inv.commands(inv.probe)
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(len(result["items"]), 283)
+        self.assertFalse(result["truncated"])
+
+    def test_realistic_upstream_record_count(self):
+        raw = json.dumps({"commands": [{"route": f"omarchy launch command{i}", "name": f"command{i}"} for i in range(283)]}).encode()
+        result = inv.commands(lambda _: ({"status": "ok"}, raw))
+        self.assertEqual(len(result["items"]), 283)
+        self.assertFalse(result["truncated"])
+
     def test_nonzero_exit_has_no_stderr_payload(self):
         executable = self.fixture("error", "import sys; print('SECRET', file=sys.stderr); sys.exit(7)")
         state, raw = inv.probe([executable])

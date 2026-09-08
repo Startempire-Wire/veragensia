@@ -15,8 +15,9 @@ import time
 from datetime import datetime, timezone
 
 SCHEMA = "veragensia.omarchy_inventory.v1"
-MAX_BYTES = 65536
-MAX_ITEMS = 200
+# Upstream f4378f0 produces 283 command records / 137295 JSON bytes.
+MAX_BYTES = 262144
+MAX_ITEMS = 512
 TIMEOUT = 2.0
 MIME_TYPES = ("text/plain", "text/html", "x-scheme-handler/http")
 
