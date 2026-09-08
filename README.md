@@ -265,12 +265,15 @@ Synthetic tests prove the collector and CLI boundaries. Actual Omarchy command-s
 
 ```bash
 python3 scripts/veragens doctor --json
+python3 scripts/veragens doctor --json --artifact-dir /path/to/local/artifacts
 PYTHONDONTWRITEBYTECODE=1 python3 tests/05-veragensia-doctor-test.py
 ```
 
 This diagnostic reuses the inventory collector and inspects the existing `config/v0.1-release-candidate.json`; `--manifest PATH` selects a local candidate for inspection. It reports missing platform pins, native artifacts, dependency digest metadata and G00–G13 gate evidence. Input is limited to 64 KiB; unsupported schemas, malformed data and unreadable files remain explicit. Candidate values are not copied into diagnostic error messages.
 
-The current preview always exits **2** with `status: incomplete` and `release_ready: false`: artifact bytes, evidence references and native compatibility are **not verified** by metadata inspection. Even a manifest claiming every gate passed cannot certify itself. This is manifest-gap reporting, not the completed release evaluator or native doctor. No installs, downloads, repairs, enrollment, file changes or new services occur. Run as the intended desktop owner.
+Optional `--artifact-dir` compares local `focusa` and `focusa-daemon` bytes with the existing candidate's SHA-256 pins; nothing is downloaded or executed. Files are read in 1 MiB chunks, capped at 512 MiB each; symlinks and non-regular files are rejected. Match, mismatch, missing file and invalid digest metadata are reported separately. Without this option, artifact hashing remains `not_performed`.
+
+The current preview always exits **2** with `status: incomplete` and `release_ready: false`: matching local bytes do not verify the manifest's authority, evidence references, installed runtime or native compatibility. Even a manifest claiming every gate passed cannot certify itself. This is manifest-gap reporting, not the completed release evaluator or native doctor. No installs, downloads, repairs, enrollment, file changes or new services occur. Run as the intended desktop owner.
 
 ## Run the existing lab
 

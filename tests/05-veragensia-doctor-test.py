@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Candidate data never substitutes for native release proof."""
 import copy
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -9,6 +10,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts/veragens"
@@ -85,6 +87,67 @@ class DoctorTests(unittest.TestCase):
         self.path.unlink()
         os.mkfifo(self.path)
         self.assertEqual(api["manifest_gaps"](self.path)["status"], "unsupported_file_type")
+
+    def artifact_fixture(self):
+        directory = Path(self.temp.name) / "artifacts"
+        directory.mkdir()
+        for artifact in self.candidate["focusa_candidate"]["artifacts"]:
+            content = b"#!/bin/sh\nexit 99\n"
+            path = directory / artifact["name"]
+            path.write_bytes(content)
+            path.chmod(0o700)
+            artifact["sha256"] = hashlib.sha256(content).hexdigest()
+        self.write(self.candidate)
+        return directory
+
+    def test_local_hash_match_does_not_certify_readiness(self):
+        directory = self.artifact_fixture()
+        result = api["doctor"](self.path, lambda: {"status": "degraded"}, directory)
+        self.assertEqual(result["manifest"]["artifact_hash_verification"], "matched")
+        self.assertFalse(result["release_ready"])
+        self.assertNotIn("dependency_artifact_hash_verification", result["remaining_checks"])
+        self.assertIn("release_evidence_verification", result["remaining_checks"])
+        self.assertEqual(result["manifest"]["evidence_verification"], "not_performed")
+
+    def test_local_hash_mismatch_missing_and_invalid_metadata(self):
+        directory = self.artifact_fixture()
+        (directory / "focusa").write_bytes(b"changed")
+        (directory / "focusa-daemon").unlink()
+        result = api["manifest_gaps"](self.path, directory)
+        self.assertEqual(result["artifact_hash_verification"], "failed")
+        self.assertEqual([c["status"] for c in result["artifact_checks"]], ["mismatch", "missing"])
+        self.candidate["focusa_candidate"]["artifacts"][0]["sha256"] = "invalid"
+        self.write(self.candidate)
+        result = api["manifest_gaps"](self.path, directory)
+        self.assertEqual(result["artifact_checks"][0]["status"], "invalid_metadata")
+
+    def test_hashing_has_no_execution_and_respects_file_bounds(self):
+        path = Path(self.temp.name) / "artifact"
+        sentinel = Path(self.temp.name) / "executed"
+        content = f"#!/bin/sh\ntouch {sentinel}\n".encode()
+        path.write_bytes(content)
+        path.chmod(0o700)
+        self.assertEqual(api["artifact_hash"](path, hashlib.sha256(content).hexdigest()), "match")
+        self.assertFalse(sentinel.exists())
+        with patch.dict(api["artifact_hash"].__globals__, {"MAX_ARTIFACT_BYTES": 4}):
+            self.assertEqual(api["artifact_hash"](path, "0" * 64), "oversized")
+        path.unlink()
+        os.mkfifo(path)
+        self.assertEqual(api["artifact_hash"](path, "0" * 64), "unsupported_file_type")
+        path.unlink()
+        path.symlink_to(self.path)
+        self.assertEqual(api["artifact_hash"](path, "0" * 64), "unreadable")
+
+    def test_cli_opt_in_hashing(self):
+        directory = self.artifact_fixture()
+        env = {**os.environ, "PATH": "", "HOME": self.temp.name,
+               "HYPRLAND_INSTANCE_SIGNATURE": "", "PYTHONDONTWRITEBYTECODE": "1"}
+        result = subprocess.run([sys.executable, str(SCRIPT), "doctor", "--json", "--manifest", str(self.path),
+                                 "--artifact-dir", str(directory)], env=env, capture_output=True, timeout=10)
+        self.assertEqual(result.returncode, 2, result.stderr)
+        report = json.loads(result.stdout)
+        self.assertEqual(report["manifest"]["artifact_hash_verification"], "matched")
+        self.assertFalse(report["release_ready"])
 
     def test_cli_json_and_no_manifest_changes(self):
         self.write(self.candidate)

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Veragens preview CLI: read-only diagnostics, not release certification."""
 import argparse
+import hashlib
 import importlib.util
 import json
 import os
@@ -11,6 +12,7 @@ import stat
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "config/v0.1-release-candidate.json"
 MAX_MANIFEST_BYTES = 65536
+MAX_ARTIFACT_BYTES = 512 * 1024 * 1024
 REQUIRED_GATES = tuple(f"G{i:02}" for i in range(14))
 REQUIRED_FIELDS = {
     "platform": ("omarchy_version", "hyprland_version", "quickshell_version",
@@ -21,7 +23,31 @@ REQUIRED_FIELDS = {
 }
 
 
-def manifest_gaps(path):
+def artifact_hash(path, expected):
+    """Read local bytes only; the artifact is never executed or downloaded."""
+    try:
+        fd = os.open(path, os.O_RDONLY | os.O_NONBLOCK | os.O_NOFOLLOW)
+        with os.fdopen(fd, "rb") as source:
+            info = os.fstat(source.fileno())
+            if not stat.S_ISREG(info.st_mode):
+                return "unsupported_file_type"
+            if info.st_size > MAX_ARTIFACT_BYTES:
+                return "oversized"
+            sha = hashlib.sha256()
+            total = 0
+            while chunk := source.read(min(1024 * 1024, MAX_ARTIFACT_BYTES - total + 1)):
+                total += len(chunk)
+                if total > MAX_ARTIFACT_BYTES:
+                    return "oversized"
+                sha.update(chunk)
+    except FileNotFoundError:
+        return "missing"
+    except OSError:
+        return "unreadable"
+    return "match" if sha.hexdigest() == expected else "mismatch"
+
+
+def manifest_gaps(path, artifact_dir=None):
     """Report metadata gaps; never treat a supplied evidence ref as verified proof."""
     try:
         fd = os.open(path, os.O_RDONLY | os.O_NONBLOCK | os.O_NOFOLLOW)
@@ -59,10 +85,18 @@ def manifest_gaps(path):
     # Names are declared by the existing candidate contract, never executed or downloaded.
     if not isinstance(artifacts, list):
         artifacts = []
+    artifact_checks = []
     for name in ("focusa", "focusa-daemon"):
         rows = [a for a in artifacts if isinstance(a, dict) and a.get("name") == name]
         if len(rows) != 1 or not isinstance(rows[0].get("sha256"), str) or not re.fullmatch(r"[0-9a-f]{64}", rows[0]["sha256"]):
             gaps.append({"field": f"focusa_candidate.artifacts.{name}", "reason": "missing_or_invalid_digest"})
+            if artifact_dir is not None:
+                artifact_checks.append({"name": name, "status": "invalid_metadata"})
+        elif artifact_dir is not None:
+            status = artifact_hash(Path(artifact_dir) / name, rows[0]["sha256"])
+            artifact_checks.append({"name": name, "status": status})
+            if status != "match":
+                gaps.append({"field": f"focusa_candidate.artifacts.{name}", "reason": status})
     gates = data.get("required_gates")
     if not isinstance(gates, list):
         gates = []
@@ -77,8 +111,11 @@ def manifest_gaps(path):
         else:
             continue
         gaps.append({"field": f"required_gates.{gate_id}", "reason": reason})
+    hash_status = "not_performed" if artifact_dir is None else (
+        "matched" if all(c["status"] == "match" for c in artifact_checks) else "failed")
     return {"status": "gaps_found" if gaps else "metadata_present_unverified", "gaps": gaps,
-            "artifact_hash_verification": "not_performed", "evidence_verification": "not_performed"}
+            "artifact_hash_verification": hash_status, "artifact_checks": artifact_checks,
+            "evidence_verification": "not_performed"}
 
 
 def runtime_inventory():
@@ -88,12 +125,15 @@ def runtime_inventory():
     return module.inventory(Path.home())
 
 
-def doctor(path=MANIFEST, collector=runtime_inventory):
+def doctor(path=MANIFEST, collector=runtime_inventory, artifact_dir=None):
+    manifest = manifest_gaps(path, artifact_dir)
+    remaining = ["native_target_qualification", "release_evidence_verification"]
+    if manifest.get("artifact_hash_verification") != "matched":
+        remaining.append("dependency_artifact_hash_verification")
     return {"schema": "veragensia.doctor.v1", "mode": "read_only",
             "status": "incomplete", "release_ready": False,
-            "manifest": manifest_gaps(path), "runtime": collector(),
-            "remaining_checks": ["native_target_qualification", "dependency_artifact_hash_verification",
-                                 "release_evidence_verification"],
+            "manifest": manifest, "runtime": collector(),
+            "remaining_checks": remaining,
             "note": "Candidate assertions are not verified release evidence; this diagnostic never certifies readiness."}
 
 
@@ -103,8 +143,10 @@ def main():
     diagnostic = commands.add_parser("doctor", help="report candidate and local runtime gaps without repairs")
     diagnostic.add_argument("--json", action="store_true", required=True)
     diagnostic.add_argument("--manifest", type=Path, default=MANIFEST, help="candidate metadata to inspect locally")
+    diagnostic.add_argument("--artifact-dir", type=Path,
+                            help="opt in to hashing local pinned dependency files; never executes them")
     args = parser.parse_args()
-    print(json.dumps(doctor(args.manifest), sort_keys=True))
+    print(json.dumps(doctor(args.manifest, artifact_dir=args.artifact_dir), sort_keys=True))
     # Explicitly incomplete until native artifact/evidence verification exists.
     return 2
 
