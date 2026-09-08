@@ -10,7 +10,7 @@ Veragensia is an **agent/human operating environment**: a real Linux desktop whe
 
 The next implementation target is a **native Omarchy developer preview**, with project continuity, a native Work panel, one bounded agent run, artifact review, and reliable cancellation. The recovered hardware planning target is Dell Chromebook 11 CC11260 / expected `ULDRENITE`; the actual board and Linux behavior must be checked on the device.
 
-**Current status: specification and bring-up planning, not a released native v0.1 installer.** The existing `overlay/install.sh` applies KDE/webtop branding. Do not run it on a Chromebook expecting a native Omarchy installation.
+**Current status: source-level read-only inventory and doctor diagnostics, plus native bring-up planning—not a released native v0.1 installer.** The existing `overlay/install.sh` applies KDE/webtop branding. Do not run it on a Chromebook expecting a native Omarchy installation.
 
 - [186 — v0.1 release specification and acceptance gates](docs/186-veragensia-v0.1-native-chromebook-release-spec.md)
 - [187 — exact-device installation and bring-up runbook](docs/187-veragensia-chromebook-first-install-runbook.md)
@@ -260,6 +260,17 @@ Run as the desktop owner inside the intended session, never as root on behalf of
 Each fixed probe has a two-second deadline and a combined 64 KiB stdout/stderr limit; command/binding projections cap at 200 entries. Missing tools/session, unknown schemas, invalid output, truncation and unresolved defaults remain explicit. Unknown command-registry shapes are **not** guessed: the parser accepts a list of names/records or an object with a `commands` list. For upstream records it preserves the full `route` (falling back to `name` only when no route field exists). The JSON probe is `omarchy commands --all --json`: do not combine it with `--check`, which takes precedence and emits validation text instead of JSON in upstream revision `f4378f0`. A symlinked or non-regular override file is not followed. `--require-complete` exits 2 on incomplete observations; ordinary diagnostic mode still emits a degraded report and exits 0.
 
 Synthetic tests prove the collector and CLI boundaries. Actual Omarchy command-schema compatibility, native target qualification, full keybinding parity and semantic invocation are **not yet verified or implemented** by this slice. `qualification: not_performed` is always present. Rollback is a normal source revert; no service or desktop installation is involved.
+
+## Read-only doctor preview (Doc 188)
+
+```bash
+python3 scripts/veragens doctor --json
+PYTHONDONTWRITEBYTECODE=1 python3 tests/05-veragensia-doctor-test.py
+```
+
+This diagnostic reuses the inventory collector and inspects the existing `config/v0.1-release-candidate.json`; `--manifest PATH` selects a local candidate for inspection. It reports missing platform pins, native artifacts, dependency digest metadata and G00–G13 gate evidence. Input is limited to 64 KiB; unsupported schemas, malformed data and unreadable files remain explicit. Candidate values are not copied into diagnostic error messages.
+
+The current preview always exits **2** with `status: incomplete` and `release_ready: false`: artifact bytes, evidence references and native compatibility are **not verified** by metadata inspection. Even a manifest claiming every gate passed cannot certify itself. This is manifest-gap reporting, not the completed release evaluator or native doctor. No installs, downloads, repairs, enrollment, file changes or new services occur. Run as the intended desktop owner.
 
 ## Run the existing lab
 

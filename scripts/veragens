@@ -1,0 +1,113 @@
+#!/usr/bin/env python3
+"""Veragens preview CLI: read-only diagnostics, not release certification."""
+import argparse
+import importlib.util
+import json
+import os
+from pathlib import Path
+import re
+import stat
+
+ROOT = Path(__file__).resolve().parents[1]
+MANIFEST = ROOT / "config/v0.1-release-candidate.json"
+MAX_MANIFEST_BYTES = 65536
+REQUIRED_GATES = tuple(f"G{i:02}" for i in range(14))
+REQUIRED_FIELDS = {
+    "platform": ("omarchy_version", "hyprland_version", "quickshell_version",
+                 "iso_digest", "compatibility_evidence_ref"),
+    "focusa_candidate": ("version", "runtime_schema_evidence_ref", "authentication_evidence_ref"),
+    "native_artifacts": ("installer_revision", "session_bridge_revision", "shell_plugin_revision",
+                         "workforce_artifact_ref", "agent_adapter_ref", "containment_evidence_ref"),
+}
+
+
+def manifest_gaps(path):
+    """Report metadata gaps; never treat a supplied evidence ref as verified proof."""
+    try:
+        fd = os.open(path, os.O_RDONLY | os.O_NONBLOCK | os.O_NOFOLLOW)
+        with os.fdopen(fd, "rb") as source:
+            if not stat.S_ISREG(os.fstat(source.fileno()).st_mode):
+                return {"status": "unsupported_file_type", "gaps": []}
+            raw = source.read(MAX_MANIFEST_BYTES + 1)
+    except FileNotFoundError:
+        return {"status": "missing", "gaps": []}
+    except OSError:
+        return {"status": "unreadable", "gaps": []}
+    if len(raw) > MAX_MANIFEST_BYTES:
+        return {"status": "oversized", "gaps": []}
+    try:
+        data = json.loads(raw)
+    except (ValueError, UnicodeError, RecursionError):
+        return {"status": "invalid_json", "gaps": []}
+    if not isinstance(data, dict) or data.get("schema") != "veragensia.release_candidate.v1":
+        return {"status": "unsupported_schema", "gaps": []}
+    gaps = []
+    for section, fields in REQUIRED_FIELDS.items():
+        values = data.get(section)
+        if not isinstance(values, dict):
+            gaps.append({"field": section, "reason": "missing_or_invalid_section"})
+            continue
+        for field in fields:
+            value = values.get(field)
+            if not isinstance(value, str) or not value.strip():
+                gaps.append({"field": f"{section}.{field}", "reason": "missing_or_invalid_value"})
+    hardware = data.get("hardware")
+    if not isinstance(hardware, dict) or hardware.get("actual_board_verified") is not True:
+        gaps.append({"field": "hardware.actual_board_verified", "reason": "not_asserted"})
+    candidate = data.get("focusa_candidate")
+    artifacts = candidate.get("artifacts") if isinstance(candidate, dict) else None
+    # Names are declared by the existing candidate contract, never executed or downloaded.
+    if not isinstance(artifacts, list):
+        artifacts = []
+    for name in ("focusa", "focusa-daemon"):
+        rows = [a for a in artifacts if isinstance(a, dict) and a.get("name") == name]
+        if len(rows) != 1 or not isinstance(rows[0].get("sha256"), str) or not re.fullmatch(r"[0-9a-f]{64}", rows[0]["sha256"]):
+            gaps.append({"field": f"focusa_candidate.artifacts.{name}", "reason": "missing_or_invalid_digest"})
+    gates = data.get("required_gates")
+    if not isinstance(gates, list):
+        gates = []
+    for gate_id in REQUIRED_GATES:
+        rows = [g for g in gates if isinstance(g, dict) and g.get("id") == gate_id]
+        if len(rows) != 1:
+            reason = "missing_or_duplicate_gate"
+        elif rows[0].get("status") != "pass":
+            reason = "not_passed"
+        elif not isinstance(rows[0].get("evidence_ref"), str) or not rows[0]["evidence_ref"].strip():
+            reason = "missing_evidence_reference"
+        else:
+            continue
+        gaps.append({"field": f"required_gates.{gate_id}", "reason": reason})
+    return {"status": "gaps_found" if gaps else "metadata_present_unverified", "gaps": gaps,
+            "artifact_hash_verification": "not_performed", "evidence_verification": "not_performed"}
+
+
+def runtime_inventory():
+    spec = importlib.util.spec_from_file_location("veragens_inventory", ROOT / "scripts/veragens-omarchy-inventory.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.inventory(Path.home())
+
+
+def doctor(path=MANIFEST, collector=runtime_inventory):
+    return {"schema": "veragensia.doctor.v1", "mode": "read_only",
+            "status": "incomplete", "release_ready": False,
+            "manifest": manifest_gaps(path), "runtime": collector(),
+            "remaining_checks": ["native_target_qualification", "dependency_artifact_hash_verification",
+                                 "release_evidence_verification"],
+            "note": "Candidate assertions are not verified release evidence; this diagnostic never certifies readiness."}
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    commands = parser.add_subparsers(dest="command", required=True)
+    diagnostic = commands.add_parser("doctor", help="report candidate and local runtime gaps without repairs")
+    diagnostic.add_argument("--json", action="store_true", required=True)
+    diagnostic.add_argument("--manifest", type=Path, default=MANIFEST, help="candidate metadata to inspect locally")
+    args = parser.parse_args()
+    print(json.dumps(doctor(args.manifest), sort_keys=True))
+    # Explicitly incomplete until native artifact/evidence verification exists.
+    return 2
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
