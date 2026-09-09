@@ -18,9 +18,14 @@ RUN pacman -Syu --noconfirm --ignore docker-compose \
         libdisplay-info \
     && pacman -Scc --noconfirm || true
 
-# Registry version-clamp patch: Aquamarine binds Wayland protocol globals with
-# hardcoded versions and crashes against capture compositors advertising older
-# globals. Clamp every bind to the advertised version (same 0.15.0 ABI).
+# Two build-time patches (see patch-aquamarine.py for rationale and design notes):
+#   1. Registry version clamp — Aquamarine binds Wayland protocol globals with
+#      hardcoded versions and crashes against capture compositors advertising
+#      older globals. Clamp every bind to the advertised version.
+#   2. wl_shm presentation path (opt-in at runtime via AQ_PRESENT_SHM=1) — lets
+#      Hyprland present output frames as plain shared-memory buffers so the
+#      capture compositor can composite them on GPU-less hosts (startwm_wayland.sh
+#      sets the env for this image).
 COPY docker/omarchy-demo/patch-aquamarine.py /tmp/patch-aquamarine.py
 RUN git clone --depth 1 --branch v0.15.0 https://github.com/hyprwm/aquamarine /tmp/aq-src \
     && python3 /tmp/patch-aquamarine.py \

@@ -10,7 +10,11 @@ ulimit -c 0
 # approved public delivery, so the unpacked extension identity is preserved.
 # Ozone auto selects the Wayland backend under Hyprland.
 exec dbus-run-session bash -c '
-  WAYLAND_DISPLAY=wayland-1 /usr/bin/Hyprland -c /veragensia/docker/omarchy-demo/overlay/hypr/hyprland.conf &
+  # AQ_PRESENT_SHM=1 selects Aquamarine\'s wl_shm presentation path (see
+  # patch-aquamarine.py): on GPU-less hosts the capture compositor cannot import
+  # Hyprland\'s dmabuf output buffers and deadlocks every nested client. wl_shm
+  # frames are ordinary CPU buffers the compositor composites like any other.
+  WAYLAND_DISPLAY=wayland-1 AQ_PRESENT_SHM=1 /usr/bin/Hyprland -c /veragensia/docker/omarchy-demo/overlay/hypr/hyprland.conf &
   HYPID=$!
   sleep 6
   wait $HYPID
