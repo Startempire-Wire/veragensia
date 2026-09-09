@@ -87,7 +87,7 @@ Doc 188 specifies the wire envelope and CLI. The bridge's socket is `${XDG_RUNTI
 
 Keep only a bounded projection cache and local installer metadata outside Focusa. Private configuration is `${XDG_CONFIG_HOME:-$HOME/.config}/veragensia/`; installer state is `${XDG_STATE_HOME:-$HOME/.local/state}/veragensia/`. No credentials in command arguments, QML, status frames, or receipts.
 
-Use Focusa's generated operation descriptors for the selected release. The inspected published dependency candidate is `v0.9.184`; newer development documentation is not proof that its binaries expose an operation. Confirm API schemas and authorization against the running binary before enabling mutation.
+Use Focusa's generated operation descriptors for the selected release. The inspected published dependency candidate is `v0.9.191` (latest stable, re-verified 2026-09-09; Veragensia always targets the most recent published stable Focusa release — the newest stable is the least buggy line — and the doctor version-match gate enforces the pin); newer development documentation is not proof that its binaries expose an operation. Confirm API schemas and authorization against the running binary before enabling mutation.
 
 Verified descriptor anchors at that tag include:
 
@@ -179,6 +179,6 @@ Capture implementation work in `br` only, keyed to these gate IDs. Do not close 
 ## 14. Source anchors
 
 - [Current Omarchy shell-plugin contract](https://omarchy.org/manual/shell-plugins/) and [user configuration/hooks](https://omarchy.org/manual/dotfiles/), inspected 2026-09-04. Runtime versions must still be pinned and tested.
-- [Focusa v0.9.184 published release](https://github.com/Startempire-Wire/focusa/releases/tag/v0.9.184).
-- [Workpoint resume descriptor](https://github.com/Startempire-Wire/focusa/blob/v0.9.184/docs/focusa-tools/tools/focusa_workpoint_resume.md), [resource-mode descriptor](https://github.com/Startempire-Wire/focusa/blob/v0.9.184/docs/focusa-tools/tools/focusa_resource_mode.md), [work-loop control descriptor](https://github.com/Startempire-Wire/focusa/blob/v0.9.184/docs/focusa-tools/tools/focusa_work_loop_control.md).
+- [Focusa v0.9.191 published release](https://github.com/Startempire-Wire/focusa/releases/tag/v0.9.191).
+- [Workpoint resume descriptor](https://github.com/Startempire-Wire/focusa/blob/v0.9.191/docs/focusa-tools/tools/focusa_workpoint_resume.md), [resource-mode descriptor](https://github.com/Startempire-Wire/focusa/blob/v0.9.191/docs/focusa-tools/tools/focusa_resource_mode.md), [work-loop control descriptor](https://github.com/Startempire-Wire/focusa/blob/v0.9.191/docs/focusa-tools/tools/focusa_work_loop_control.md).
 - Focusa documents 66 (Affordance and Execution-Environment Ontology) and 82 (Memory Optimization) supply reused concepts, not independently reimplemented Veragensia authorities.

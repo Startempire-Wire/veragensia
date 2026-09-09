@@ -83,9 +83,9 @@ The candidate manifest's `release_ready: false` and null compatibility/evidence 
 
 ## 6. A real dependency that can be staged now
 
-The inspected published Focusa release is **v0.9.184**, with Linux x86_64 `focusa` and `focusa-daemon` assets. A newer draft was visible to the connected account, but a draft is not selected as an installation dependency. The following stages the published candidate under a versioned private user directory; it does not start a daemon, enroll credentials, or claim native integration is complete.
+The inspected published Focusa release is **v0.9.191** (latest stable, verified 2026-09-09 against the GitHub release API and the installed KH authority host). Release assets now carry full target-triple names (`focusa-v0.9.191-x86_64-unknown-linux-gnu`, `focusa-daemon-v0.9.191-x86_64-unknown-linux-gnu`). Veragensia always targets the most recent **published stable** Focusa release — never a draft, prerelease, or mutable latest URL — because the newest stable is the least buggy line. The following stages the published candidate under a versioned private user directory; it does not start a daemon, enroll credentials, or claim native integration is complete.
 
-The expected digests below were read from the GitHub release API on 2026-09-04. They provide a pinned integrity check against that source, not a claim of an independently signed software attestation. A changed/mismatched artifact is a hard failure.
+The expected digests below were computed from the published v0.9.191 assets on 2026-09-09. They provide a pinned integrity check against that source, not a claim of an independently signed software attestation. A changed/mismatched artifact is a hard failure.
 
 ```bash
 set -euo pipefail
@@ -99,19 +99,19 @@ command -v sha256sum >/dev/null
 command -v install >/dev/null
 stage=$(mktemp -d)
 trap 'rm -rf -- "$stage"' EXIT
-base='https://github.com/Startempire-Wire/focusa/releases/download/v0.9.184'
+base='https://github.com/Startempire-Wire/focusa/releases/download/v0.9.191'
 curl --proto '=https' --tlsv1.2 --fail --location \
-  --connect-timeout 15 --max-time 300 "$base/focusa" -o "$stage/focusa"
+  --connect-timeout 15 --max-time 300 "$base/focusa-v0.9.191-x86_64-unknown-linux-gnu" -o "$stage/focusa"
 curl --proto '=https' --tlsv1.2 --fail --location \
-  --connect-timeout 15 --max-time 300 "$base/focusa-daemon" -o "$stage/focusa-daemon"
+  --connect-timeout 15 --max-time 300 "$base/focusa-daemon-v0.9.191-x86_64-unknown-linux-gnu" -o "$stage/focusa-daemon"
 (
   cd "$stage"
   printf '%s\n' \
-    '7e72c30d37e77b592127841e592035a84406e0eff34b6edc98225aec84dbd004  focusa' \
-    '1703fedf6317d8cdb39cbc349ce6b3237e778c16225bfead9a7cb51a2dc849b7  focusa-daemon' \
+    '0929cabd35fe8e7f2f763b677daab69c67b0c24ad7fcaaf14901d70877963bca  focusa' \
+    '54f7915f30c081ef539db77cb49974fe85455479fdf74fc469b9093d9248c92e  focusa-daemon' \
     | sha256sum --check --strict -
 )
-dest="${XDG_DATA_HOME:-$HOME/.local/share}/veragensia/dependencies/focusa/v0.9.184"
+dest="${XDG_DATA_HOME:-$HOME/.local/share}/veragensia/dependencies/focusa/v0.9.191"
 if [ -e "$dest" ]; then
   printf '%s\n' "Already exists; inspect instead of overwriting: $dest" >&2
   exit 1
@@ -179,5 +179,5 @@ Checked 2026-09-04; recheck hardware instructions before flashing:
 - [Firmware Utility](https://docs.mrchromebox.tech/docs/fwscript.html).
 - [Omarchy Getting Started](https://omarchy.org/manual/getting-started/).
 - [Omarchy plugin contract](https://omarchy.org/manual/shell-plugins/).
-- [Focusa published candidate](https://github.com/Startempire-Wire/focusa/releases/tag/v0.9.184) and [release metadata](https://api.github.com/repos/Startempire-Wire/focusa/releases/latest).
-- [Selected daemon source and environment/CLI contract](https://github.com/Startempire-Wire/focusa/blob/v0.9.184/crates/focusa-api/src/main.rs).
+- [Focusa published candidate](https://github.com/Startempire-Wire/focusa/releases/tag/v0.9.191) and [release metadata](https://api.github.com/repos/Startempire-Wire/focusa/releases/latest).
+- [Selected daemon source and environment/CLI contract](https://github.com/Startempire-Wire/focusa/blob/v0.9.191/crates/focusa-api/src/main.rs).

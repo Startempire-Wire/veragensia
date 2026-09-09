@@ -281,9 +281,9 @@ Spec-validation can pass while release readiness remains false. Publishing these
 
 - [Omarchy plugin API and unsandboxed-code warning](https://omarchy.org/manual/shell-plugins/).
 - [Omarchy supported user configuration and hooks](https://omarchy.org/manual/dotfiles/).
-- [Pinned Workpoint contract](https://github.com/Startempire-Wire/focusa/blob/v0.9.184/docs/focusa-tools/tools/focusa_workpoint_resume.md).
-- [Pinned resource-mode contract](https://github.com/Startempire-Wire/focusa/blob/v0.9.184/docs/focusa-tools/tools/focusa_resource_mode.md).
-- [Pinned loop-control contract](https://github.com/Startempire-Wire/focusa/blob/v0.9.184/docs/focusa-tools/tools/focusa_work_loop_control.md).
+- [Pinned Workpoint contract](https://github.com/Startempire-Wire/focusa/blob/v0.9.191/docs/focusa-tools/tools/focusa_workpoint_resume.md).
+- [Pinned resource-mode contract](https://github.com/Startempire-Wire/focusa/blob/v0.9.191/docs/focusa-tools/tools/focusa_resource_mode.md).
+- [Pinned loop-control contract](https://github.com/Startempire-Wire/focusa/blob/v0.9.191/docs/focusa-tools/tools/focusa_work_loop_control.md).
 - [190 — agent-first software](190-veragensia-agent-first-software-and-capability-resolution-spec.md).
 - [191 — Elastic Agent Computing](191-veragensia-elastic-agent-computing-and-cloud-runtime-spec.md).
 - [192 — telemetry and improvement](192-veragensia-telemetry-and-improvement-plane-spec.md).
