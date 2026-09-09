@@ -58,6 +58,9 @@ class DoctorTests(unittest.TestCase):
         for section, fields in api["REQUIRED_FIELDS"].items():
             for field in fields:
                 value[section][field] = "claimed-proof"
+        # Keep the Focusa pin coherent: artifact names embed the pinned version,
+        # and name/version coherence is itself a checked invariant.
+        value["focusa_candidate"]["version"] = self.candidate["focusa_candidate"]["version"]
         for gate in value["required_gates"]:
             gate.update(status="pass", evidence_ref="claimed-proof")
         value["platform"]["architecture"] = "x86_64"
@@ -118,8 +121,10 @@ class DoctorTests(unittest.TestCase):
 
     def test_local_hash_mismatch_missing_and_invalid_metadata(self):
         directory = self.artifact_fixture()
-        (directory / "focusa").write_bytes(b"changed")
-        (directory / "focusa-daemon").unlink()
+        cli_name = self.candidate["focusa_candidate"]["artifacts"][0]["name"]
+        daemon_name = self.candidate["focusa_candidate"]["artifacts"][1]["name"]
+        (directory / cli_name).write_bytes(b"changed")
+        (directory / daemon_name).unlink()
         result = api["manifest_gaps"](self.path, directory)
         self.assertEqual(result["artifact_hash_verification"], "failed")
         self.assertEqual([c["status"] for c in result["artifact_checks"]], ["mismatch", "missing"])
