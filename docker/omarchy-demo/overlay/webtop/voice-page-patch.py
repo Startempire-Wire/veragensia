@@ -37,19 +37,31 @@ def patch_index():
 
 def patch_nginx():
     conf = NGINX_CONF.read_text(encoding="utf-8")
+    lines = conf.split("\n")
     if "/voice-gateway" in conf:
         print("nginx: voice-gateway location already present")
         return 0
-    # Insert before the final closing brace of the outer server block.
-    match = None
-    for match in re.finditer(r"\n}", conf):
-        pass
-    if match is None:
-        print("nginx: no closing brace anchor found", file=sys.stderr)
+    # Insert the location into EVERY server block (the container ships two:
+    # the default :3000 server and a secondary), before each block's final "}".
+    # Track brace depth from a simple scan; a block ends when depth returns to 0.
+    out, depth, inserted = [], 0, 0
+    in_server = False
+    for line in lines:
+        stripped = line.strip()
+        if stripped == "server {":
+            in_server = True
+        if in_server:
+            depth += line.count("{") - line.count("}")
+            if depth == 0 and in_server:
+                out.append(NGINX_BLOCK.rstrip("\n"))
+                inserted += 1
+                in_server = False
+        out.append(line)
+    if not inserted:
+        print("nginx: no server block anchor found", file=sys.stderr)
         return 1
-    patched = conf[:match.start()] + "\n" + NGINX_BLOCK + conf[match.start():]
-    NGINX_CONF.write_text(patched, encoding="utf-8")
-    print("nginx: voice-gateway location added")
+    NGINX_CONF.write_text("\n".join(out), encoding="utf-8")
+    print(f"nginx: voice-gateway location added to {inserted} server block(s)")
     return 0
 
 
