@@ -58,14 +58,15 @@ def append(ledger_path, entry):
     if len(blob) > MAX_LINE_BYTES:
         return {"status": "failed", "reason": "entry_oversized"}
     # O_APPEND single write: entries never rewrite earlier lines.
-    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600)
     try:
-        os.write(fd, blob.encode("utf-8"))
-        os.fsync(fd)
+        fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600)
+        try:
+            os.write(fd, blob.encode("utf-8"))
+            os.fsync(fd)
+        finally:
+            os.close(fd)
     except OSError as exc:
-        return {"status": "failed", "reason": f"write_failed: {exc}"}
-    finally:
-        os.close(fd)
+        return {"status": "failed", "reason": f"open_or_write_failed: {exc}"}
     return {"status": "ok", "seq": seq, "prev_hash": prev_hash, "entry_hash": stored["entry_hash"]}
 
 
