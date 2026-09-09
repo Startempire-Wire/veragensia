@@ -45,10 +45,13 @@ RUN git clone --depth 1 --branch v0.15.0 https://github.com/hyprwm/aquamarine /t
 # Voice client and same-origin gateway route are image-owned so a container
 # restart cannot erase the mobile control. The runtime patch remains available
 # for the mounted source overlay and future base-image changes.
-COPY --chown=abc:abc docker/omarchy-demo/overlay/selkies-web/veragensia-voice.js /usr/share/selkies/web/src/veragensia-voice.js
+COPY --chown=abc:abc docker/omarchy-demo/overlay/selkies-web/veragensia-voice.js /usr/share/selkies/selkies-dashboard/src/veragensia-voice.js
 COPY docker/omarchy-demo/overlay/webtop/voice-page-patch.py /usr/local/bin/veragensia-voice-page-patch.py
-RUN python3 /usr/local/bin/veragensia-voice-page-patch.py \
-    && chmod 0644 /usr/share/selkies/web/src/veragensia-voice.js
+RUN VERAGENSIA_VOICE_INDEX=/usr/share/selkies/selkies-dashboard/index.html \
+    VERAGENSIA_VOICE_TARGET=/usr/share/selkies/selkies-dashboard/src/veragensia-voice.js \
+    VERAGENSIA_VOICE_NGINX=/defaults/default.conf \
+    python3 /usr/local/bin/veragensia-voice-page-patch.py \
+    && chmod 0644 /usr/share/selkies/selkies-dashboard/src/veragensia-voice.js
 
 # Public-safe overlays: Hyprland config, Waybar presenter, custom DE startup.
 COPY --chown=abc:abc docker/omarchy-demo/overlay/webtop/startwm_wayland.sh /defaults/startwm_wayland.sh

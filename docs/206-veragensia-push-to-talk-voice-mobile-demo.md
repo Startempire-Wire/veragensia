@@ -50,11 +50,13 @@ hold TALK button → phone mic (browser SpeechRecognition) → text
 
 ## 5. Restart durability and audit metadata
 
-The demo image now carries the voice JavaScript asset, page injection, and
-same-origin nginx route at build time. `voice-page-patch.py` remains an
-idempotent runtime compatibility guard and also copies a newer mounted asset
-when the source overlay changes. The gateway supervisor retries after a
-transient process exit instead of leaving the button with a dead endpoint.
+The demo image now carries the voice JavaScript asset in the Selkies
+dashboard source, the page injection, and the same-origin nginx route in the
+`/defaults` template at build time; the webtop startup copies those into the
+runtime paths. `voice-page-patch.py` remains an idempotent runtime compatibility
+guard and also copies a newer mounted asset when the source overlay changes.
+The gateway supervisor retries after a transient process exit instead of
+leaving the button with a dead endpoint.
 
 The browser sends speech confidence and listening duration when available.
 The HTTP layer ignores caller-supplied actor names and records the stable

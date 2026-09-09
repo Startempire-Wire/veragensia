@@ -7,13 +7,19 @@ Both patches detect existing state and never duplicate. Runs inside the
 container; the Dockerfile/startwm can re-run it after image updates.
 """
 from pathlib import Path
+import os
 import sys
 
-WEB_INDEX = Path("/usr/share/selkies/web/index.html")
+WEB_INDEX = Path(os.environ.get(
+    "VERAGENSIA_VOICE_INDEX", "/usr/share/selkies/web/index.html"))
 VOICE_TAG = '<script src="/src/veragensia-voice.js"></script>'
-VOICE_SOURCE = Path("/veragensia/docker/omarchy-demo/overlay/selkies-web/veragensia-voice.js")
-VOICE_TARGET = Path("/usr/share/selkies/web/src/veragensia-voice.js")
-NGINX_CONF = Path("/etc/nginx/conf.d/default.conf")
+VOICE_SOURCE = Path(os.environ.get(
+    "VERAGENSIA_VOICE_SOURCE",
+    "/veragensia/docker/omarchy-demo/overlay/selkies-web/veragensia-voice.js"))
+VOICE_TARGET = Path(os.environ.get(
+    "VERAGENSIA_VOICE_TARGET", "/usr/share/selkies/web/src/veragensia-voice.js"))
+NGINX_CONF = Path(os.environ.get(
+    "VERAGENSIA_VOICE_NGINX", "/etc/nginx/conf.d/default.conf"))
 NGINX_BLOCK = """    location /voice-gateway/ {
         proxy_pass http://127.0.0.1:8900/;
         proxy_read_timeout 30s;
