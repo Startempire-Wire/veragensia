@@ -47,7 +47,7 @@ ARG_HINTS = {
     "system.workspace.move_window_to": ['"1".."9"'],
     "system.window.focus_direction": ['"l"|"r"|"u"|"d"'],
     "system.window.move_direction": ['"l"|"r"|"u"|"d"'],
-    "system.window.resize_active": ['"<dx> <dy>" e.g. "40 0" or "0 -40"'],
+    "system.window.resize_active": ['two args "dx","dy" e.g. "-40","0" (negative shrinks)'],
 }
 INTENT_INSTRUCTIONS = (
     "You are the intent classifier for a voice-controlled Linux desktop. "
@@ -215,6 +215,10 @@ def handle_command(text, registry, actor="voice-daemon", audit_dir=None,
         desktop_notify(runner, "voice: not understood")
         return outcome
     op_id, args, method = matched
+    if op_id == "system.window.resize_active":
+        # hyprctl needs dx and dy as separate tokens; models often emit one
+        # string like "-40 -40" — expand space-separated values, bounded.
+        args = [part for arg in args for part in arg.split()][:4]
     ops = _ops_list(registry)
     result = opexec.invoke(op_id, args, registry_describe=lambda oid: next(
         (o for o in ops if o["operation_id"] == oid), None),
