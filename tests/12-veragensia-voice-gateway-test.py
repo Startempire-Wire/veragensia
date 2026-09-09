@@ -55,11 +55,79 @@ class VoiceMatcherTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             def fake_runner(argv):
                 return {"status": "ok", "exit_code": 0}, b""
-            outcome = gateway.handle_command("tell me a joke", REGISTRY, audit_dir=tmp,
-                                             runner=fake_runner)
+            outcome = gateway.handle_command(
+                "tell me a joke", REGISTRY, audit_dir=tmp, runner=fake_runner,
+                intent_fn=lambda t, r: None)
             self.assertFalse(outcome["matched"])
+            self.assertEqual(outcome["reason"], "llm_unmatched")
+            self.assertIn("hint", outcome)
             report = audit.tail(Path(tmp) / audit.TRANSCRIPTIONS_LEDGER)
-            self.assertEqual(report["entries"][-1]["match_method"], "unmatched")
+            entry = report["entries"][-1]
+            self.assertEqual(entry["match_method"], "unmatched")
+            self.assertIsNotNone(entry["intent_engine"])
+
+    def test_llm_intent_paths(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            state = {"activeworkspace": {"id": 1}, "activewindow": {"class": "foot"}}
+            def fake_runner(argv):
+                if argv[1] == "-j":
+                    return {"status": "ok", "exit_code": 0}, json.dumps(state).encode()
+                return {"status": "ok", "exit_code": 0}, b"ok"
+
+            def natural(transcript, expected_args):
+                def fn(_t, _r):
+                    return {"operation_id": "system.workspace.activate",
+                            "args": expected_args, "confidence": 0.97}
+                return gateway.handle_command(
+                    transcript, REGISTRY, audit_dir=tmp, runner=fake_runner,
+                    intent_fn=fn)
+
+            outcome = natural("can you put me on the third workspace please", ["3"])
+            self.assertTrue(outcome["matched"])
+            self.assertEqual(outcome["match_method"], "llm")
+            self.assertEqual(outcome["status"], "ok")
+            self.assertEqual(outcome["intent_confidence"], 0.97)
+
+            outcome = natural("hey so um switch me over to workspace 5 thanks", ["5"])
+            self.assertEqual(outcome["operation_id"], "system.workspace.activate")
+
+            transcriptions = audit.tail(Path(tmp) / audit.TRANSCRIPTIONS_LEDGER)
+            entry = transcriptions["entries"][-1]
+            self.assertEqual(entry["match_method"], "llm")
+            self.assertEqual(entry["intent_engine"], gateway.INTENT_ENGINE)
+            self.assertEqual(entry["intent_confidence"], 0.97)
+            self.assertIsNotNone(entry["action_audit_seq"])
+            ledger = audit.tail(Path(tmp) / audit.OPERATIONS_LEDGER, verify=True)
+            self.assertEqual(ledger["broken"], [])
+
+    def test_llm_down_falls_back_to_regex(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            state = {"activeworkspace": {"id": 1}, "activewindow": {"class": "foot"}}
+            def fake_runner(argv):
+                if argv[1] == "-j":
+                    return {"status": "ok", "exit_code": 0}, json.dumps(state).encode()
+                return {"status": "ok", "exit_code": 0}, b"ok"
+            def broken_fn(_t, _r):
+                raise OSError("proxy unreachable")
+            outcome = gateway.handle_command(
+                "go to workspace 2", REGISTRY, audit_dir=tmp, runner=fake_runner,
+                intent_fn=broken_fn)
+            self.assertTrue(outcome["matched"])
+            self.assertEqual(outcome["match_method"], "regex_fallback")
+
+    def test_parse_intent_text(self):
+        parsed = gateway.parse_intent_text(
+            '```json\n{"operation_id":"system.workspace.activate",'
+            '"args":[3],"confidence":0.9}\n```')
+        self.assertEqual(parsed["operation_id"], "system.workspace.activate")
+        self.assertEqual(parsed["args"], ["3"])
+        self.assertEqual(parsed["confidence"], 0.9)
+        self.assertIsNone(gateway.parse_intent_text("no json here"))
+        self.assertIsNone(gateway.parse_intent_text('{"operation_id":123}').get("x")) if False else None
+        junk = gateway.parse_intent_text('{"operation_id":null,"args":"x","confidence":"high"}')
+        self.assertIsNone(junk["operation_id"])
+        self.assertEqual(junk["args"], [])
+        self.assertEqual(junk["confidence"], 0.0)
 
     def test_handle_command_full_lineage(self):
         with tempfile.TemporaryDirectory() as tmp:

@@ -30,11 +30,39 @@ hold TALK button → phone mic (browser SpeechRecognition) → text
 
 ## 3. Understanding the demo (say these)
 
-- "go to workspace 2" … 1–9 (also "switch to workspace N")
-- "move focus left/right/up/down", "move this window left/…"
-- "close this window" → **refused** (medium risk; the gate proves itself and the refusal is audited)
-- "make this fullscreen" / "take it out of fullscreen"
-- "make this window float", "show the scratchpad", "open a terminal"
+Understanding is now an **LLM intent layer**, not a phrase list. The gateway
+sends each transcript with the full operation registry to the operator's
+OpenAI subscription (`gpt-5.6-luna`, max reasoning) through a KH-side intent
+proxy, and the model returns `{operation_id, args, confidence}` — so natural
+phrasings work: "can you put me on the third workspace please",
+"hey um switch me over to workspace 5 thanks", "shrink the window a bit".
+Useful examples (any natural phrasing is fine):
+
+- workspace travel: "go to workspace 2" … "the third workspace"
+- move a window: "move this window to workspace 4", "send it to workspace two"
+- focus/move: "move focus left", "put the window on the right side"
+- resize: "shrink the window a bit", "make it wider"
+- windows: "make this fullscreen", "take it out of fullscreen", "make this window float"
+- scratchpad: "show the scratchpad", terminal: "open a terminal"
+- deliberately gated: "close this window" refuses without authority (audited)
+
+If the LLM is unreachable the previous deterministic matcher still answers
+exact phrasings (`regex_fallback` in the ledger); if both fail the utterance
+is ledgered as `unmatched` and the phone shows a hint.
+
+Architecture notes:
+
+- The subscription credential lives only on KH in the Pi harness auth file
+  and is refreshed there; the demo host holds **no model secrets**.
+- The KH proxy (`ops/veragensia-intent-proxy.py`, systemd
+  `veragensia-intent-proxy.service`, 127.0.0.1:8912, tailnet-only via
+  `tailscale serve`) reads the token fresh per request, forwards one bounded
+  intent call, and logs no transcripts and no secrets.
+- The LLM only classifies intent. It never executes anything; consequence
+  classes and the authority gate still govern every action (S4 unchanged).
+- Transcripts go to the phone browser's speech service and, through the KH
+  proxy, to OpenAI under the operator's subscription. Nothing else leaves
+  the demo stack.
 
 ## 4. Honest limits
 

@@ -125,7 +125,8 @@ def record_operation(audit_dir, result, actor, authority_ref=None):
 
 def record_transcription(audit_dir, text, engine, actor, confidence=None,
                          matched_operation_id=None, match_method=None,
-                         audio_duration_ms=None, action_audit_seq=None):
+                         audio_duration_ms=None, action_audit_seq=None,
+                         intent_engine=None, intent_confidence=None):
     """Record one transcribed utterance and its action lineage."""
     entry = {"schema": TRANSCRIPTION_SCHEMA, "kind": "transcription",
              "observed_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
@@ -136,5 +137,9 @@ def record_transcription(audit_dir, text, engine, actor, confidence=None,
              "match_method": match_method,
              "audio_duration_ms": audio_duration_ms,
              "action_audit_seq": action_audit_seq}
+    if intent_engine is not None:
+        entry["intent_engine"] = str(intent_engine)[:120]
+    if intent_confidence is not None:
+        entry["intent_confidence"] = intent_confidence
     outcome = append(Path(audit_dir) / TRANSCRIPTIONS_LEDGER, entry)
     return outcome

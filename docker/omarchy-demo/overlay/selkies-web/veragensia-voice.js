@@ -112,7 +112,7 @@
       setButton(STATE.idle, false);
       buzz(data.matched ? [30, 40, 30] : 120);
       if (!data.matched) {
-        showStatus("Not understood: " + text, false);
+        showStatus("Not understood: " + text + (data.hint ? "\n" + data.hint : ""), false);
       } else if (data.authority_required) {
         showStatus("Needs authority (demo gate): " + data.operation_id, false);
       } else if (data.status === "ok") {

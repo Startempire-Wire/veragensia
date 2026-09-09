@@ -22,7 +22,7 @@ NGINX_CONF = Path(os.environ.get(
     "VERAGENSIA_VOICE_NGINX", "/etc/nginx/conf.d/default.conf"))
 NGINX_BLOCK = """    location /voice-gateway/ {
         proxy_pass http://127.0.0.1:8900/;
-        proxy_read_timeout 30s;
+        proxy_read_timeout 90s;
         proxy_set_header Host $host;
     }
 """

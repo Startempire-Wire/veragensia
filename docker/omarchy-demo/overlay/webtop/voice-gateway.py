@@ -7,7 +7,9 @@ desktop notification feedback. Runs inside the demo container with the
 Hyprland session env; nginx routes /voice-gateway/ here. Stdlib only.
 """
 import json
+import os
 import re
+import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import importlib.util as _ilu
@@ -29,6 +31,38 @@ audit = _load("veragens_audit", "veragens-audit.py")
 BINDINGS = opexec.load_execution()
 MAX_TEXT = 256
 DIRECTIONS = (("left", "l"), ("right", "r"), ("up", "u"), ("down", "d"))
+
+# LLM intent layer (docs/206): the operator's OpenAI subscription classifies
+# the utterance against the semantic registry via the KH-side intent proxy.
+# No credential material lives on the demo host; the proxy is tailnet-only.
+INTENT_URL = os.environ.get(
+    "VERAGENSIA_INTENT_URL", "http://100.94.238.56:8912/intent")
+INTENT_HOST = os.environ.get(
+    "VERAGENSIA_INTENT_HOST", "host-philoveracity-com:8912")
+INTENT_ENGINE = os.environ.get(
+    "VERAGENSIA_INTENT_ENGINE", "llm:gpt-5.6-luna(max)")
+INTENT_TIMEOUT = float(os.environ.get("VERAGENSIA_INTENT_TIMEOUT", "80"))
+ARG_HINTS = {
+    "system.workspace.activate": ['"1".."9"'],
+    "system.workspace.move_window_to": ['"1".."9"'],
+    "system.window.focus_direction": ['"l"|"r"|"u"|"d"'],
+    "system.window.move_direction": ['"l"|"r"|"u"|"d"'],
+    "system.window.resize_active": ['"<dx> <dy>" e.g. "40 0" or "0 -40"'],
+}
+INTENT_INSTRUCTIONS = (
+    "You are the intent classifier for a voice-controlled Linux desktop. "
+    "Map ONE spoken utterance to at most ONE operation from the provided "
+    "list, or to null. Rules: use exact operation_id strings from the list; "
+    "follow each operation's args hints exactly (workspace numbers are the "
+    "strings \"1\"..\"9\"; directions are \"l\"|\"r\"|\"u\"|\"d\"; resize takes "
+    "pixel deltas like \"40 0\"; every arg is a short ASCII string); prefer "
+    "the operator's intent over their exact words (rude, casual, indirect, "
+    "or polite phrasings all count); questions about the desktop that match "
+    "a read-style operation still count; greetings, smalltalk, and anything "
+    "outside the list are null. Never invent operation ids. Reply ONLY "
+    "minified JSON: {\"operation_id\":string|null,\"args\":[string],"
+    "\"confidence\":number}."
+)
 
 
 def normalize(text):
@@ -68,6 +102,60 @@ def match_operation(text, registry):
     return None
 
 
+def _registry_digest(registry):
+    ops = []
+    for op in _ops_list(registry):
+        ops.append({
+            "id": op["operation_id"],
+            "label": op["human"]["label"],
+            "examples": op["voice"]["examples"][:2],
+            "args": ARG_HINTS.get(op["operation_id"], []),
+        })
+    return ops
+
+
+def parse_intent_text(raw):
+    """Parse the model's final text into a validated intent dict or None."""
+    text = str(raw or "").strip()
+    text = re.sub(r"^```(?:json)?\s*|\s*```$", "", text).strip()
+    start, end = text.find("{"), text.rfind("}")
+    if start < 0 or end <= start:
+        return None
+    try:
+        intent = json.loads(text[start:end + 1])
+    except ValueError:
+        return None
+    if not isinstance(intent, dict):
+        return None
+    op_id = intent.get("operation_id")
+    try:
+        confidence = max(0.0, min(1.0, float(intent.get("confidence", 0.0))))
+    except (TypeError, ValueError):
+        confidence = 0.0
+    args = intent.get("args") or []
+    if not isinstance(args, list):
+        args = []
+    args = [str(a).strip()[:64] for a in args if str(a).strip()][:4]
+    return {"operation_id": (str(op_id) if op_id else None),
+            "args": args, "confidence": confidence}
+
+
+def llm_intent(text, registry):
+    """Classify one utterance via the KH subscription proxy; None on any failure."""
+    payload = json.dumps({
+        "instructions": INTENT_INSTRUCTIONS,
+        "input": json.dumps({"transcript": text,
+                             "operations": _registry_digest(registry)}),
+    }).encode("utf-8")
+    req = urllib.request.Request(
+        INTENT_URL, data=payload, method="POST",
+        headers={"Content-Type": "application/json", "Host": INTENT_HOST})
+    data = json.load(urllib.request.urlopen(req, timeout=INTENT_TIMEOUT))
+    if not data.get("ok"):
+        return None
+    return parse_intent_text(data.get("text", ""))
+
+
 def desktop_notify(runner, message):
     runner(["hyprctl", "notify", "4000", "rgb(c4b5fd)", str(message)[:120]])
 
@@ -89,20 +177,41 @@ def _duration(value):
 
 
 def handle_command(text, registry, actor="voice-daemon", audit_dir=None,
-                   confidence=None, audio_duration_ms=None, runner=None):
+                   confidence=None, audio_duration_ms=None, runner=None,
+                   intent_fn=None):
     text = str(text)[:MAX_TEXT]
     confidence = _confidence(confidence)
     audio_duration_ms = _duration(audio_duration_ms)
     outcome = {"transcript": text, "confidence": confidence,
-               "audio_duration_ms": audio_duration_ms}
+               "audio_duration_ms": audio_duration_ms,
+               "intent_engine": INTENT_ENGINE if intent_fn is None else "test"}
     runner = runner or opexec.probe
-    matched = match_operation(text, registry)
+    intent_fn = intent_fn or llm_intent
+    intent = None
+    intent_unavailable = False
+    try:
+        intent = intent_fn(text, registry)
+    except Exception:
+        intent = None  # regex matcher stays as the offline fallback
+        intent_unavailable = True
+    matched = None
+    if intent and intent.get("operation_id"):
+        matched = (intent["operation_id"], intent.get("args") or [], "llm")
+    else:
+        fallback = match_operation(text, registry)
+        if fallback:
+            matched = (fallback[0], fallback[1], "regex_fallback")
     if matched is None:
-        outcome.update(matched=False, reason="no_operation_match")
+        outcome.update(matched=False, reason=("intent_unavailable" if intent_unavailable
+                                              else "llm_unmatched"),
+                       intent_confidence=(intent or {}).get("confidence"),
+                       hint="try: go to workspace 2 / move focus left / make this fullscreen")
         audit.record_transcription(
             audit_dir, text, "web-speech-api", actor, confidence=confidence,
             audio_duration_ms=audio_duration_ms, matched_operation_id=None,
-            match_method="unmatched")
+            match_method="unmatched",
+            intent_engine=(None if intent_unavailable else INTENT_ENGINE),
+            intent_confidence=(intent or {}).get("confidence"))
         desktop_notify(runner, "voice: not understood")
         return outcome
     op_id, args, method = matched
@@ -110,15 +219,18 @@ def handle_command(text, registry, actor="voice-daemon", audit_dir=None,
     result = opexec.invoke(op_id, args, registry_describe=lambda oid: next(
         (o for o in ops if o["operation_id"] == oid), None),
         bindings=BINDINGS, runner=runner, actor=actor, audit_dir=audit_dir)
+    intent_engine = INTENT_ENGINE if intent is not None else None
     audit.record_transcription(
         audit_dir, text, "web-speech-api", actor, confidence=confidence,
         audio_duration_ms=audio_duration_ms, matched_operation_id=op_id,
-        match_method=method, action_audit_seq=result.get("audit_seq"))
+        match_method=method, action_audit_seq=result.get("audit_seq"),
+        intent_engine=intent_engine, intent_confidence=(intent or {}).get("confidence"))
     desktop_notify(runner, f"voice: {op_id.split('.', 2)[-1]} {result.get('status')}")
     outcome.update(matched=True, operation_id=op_id, match_method=method,
                    status=result.get("status"), error=result.get("error"),
                    consequence_class=result.get("consequence_class"),
                    authority_required=result.get("error") == "authority_required",
+                   intent_confidence=(intent or {}).get("confidence"),
                    before=result.get("before"), after=result.get("after"))
     return outcome
 
