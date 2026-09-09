@@ -7,11 +7,12 @@ Both patches detect existing state and never duplicate. Runs inside the
 container; the Dockerfile/startwm can re-run it after image updates.
 """
 from pathlib import Path
-import re
 import sys
 
 WEB_INDEX = Path("/usr/share/selkies/web/index.html")
 VOICE_TAG = '<script src="/src/veragensia-voice.js"></script>'
+VOICE_SOURCE = Path("/veragensia/docker/omarchy-demo/overlay/selkies-web/veragensia-voice.js")
+VOICE_TARGET = Path("/usr/share/selkies/web/src/veragensia-voice.js")
 NGINX_CONF = Path("/etc/nginx/conf.d/default.conf")
 NGINX_BLOCK = """    location /voice-gateway/ {
         proxy_pass http://127.0.0.1:8900/;
@@ -19,6 +20,27 @@ NGINX_BLOCK = """    location /voice-gateway/ {
         proxy_set_header Host $host;
     }
 """
+
+
+def patch_asset():
+    # At image build time the asset is already copied into the target, while a
+    # running overlay has the source under /veragensia. Support both paths so
+    # the patch remains useful during upgrades and on the live mounted repo.
+    if VOICE_SOURCE.exists():
+        data = VOICE_SOURCE.read_bytes()
+    elif VOICE_TARGET.exists():
+        print("voice asset: image copy already present")
+        return 0
+    else:
+        print(f"voice asset: source missing: {VOICE_SOURCE}", file=sys.stderr)
+        return 1
+    if VOICE_TARGET.exists() and VOICE_TARGET.read_bytes() == data:
+        print("voice asset: already current")
+        return 0
+    VOICE_TARGET.parent.mkdir(parents=True, exist_ok=True)
+    VOICE_TARGET.write_bytes(data)
+    print("voice asset: installed")
+    return 0
 
 
 def patch_index():
@@ -35,35 +57,46 @@ def patch_index():
     return 0
 
 
+def _server_ranges(lines):
+    """Return (start, end) indexes for the simple nginx server blocks."""
+    ranges = []
+    index = 0
+    while index < len(lines):
+        if lines[index].strip() != "server {":
+            index += 1
+            continue
+        depth = lines[index].count("{") - lines[index].count("}")
+        end = index
+        while depth > 0 and end + 1 < len(lines):
+            end += 1
+            depth += lines[end].count("{") - lines[end].count("}")
+        if depth != 0:
+            return []
+        ranges.append((index, end))
+        index = end + 1
+    return ranges
+
+
 def patch_nginx():
-    conf = NGINX_CONF.read_text(encoding="utf-8")
-    lines = conf.split("\n")
-    if "/voice-gateway" in conf:
-        print("nginx: voice-gateway location already present")
-        return 0
-    # Insert the location into EVERY server block (the container ships two:
-    # the default :3000 server and a secondary), before each block's final "}".
-    # Track brace depth from a simple scan; a block ends when depth returns to 0.
-    out, depth, inserted = [], 0, 0
-    in_server = False
-    for line in lines:
-        stripped = line.strip()
-        if stripped == "server {":
-            in_server = True
-        if in_server:
-            depth += line.count("{") - line.count("}")
-            if depth == 0 and in_server:
-                out.append(NGINX_BLOCK.rstrip("\n"))
-                inserted += 1
-                in_server = False
-        out.append(line)
-    if not inserted:
-        print("nginx: no server block anchor found", file=sys.stderr)
+    lines = NGINX_CONF.read_text(encoding="utf-8").split("\n")
+    ranges = _server_ranges(lines)
+    if not ranges:
+        print("nginx: no complete server block anchor found", file=sys.stderr)
         return 1
-    NGINX_CONF.write_text("\n".join(out), encoding="utf-8")
-    print(f"nginx: voice-gateway location added to {inserted} server block(s)")
+    insert_at = []
+    for start, end in ranges:
+        block = "\n".join(lines[start:end + 1])
+        if "/voice-gateway/" not in block:
+            insert_at.append(end)
+    for index in reversed(insert_at):
+        lines.insert(index, NGINX_BLOCK.rstrip("\n"))
+    if insert_at:
+        NGINX_CONF.write_text("\n".join(lines), encoding="utf-8")
+        print(f"nginx: voice-gateway location added to {len(insert_at)} server block(s)")
+    else:
+        print("nginx: voice-gateway location already present in every server block")
     return 0
 
 
 if __name__ == "__main__":
-    raise SystemExit(patch_index() | patch_nginx())
+    raise SystemExit(patch_asset() | patch_index() | patch_nginx())

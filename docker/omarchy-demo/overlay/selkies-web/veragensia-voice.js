@@ -51,6 +51,7 @@
 
   var recognition = null;
   var held = false;
+  var listeningStartedAt = 0;
 
   function startListening(event) {
     event.preventDefault();
@@ -62,8 +63,10 @@
     recognition.maxAlternatives = 1;
     recognition.continuous = false;
     recognition.onresult = function (event) {
-      var text = event.results[0][0].transcript;
-      submit(text);
+      var result = event.results[0][0];
+      var text = result.transcript;
+      var confidence = typeof result.confidence === "number" ? result.confidence : null;
+      submit(text, confidence, listeningStartedAt ? Date.now() - listeningStartedAt : null);
     };
     recognition.onerror = function (event) {
       if (!held) return;
@@ -77,7 +80,15 @@
     };
     setButton(STATE.listening, true);
     buzz(40);
-    try { recognition.start(); } catch (e) { setButton(STATE.idle, false); held = false; }
+    listeningStartedAt = Date.now();
+    try {
+      recognition.start();
+    } catch (e) {
+      listeningStartedAt = 0;
+      setButton(STATE.idle, false);
+      held = false;
+      showStatus("Voice could not start — try again", false);
+    }
   }
 
   function stopListening(event) {
@@ -87,11 +98,16 @@
     setButton(STATE.idle, false);
   }
 
-  function submit(text) {
+  function submit(text, confidence, audioDurationMs) {
     setButton("\u2026 DOING", true);
     fetch("/voice-gateway/command", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: text, actor: "phone-push-to-talk" }),
+      body: JSON.stringify({
+        text: text,
+        confidence: confidence,
+        audio_duration_ms: audioDurationMs,
+        source: "phone-push-to-talk",
+      }),
     }).then(function (r) { return r.json(); }).then(function (data) {
       setButton(STATE.idle, false);
       buzz(data.matched ? [30, 40, 30] : 120);

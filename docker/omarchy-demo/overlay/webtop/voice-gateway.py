@@ -72,15 +72,37 @@ def desktop_notify(runner, message):
     runner(["hyprctl", "notify", "4000", "rgb(c4b5fd)", str(message)[:120]])
 
 
-def handle_command(text, registry, actor="voice-daemon", audit_dir=None, runner=None):
+def _confidence(value):
+    try:
+        value = float(value)
+    except (TypeError, ValueError):
+        return None
+    return max(0.0, min(1.0, value))
+
+
+def _duration(value):
+    try:
+        value = int(value)
+    except (TypeError, ValueError):
+        return None
+    return max(0, min(120000, value))
+
+
+def handle_command(text, registry, actor="voice-daemon", audit_dir=None,
+                   confidence=None, audio_duration_ms=None, runner=None):
     text = str(text)[:MAX_TEXT]
-    outcome = {"transcript": text}
+    confidence = _confidence(confidence)
+    audio_duration_ms = _duration(audio_duration_ms)
+    outcome = {"transcript": text, "confidence": confidence,
+               "audio_duration_ms": audio_duration_ms}
     runner = runner or opexec.probe
     matched = match_operation(text, registry)
     if matched is None:
         outcome.update(matched=False, reason="no_operation_match")
-        audit.record_transcription(audit_dir, text, "web-speech-api", actor,
-                                   matched_operation_id=None, match_method="unmatched")
+        audit.record_transcription(
+            audit_dir, text, "web-speech-api", actor, confidence=confidence,
+            audio_duration_ms=audio_duration_ms, matched_operation_id=None,
+            match_method="unmatched")
         desktop_notify(runner, "voice: not understood")
         return outcome
     op_id, args, method = matched
@@ -88,13 +110,14 @@ def handle_command(text, registry, actor="voice-daemon", audit_dir=None, runner=
     result = opexec.invoke(op_id, args, registry_describe=lambda oid: next(
         (o for o in ops if o["operation_id"] == oid), None),
         bindings=BINDINGS, runner=runner, actor=actor, audit_dir=audit_dir)
-    audit.record_transcription(audit_dir, text, "web-speech-api", actor,
-                               matched_operation_id=op_id, match_method=method,
-                               action_audit_seq=result.get("audit_seq"))
+    audit.record_transcription(
+        audit_dir, text, "web-speech-api", actor, confidence=confidence,
+        audio_duration_ms=audio_duration_ms, matched_operation_id=op_id,
+        match_method=method, action_audit_seq=result.get("audit_seq"))
     desktop_notify(runner, f"voice: {op_id.split('.', 2)[-1]} {result.get('status')}")
     outcome.update(matched=True, operation_id=op_id, match_method=method,
                    status=result.get("status"), error=result.get("error"),
-                   consequence_class=(result.get("before") is not None and None) or None,
+                   consequence_class=result.get("consequence_class"),
                    authority_required=result.get("error") == "authority_required",
                    before=result.get("before"), after=result.get("after"))
     return outcome
@@ -121,17 +144,43 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("Content-Length", "0")
             self.end_headers()
             return
-        length = min(int(self.headers.get("Content-Length", 0)), 4096)
+        try:
+            length = min(max(int(self.headers.get("Content-Length", 0)), 0), 4096)
+        except (TypeError, ValueError):
+            length = 0
         try:
             payload = json.loads(self.rfile.read(length) or b"{}")
-        except ValueError:
+        except (TypeError, ValueError):
             payload = {}
-        actor = str(payload.get("actor") or "voice-daemon")[:64]
-        outcome = handle_command(payload.get("text", ""), self.registry, actor=actor,
-                                 audit_dir=audit.DEFAULT_DIR)
+        if not isinstance(payload, dict):
+            payload = {}
+        text = payload.get("text", "")
+        # The request body cannot mint an actor identity. The public route is a
+        # fixed browser surface; the transcript and action remain linked in the
+        # append-only ledgers under this stable actor label.
+        actor = "voice-browser"
+        confidence = payload.get("confidence")
+        duration = payload.get("audio_duration_ms")
+        try:
+            outcome = handle_command(
+                text, self.registry, actor=actor, audit_dir=audit.DEFAULT_DIR,
+                confidence=confidence, audio_duration_ms=duration)
+        except Exception:
+            # Never leave a browser with an empty HTTP reply. Avoid exposing
+            # internal paths/details; the attempt is still recorded as a failed
+            # transcription when the ledger is writable.
+            safe_text = str(text)[:MAX_TEXT]
+            audit.record_transcription(
+                audit.DEFAULT_DIR, safe_text, "web-speech-api", actor,
+                confidence=_confidence(confidence),
+                audio_duration_ms=_duration(duration),
+                matched_operation_id=None, match_method="gateway_error")
+            outcome = {"transcript": safe_text, "matched": False,
+                       "status": "failed", "error": "gateway_error"}
         body = json.dumps(outcome).encode()
         self.send_response(200)
         self.send_header("Content-Type", "application/json")
+        self.send_header("Cache-Control", "no-store")
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)

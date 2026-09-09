@@ -70,13 +70,18 @@ class VoiceMatcherTest(unittest.TestCase):
                 return {"status": "ok", "exit_code": 0}, b"ok"
             outcome = gateway.handle_command(
                 "go to workspace 2", REGISTRY, audit_dir=tmp,
-                actor="voice-test", runner=fake_runner)
+                actor="voice-test", confidence=0.83, audio_duration_ms=1200,
+                runner=fake_runner)
             self.assertTrue(outcome["matched"])
             self.assertEqual(outcome["status"], "ok")
+            self.assertEqual(outcome["confidence"], 0.83)
+            self.assertEqual(outcome["audio_duration_ms"], 1200)
             transcriptions = audit.tail(Path(tmp) / audit.TRANSCRIPTIONS_LEDGER)
             entry = transcriptions["entries"][-1]
             self.assertEqual(entry["matched_operation_id"], "system.workspace.activate")
             self.assertEqual(entry["engine"], "web-speech-api")
+            self.assertEqual(entry["confidence"], 0.83)
+            self.assertEqual(entry["audio_duration_ms"], 1200)
             self.assertIsNotNone(entry["action_audit_seq"])
             operations_ledger = audit.tail(Path(tmp) / audit.OPERATIONS_LEDGER, verify=True)
             self.assertEqual(operations_ledger["broken"], [])

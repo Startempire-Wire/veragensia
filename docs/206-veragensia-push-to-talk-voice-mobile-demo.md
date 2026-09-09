@@ -12,8 +12,9 @@
 | `overlay/webtop/voice-gateway.py` | HTTP gateway: transcript → S2 registry match → S4 invoke (audited) → transcription ledger with lineage → desktop notification |
 | `overlay/webtop/voice-gateway-loop.sh` | Supervisor; exec-once keeps it alive with the session (port 8900, loopback) |
 | `overlay/selkies-web/veragensia-voice.js` | The push-to-talk button: 132px hold-to-talk circle, browser SpeechRecognition, vibration + color feedback, big status banner |
-| `overlay/webtop/voice-page-patch.py` | Idempotent page + nginx patches (button script tag; `/voice-gateway/` into every server block) |
+| `overlay/webtop/voice-page-patch.py` | Idempotent asset, page, and nginx patches (button script tag; `/voice-gateway/` into every server block) |
 | `tests/12-veragensia-voice-gateway-test.py` | Matcher + full lineage tests (5) |
+| `tests/13-veragensia-voice-delivery-static-test.py` | Restart-safe image/patch/supervisor contract tests |
 
 ## 2. Flow (phone → desktop)
 
@@ -47,7 +48,21 @@ hold TALK button → phone mic (browser SpeechRecognition) → text
 - The unmatched case is ledgered too ("not understood" toasts on the desktop),
   so every attempt — understood or not — is in the record.
 
-## 5. Live verification (2026-09-09)
+## 5. Restart durability and audit metadata
+
+The demo image now carries the voice JavaScript asset, page injection, and
+same-origin nginx route at build time. `voice-page-patch.py` remains an
+idempotent runtime compatibility guard and also copies a newer mounted asset
+when the source overlay changes. The gateway supervisor retries after a
+transient process exit instead of leaving the button with a dead endpoint.
+
+The browser sends speech confidence and listening duration when available.
+The HTTP layer ignores caller-supplied actor names and records the stable
+`voice-browser` actor, so request JSON cannot spoof audit attribution. Gateway
+exceptions return a bounded JSON failure instead of an empty browser response;
+the failed transcription attempt is still recorded.
+
+## 6. Live verification (2026-09-09)
 
 Public path `POST https://os.focusa.dev/voice-gateway/command` executed
 workspace travel, focus movement, fullscreen on/off; `close this window` was
