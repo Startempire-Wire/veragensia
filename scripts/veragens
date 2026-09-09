@@ -20,6 +20,12 @@ _spec = _importlib_util.spec_from_file_location(
     "veragens_operations", ROOT / "scripts/veragens-operations.py")
 operations = _importlib_util.module_from_spec(_spec)
 _spec.loader.exec_module(operations)
+
+# V201-S3 keybinding parity module (loaded by path; read-only).
+_parity_spec = _importlib_util.spec_from_file_location(
+    "veragens_keymap_parity", ROOT / "scripts/veragens-keymap-parity.py")
+keymap_parity = _importlib_util.module_from_spec(_parity_spec)
+_parity_spec.loader.exec_module(keymap_parity)
 MAX_MANIFEST_BYTES = 65536
 MAX_ARTIFACT_BYTES = 512 * 1024 * 1024
 FOCUSA_READ_TIMEOUT = 5.0  # Daemon-backed reads need more headroom than local inventory probes.
@@ -310,6 +316,17 @@ def main():
     operation_describe.add_argument("--json", action="store_true", required=True)
     operation_describe.add_argument("--registry", type=Path, default=None,
                                     help="registry path override (default: repo config/system-operations.json)")
+    # V201-S3: keybinding parity projection (read-only; docs/201 4.2 gate + drift).
+    keymap = commands.add_parser("keymap", help="keybinding parity projection (docs/201 V201-S3)")
+    keymap_commands = keymap.add_subparsers(dest="keymap_command", required=True)
+    keymap_inspect = keymap_commands.add_parser("inspect", help="classify live bindings against the semantic operation registry")
+    keymap_inspect.add_argument("--inventory", type=Path, required=True,
+                                help="V201-S1 inventory report JSON (hyprland_bindings source)")
+    keymap_inspect.add_argument("--rules", type=Path, default=None,
+                                help="projection rules override (default: repo config/keybinding-projection.json)")
+    keymap_inspect.add_argument("--baseline", type=Path, default=None,
+                                help="prior projection report; emits projection drift")
+    keymap_inspect.add_argument("--json", action="store_true", required=True)
     args = parser.parse_args()
     if args.command == "operation":
         registry = args.registry or operations.REGISTRY_PATH
@@ -325,6 +342,16 @@ def main():
                 report, code = descriptor, 0
         print(json.dumps(report, sort_keys=True))
         return code
+    if args.command == "keymap":
+        # Read-only parity projection; never executes bindings, never mutates state.
+        inventory = json.loads(Path(args.inventory).read_text(encoding="utf-8"))
+        rules = keymap_parity.load_rules(args.rules or keymap_parity.RULES_PATH)
+        report = keymap_parity.compile_projection(inventory, rules)
+        if args.baseline is not None:
+            baseline = json.loads(Path(args.baseline).read_text(encoding="utf-8"))
+            report = keymap_parity.diff_projection(report, baseline)
+        print(json.dumps(report, sort_keys=True))
+        return 0
     if args.command in ("resume", "status"):
         report, code = resume(args.project_root, args.continuity_id)
         if args.command == "status" and args.waybar:

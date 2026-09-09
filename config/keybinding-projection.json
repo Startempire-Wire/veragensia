@@ -1,0 +1,32 @@
+{
+  "schema": "veragensia.keybinding_projection_rules.v1",
+  "spec_ref": "docs/201-veragensia-semantic-os-operation-keybinding-and-voxtype-integration-spec.md#V201-S3",
+  "note": "Rules correlate live bindings to S2 semantic operations by dispatcher plus optional argument digest (invariant 2: operation identity is independent of the chord). Rules matched by argument digest are environment-scoped; the native Omarchy qualification adds its own rules from the live keymap. Unmatched bindings fall through the docs/201 4.2 classification gate; exec without a digest rule is application_internal, everything else unmapped_gap (a release defect).",
+  "rules": [
+    {
+      "operation_id": "system.window.close",
+      "match": { "dispatcher": "killactive" },
+      "argument_sha256": null,
+      "source": "omarchy_default"
+    },
+    {
+      "operation_id": "system.window.fullscreen",
+      "match": { "dispatcher": "fullscreen" },
+      "argument_sha256": null,
+      "source": "omarchy_default"
+    },
+    {
+      "operation_id": "system.session.exit",
+      "match": { "dispatcher": "exit" },
+      "argument_sha256": null,
+      "source": "omarchy_default"
+    },
+    {
+      "operation_id": "system.app.launch.terminal",
+      "match": { "dispatcher": "exec" },
+      "argument_sha256": "7442729aadb77c95048605246869656ce799ba65d8ed5150100676d5f273b7ad",
+      "source": "application",
+      "environment_note": "demo proving ground: exec of the overlay foot.ini terminal; digest binds this rule to that exact argument only"
+    }
+  ]
+}
