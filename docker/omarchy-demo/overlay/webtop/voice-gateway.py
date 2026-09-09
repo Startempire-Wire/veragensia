@@ -35,6 +35,13 @@ def normalize(text):
     return re.sub(r"[^a-z0-9 ]", " ", str(text).lower()).strip()
 
 
+def _ops_list(registry):
+    """Registry dicts and test doubles both work; real calls pass the dict."""
+    if isinstance(registry, dict):
+        return registry["operations"]
+    return registry.operations
+
+
 def match_operation(text, registry):
     """Match a transcript to (operation_id, args, method). Parameterized first."""
     t = normalize(text)
@@ -46,7 +53,7 @@ def match_operation(text, registry):
             return "system.window.focus_direction", [code], "parameterized"
         if re.search(rf"move (?:this |the )?window {word}\b", t):
             return "system.window.move_direction", [code], "parameterized"
-    for op in registry["operations"]:
+    for op in _ops_list(registry):
         op_id = op["operation_id"]
         if op_id in ("system.workspace.activate", "system.window.focus_direction",
                      "system.window.move_direction"):
@@ -54,7 +61,7 @@ def match_operation(text, registry):
         for example in op["voice"]["examples"]:
             if normalize(example) in t or normalize(example) == t:
                 return op_id, [], "voice_example"
-    for op in registry["operations"]:
+    for op in _ops_list(registry):
         label = normalize(op["human"]["label"])
         if label and label in t:
             return op["operation_id"], [], "label"
@@ -65,24 +72,26 @@ def desktop_notify(runner, message):
     runner(["hyprctl", "notify", "4000", "rgb(c4b5fd)", str(message)[:120]])
 
 
-def handle_command(text, registry, actor="voice-daemon", audit_dir=None):
+def handle_command(text, registry, actor="voice-daemon", audit_dir=None, runner=None):
     text = str(text)[:MAX_TEXT]
     outcome = {"transcript": text}
+    runner = runner or opexec.probe
     matched = match_operation(text, registry)
     if matched is None:
         outcome.update(matched=False, reason="no_operation_match")
         audit.record_transcription(audit_dir, text, "web-speech-api", actor,
                                    matched_operation_id=None, match_method="unmatched")
-        desktop_notify(opexec.probe, "voice: not understood")
+        desktop_notify(runner, "voice: not understood")
         return outcome
     op_id, args, method = matched
+    ops = _ops_list(registry)
     result = opexec.invoke(op_id, args, registry_describe=lambda oid: next(
-        (o for o in registry["operations"] if o["operation_id"] == oid), None),
-        bindings=BINDINGS, runner=opexec.probe, actor=actor, audit_dir=audit_dir)
+        (o for o in ops if o["operation_id"] == oid), None),
+        bindings=BINDINGS, runner=runner, actor=actor, audit_dir=audit_dir)
     audit.record_transcription(audit_dir, text, "web-speech-api", actor,
                                matched_operation_id=op_id, match_method=method,
                                action_audit_seq=result.get("audit_seq"))
-    desktop_notify(opexec.probe, f"voice: {op_id.split('.', 2)[-1]} {result.get('status')}")
+    desktop_notify(runner, f"voice: {op_id.split('.', 2)[-1]} {result.get('status')}")
     outcome.update(matched=True, operation_id=op_id, match_method=method,
                    status=result.get("status"), error=result.get("error"),
                    consequence_class=(result.get("before") is not None and None) or None,
