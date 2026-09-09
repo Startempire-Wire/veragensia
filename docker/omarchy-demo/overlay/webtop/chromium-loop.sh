@@ -1,0 +1,22 @@
+#!/usr/bin/with-contenv bash
+# Chromium supervisor for the public demo: relaunch the browser with the exact
+# demo flags whenever it exits (a closed last window exits the browser and
+# would otherwise leave the demo without the Work view surface).
+# The flags and the /extroot/dist mount path are the approved public contract —
+# identical unpacked extension identity on every relaunch.
+FLAGS=(--show-component-extension-options
+  --no-default-browser-check --disable-pings --media-router=0
+  --disable-dev-shm-usage --enable-remote-extensions --no-sandbox
+  --ozone-platform=wayland --hide-crash-restore-bubble
+  --user-data-dir=/config/.config/chromium-uiai
+  --load-extension=/extroot/dist --disable-extensions-except=/extroot/dist
+  --remote-debugging-port=9333 --remote-debugging-address=127.0.0.1
+  --no-first-run --no-default-browser-check
+  --window-size=1180,700 --window-position=190,50)
+
+while true; do
+  /usr/lib/chromium/chromium "${FLAGS[@]}"
+  code=$?
+  echo "[chromium-loop] chromium exited (code $code); relaunching in 3s" >&2
+  sleep 3
+done
