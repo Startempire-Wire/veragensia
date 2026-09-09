@@ -13,6 +13,13 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "config/v0.1-release-candidate.json"
+
+# V201-S2 registry module (loaded by path; the CLI never mutates it).
+import importlib.util as _importlib_util
+_spec = _importlib_util.spec_from_file_location(
+    "veragens_operations", ROOT / "scripts/veragens-operations.py")
+operations = _importlib_util.module_from_spec(_spec)
+_spec.loader.exec_module(operations)
 MAX_MANIFEST_BYTES = 65536
 MAX_ARTIFACT_BYTES = 512 * 1024 * 1024
 FOCUSA_READ_TIMEOUT = 5.0  # Daemon-backed reads need more headroom than local inventory probes.
@@ -269,7 +276,33 @@ def main():
     output = status.add_mutually_exclusive_group(required=True)
     output.add_argument("--json", action="store_true", help="unchanged validated Focusa continuation envelope")
     output.add_argument("--waybar", action="store_true", help="bounded read-only Work text and tooltip")
+    # V201-S2: semantic operation registry projections (read-only; S4 wires execution).
+    operation = commands.add_parser("operation", help="semantic system-operation registry (docs/201 V201-S2)")
+    operation_commands = operation.add_subparsers(dest="operation_command", required=True)
+    operation_list = operation_commands.add_parser("list", help="bounded list of registered semantic operations")
+    operation_list.add_argument("--json", action="store_true", required=True)
+    operation_list.add_argument("--registry", type=Path, default=None,
+                                help="registry path override (default: repo config/system-operations.json)")
+    operation_describe = operation_commands.add_parser("describe", help="full descriptor for one operation id")
+    operation_describe.add_argument("operation_id")
+    operation_describe.add_argument("--json", action="store_true", required=True)
+    operation_describe.add_argument("--registry", type=Path, default=None,
+                                    help="registry path override (default: repo config/system-operations.json)")
     args = parser.parse_args()
+    if args.command == "operation":
+        registry = args.registry or operations.REGISTRY_PATH
+        if args.operation_command == "list":
+            report, code = operations.catalog(registry), 0
+        else:
+            descriptor = operations.describe(args.operation_id, registry)
+            if descriptor is None:
+                report, code = {"schema": "veragensia.system_operation_error.v1",
+                                "error": "unknown_operation",
+                                "operation_id": args.operation_id}, 2
+            else:
+                report, code = descriptor, 0
+        print(json.dumps(report, sort_keys=True))
+        return code
     if args.command in ("resume", "status"):
         report, code = resume(args.project_root, args.continuity_id)
         if args.command == "status" and args.waybar:

@@ -1,0 +1,652 @@
+{
+  "schema": "veragensia.system_operation_catalog.v1",
+  "catalog_version": 1,
+  "spec_ref": "docs/201-veragensia-semantic-os-operation-keybinding-and-voxtype-integration-spec.md#V201-S2",
+  "note": "Descriptors advertise how to invoke system behaviors; actual permission remains governed by applicable Focusa/Veragensia/UIAI gates. command_template_ref values are opaque execution-template keys resolved by the S4 execution layer, not raw commands.",
+  "operations": [
+    {
+      "schema": "veragensia.system_operation.v1",
+      "operation_id": "system.workspace.activate",
+      "version": 1,
+      "owner_runtime": "hyprland",
+      "category": "workspace",
+      "human": {
+        "label": "Go to workspace",
+        "current_hotkeys": []
+      },
+      "voice": {
+        "examples": [
+          "Go to workspace two",
+          "Take me to the next workspace"
+        ]
+      },
+      "parameters": {
+        "schema_ref": "veragensia.param.workspace_ref.v1"
+      },
+      "preconditions": {
+        "capability_refs": [],
+        "authority_ref_required": false,
+        "target_observation_required": false,
+        "secure_attention_required": false
+      },
+      "execution": {
+        "preferred_adapter": "hyprland_dispatch",
+        "fallback_adapters": [
+          "omarchy_cli"
+        ],
+        "command_template_ref": "hyprland.dispatch.workspace"
+      },
+      "risk": {
+        "consequence_class": "low",
+        "reversibility": "reversible"
+      },
+      "result": {
+        "schema_ref": "veragensia.result.workspace_state.v1",
+        "evidence_policy_ref": "docs/193-veragensia-execution-substrate-workload-identity-and-capability-enforcement-spec.md"
+      }
+    },
+    {
+      "schema": "veragensia.system_operation.v1",
+      "operation_id": "system.workspace.overview",
+      "version": 1,
+      "owner_runtime": "omarchy",
+      "category": "workspace",
+      "human": {
+        "label": "Open workspace overview",
+        "current_hotkeys": []
+      },
+      "voice": {
+        "examples": [
+          "Show me the workspace overview",
+          "Open all workspaces"
+        ]
+      },
+      "parameters": {
+        "schema_ref": "veragensia.param.none.v1"
+      },
+      "preconditions": {
+        "capability_refs": [],
+        "authority_ref_required": false,
+        "target_observation_required": false,
+        "secure_attention_required": false
+      },
+      "execution": {
+        "preferred_adapter": "omarchy_cli",
+        "fallback_adapters": [
+          "hyprland_dispatch"
+        ],
+        "command_template_ref": "omarchy.workspace.overview"
+      },
+      "risk": {
+        "consequence_class": "low",
+        "reversibility": "reversible"
+      },
+      "result": {
+        "schema_ref": "veragensia.result.none.v1",
+        "evidence_policy_ref": "docs/193-veragensia-execution-substrate-workload-identity-and-capability-enforcement-spec.md"
+      }
+    },
+    {
+      "schema": "veragensia.system_operation.v1",
+      "operation_id": "system.window.close",
+      "version": 1,
+      "owner_runtime": "hyprland",
+      "category": "window",
+      "human": {
+        "label": "Close active window",
+        "current_hotkeys": []
+      },
+      "voice": {
+        "examples": [
+          "Close this window",
+          "Close the browser"
+        ]
+      },
+      "parameters": {
+        "schema_ref": "veragensia.param.window_target.v1"
+      },
+      "preconditions": {
+        "capability_refs": [],
+        "authority_ref_required": true,
+        "target_observation_required": true,
+        "secure_attention_required": false
+      },
+      "execution": {
+        "preferred_adapter": "hyprland_dispatch",
+        "fallback_adapters": [],
+        "command_template_ref": "hyprland.dispatch.killactive"
+      },
+      "risk": {
+        "consequence_class": "medium",
+        "reversibility": "app_dependent"
+      },
+      "result": {
+        "schema_ref": "veragensia.result.window_state.v1",
+        "evidence_policy_ref": "docs/193-veragensia-execution-substrate-workload-identity-and-capability-enforcement-spec.md"
+      }
+    },
+    {
+      "schema": "veragensia.system_operation.v1",
+      "operation_id": "system.window.fullscreen",
+      "version": 1,
+      "owner_runtime": "hyprland",
+      "category": "window",
+      "human": {
+        "label": "Toggle fullscreen",
+        "current_hotkeys": []
+      },
+      "voice": {
+        "examples": [
+          "Make this fullscreen",
+          "Take it out of fullscreen"
+        ]
+      },
+      "parameters": {
+        "schema_ref": "veragensia.param.window_target.v1"
+      },
+      "preconditions": {
+        "capability_refs": [],
+        "authority_ref_required": false,
+        "target_observation_required": true,
+        "secure_attention_required": false
+      },
+      "execution": {
+        "preferred_adapter": "hyprland_dispatch",
+        "fallback_adapters": [],
+        "command_template_ref": "hyprland.dispatch.fullscreen"
+      },
+      "risk": {
+        "consequence_class": "low",
+        "reversibility": "reversible"
+      },
+      "result": {
+        "schema_ref": "veragensia.result.window_state.v1",
+        "evidence_policy_ref": "docs/193-veragensia-execution-substrate-workload-identity-and-capability-enforcement-spec.md"
+      }
+    },
+    {
+      "schema": "veragensia.system_operation.v1",
+      "operation_id": "system.window.focus_direction",
+      "version": 1,
+      "owner_runtime": "hyprland",
+      "category": "window",
+      "human": {
+        "label": "Move focus",
+        "current_hotkeys": []
+      },
+      "voice": {
+        "examples": [
+          "Focus the window on the left",
+          "Move focus right"
+        ]
+      },
+      "parameters": {
+        "schema_ref": "veragensia.param.direction.v1"
+      },
+      "preconditions": {
+        "capability_refs": [],
+        "authority_ref_required": false,
+        "target_observation_required": false,
+        "secure_attention_required": false
+      },
+      "execution": {
+        "preferred_adapter": "hyprland_dispatch",
+        "fallback_adapters": [],
+        "command_template_ref": "hyprland.dispatch.movefocus"
+      },
+      "risk": {
+        "consequence_class": "low",
+        "reversibility": "reversible"
+      },
+      "result": {
+        "schema_ref": "veragensia.result.window_state.v1",
+        "evidence_policy_ref": "docs/193-veragensia-execution-substrate-workload-identity-and-capability-enforcement-spec.md"
+      }
+    },
+    {
+      "schema": "veragensia.system_operation.v1",
+      "operation_id": "system.app.launch.terminal",
+      "version": 1,
+      "owner_runtime": "veragensia",
+      "category": "app",
+      "human": {
+        "label": "Open terminal",
+        "current_hotkeys": []
+      },
+      "voice": {
+        "examples": [
+          "Open a terminal",
+          "Give me a shell"
+        ]
+      },
+      "parameters": {
+        "schema_ref": "veragensia.param.none.v1"
+      },
+      "preconditions": {
+        "capability_refs": [],
+        "authority_ref_required": false,
+        "target_observation_required": false,
+        "secure_attention_required": false
+      },
+      "execution": {
+        "preferred_adapter": "omarchy_cli",
+        "fallback_adapters": [
+          "hyprland_dispatch"
+        ],
+        "command_template_ref": "omarchy.launch.terminal"
+      },
+      "risk": {
+        "consequence_class": "low",
+        "reversibility": "reversible"
+      },
+      "result": {
+        "schema_ref": "veragensia.result.window_state.v1",
+        "evidence_policy_ref": "docs/193-veragensia-execution-substrate-workload-identity-and-capability-enforcement-spec.md"
+      }
+    },
+    {
+      "schema": "veragensia.system_operation.v1",
+      "operation_id": "system.app.focus",
+      "version": 1,
+      "owner_runtime": "hyprland",
+      "category": "app",
+      "human": {
+        "label": "Focus application window",
+        "current_hotkeys": []
+      },
+      "voice": {
+        "examples": [
+          "Bring up the browser",
+          "Focus Obsidian"
+        ]
+      },
+      "parameters": {
+        "schema_ref": "veragensia.param.window_target.v1"
+      },
+      "preconditions": {
+        "capability_refs": [],
+        "authority_ref_required": false,
+        "target_observation_required": true,
+        "secure_attention_required": false
+      },
+      "execution": {
+        "preferred_adapter": "hyprland_dispatch",
+        "fallback_adapters": [
+          "app_protocol"
+        ],
+        "command_template_ref": "hyprland.dispatch.focuswindow"
+      },
+      "risk": {
+        "consequence_class": "low",
+        "reversibility": "reversible"
+      },
+      "result": {
+        "schema_ref": "veragensia.result.window_state.v1",
+        "evidence_policy_ref": "docs/193-veragensia-execution-substrate-workload-identity-and-capability-enforcement-spec.md"
+      }
+    },
+    {
+      "schema": "veragensia.system_operation.v1",
+      "operation_id": "system.audio.output.mute_toggle",
+      "version": 1,
+      "owner_runtime": "veragensia",
+      "category": "audio",
+      "human": {
+        "label": "Mute or unmute output",
+        "current_hotkeys": []
+      },
+      "voice": {
+        "examples": [
+          "Mute the sound",
+          "Unmute my speakers"
+        ]
+      },
+      "parameters": {
+        "schema_ref": "veragensia.param.audio_endpoint.v1"
+      },
+      "preconditions": {
+        "capability_refs": [],
+        "authority_ref_required": false,
+        "target_observation_required": false,
+        "secure_attention_required": false
+      },
+      "execution": {
+        "preferred_adapter": "native_service",
+        "fallback_adapters": [
+          "omarchy_cli"
+        ],
+        "command_template_ref": "wireplumber.set_mute_default_sink"
+      },
+      "risk": {
+        "consequence_class": "low",
+        "reversibility": "reversible"
+      },
+      "result": {
+        "schema_ref": "veragensia.result.audio_route.v1",
+        "evidence_policy_ref": "docs/193-veragensia-execution-substrate-workload-identity-and-capability-enforcement-spec.md"
+      }
+    },
+    {
+      "schema": "veragensia.system_operation.v1",
+      "operation_id": "system.bluetooth.devices.list",
+      "version": 1,
+      "owner_runtime": "veragensia",
+      "category": "bluetooth",
+      "human": {
+        "label": "List paired Bluetooth devices",
+        "current_hotkeys": []
+      },
+      "voice": {
+        "examples": [
+          "Show my Bluetooth devices",
+          "What headphones are paired"
+        ]
+      },
+      "parameters": {
+        "schema_ref": "veragensia.param.none.v1"
+      },
+      "preconditions": {
+        "capability_refs": [],
+        "authority_ref_required": false,
+        "target_observation_required": false,
+        "secure_attention_required": false
+      },
+      "execution": {
+        "preferred_adapter": "native_service",
+        "fallback_adapters": [],
+        "command_template_ref": "bluetoothctl.devices"
+      },
+      "risk": {
+        "consequence_class": "low",
+        "reversibility": "read_only"
+      },
+      "result": {
+        "schema_ref": "veragensia.result.device_list.v1",
+        "evidence_policy_ref": "docs/193-veragensia-execution-substrate-workload-identity-and-capability-enforcement-spec.md"
+      }
+    },
+    {
+      "schema": "veragensia.system_operation.v1",
+      "operation_id": "system.display.reload_configuration",
+      "version": 1,
+      "owner_runtime": "hyprland",
+      "category": "display",
+      "human": {
+        "label": "Reload display configuration",
+        "current_hotkeys": []
+      },
+      "voice": {
+        "examples": [
+          "Fix my screen",
+          "Reload the display setup"
+        ]
+      },
+      "parameters": {
+        "schema_ref": "veragensia.param.none.v1"
+      },
+      "preconditions": {
+        "capability_refs": [],
+        "authority_ref_required": true,
+        "target_observation_required": false,
+        "secure_attention_required": false
+      },
+      "execution": {
+        "preferred_adapter": "hyprland_dispatch",
+        "fallback_adapters": [
+          "omarchy_cli"
+        ],
+        "command_template_ref": "hyprland.dispatch.reload"
+      },
+      "risk": {
+        "consequence_class": "medium",
+        "reversibility": "reversible"
+      },
+      "result": {
+        "schema_ref": "veragensia.result.none.v1",
+        "evidence_policy_ref": "docs/193-veragensia-execution-substrate-workload-identity-and-capability-enforcement-spec.md"
+      }
+    },
+    {
+      "schema": "veragensia.system_operation.v1",
+      "operation_id": "system.session.exit",
+      "version": 1,
+      "owner_runtime": "hyprland",
+      "category": "power",
+      "human": {
+        "label": "End desktop session",
+        "current_hotkeys": []
+      },
+      "voice": {
+        "examples": [
+          "Log me out",
+          "End the session"
+        ]
+      },
+      "parameters": {
+        "schema_ref": "veragensia.param.none.v1"
+      },
+      "preconditions": {
+        "capability_refs": [],
+        "authority_ref_required": true,
+        "target_observation_required": false,
+        "secure_attention_required": false
+      },
+      "execution": {
+        "preferred_adapter": "hyprland_dispatch",
+        "fallback_adapters": [],
+        "command_template_ref": "hyprland.dispatch.exit"
+      },
+      "risk": {
+        "consequence_class": "high",
+        "reversibility": "session_scoped"
+      },
+      "result": {
+        "schema_ref": "veragensia.result.none.v1",
+        "evidence_policy_ref": "docs/193-veragensia-execution-substrate-workload-identity-and-capability-enforcement-spec.md"
+      }
+    },
+    {
+      "schema": "veragensia.system_operation.v1",
+      "operation_id": "system.capture.screenshot",
+      "version": 1,
+      "owner_runtime": "veragensia",
+      "category": "capture",
+      "human": {
+        "label": "Take a screenshot",
+        "current_hotkeys": []
+      },
+      "voice": {
+        "examples": [
+          "Take a screenshot",
+          "Capture the screen"
+        ]
+      },
+      "parameters": {
+        "schema_ref": "veragensia.param.capture_region.v1"
+      },
+      "preconditions": {
+        "capability_refs": [],
+        "authority_ref_required": true,
+        "target_observation_required": false,
+        "secure_attention_required": false
+      },
+      "execution": {
+        "preferred_adapter": "native_service",
+        "fallback_adapters": [
+          "hyprland_dispatch"
+        ],
+        "command_template_ref": "wlr_screencopy.grim"
+      },
+      "risk": {
+        "consequence_class": "medium",
+        "reversibility": "file_scoped"
+      },
+      "result": {
+        "schema_ref": "veragensia.result.file_ref.v1",
+        "evidence_policy_ref": "docs/193-veragensia-execution-substrate-workload-identity-and-capability-enforcement-spec.md"
+      }
+    },
+    {
+      "schema": "veragensia.system_operation.v1",
+      "operation_id": "system.clipboard.paste_history",
+      "version": 1,
+      "owner_runtime": "veragensia",
+      "category": "clipboard",
+      "human": {
+        "label": "Paste from clipboard history",
+        "current_hotkeys": []
+      },
+      "voice": {
+        "examples": [
+          "Paste that link I copied",
+          "Open clipboard history"
+        ]
+      },
+      "parameters": {
+        "schema_ref": "veragensia.param.clipboard_query.v1"
+      },
+      "preconditions": {
+        "capability_refs": [],
+        "authority_ref_required": true,
+        "target_observation_required": true,
+        "secure_attention_required": true
+      },
+      "execution": {
+        "preferred_adapter": "native_service",
+        "fallback_adapters": [],
+        "command_template_ref": "wl_clipboard.cliphist_pick"
+      },
+      "risk": {
+        "consequence_class": "medium",
+        "reversibility": "reversible"
+      },
+      "result": {
+        "schema_ref": "veragensia.result.text_inserted.v1",
+        "evidence_policy_ref": "docs/193-veragensia-execution-substrate-workload-identity-and-capability-enforcement-spec.md"
+      }
+    },
+    {
+      "schema": "veragensia.system_operation.v1",
+      "operation_id": "system.notification.history",
+      "version": 1,
+      "owner_runtime": "omarchy",
+      "category": "notification",
+      "human": {
+        "label": "Show notification history",
+        "current_hotkeys": []
+      },
+      "voice": {
+        "examples": [
+          "What notifications did I miss",
+          "Show notification history"
+        ]
+      },
+      "parameters": {
+        "schema_ref": "veragensia.param.none.v1"
+      },
+      "preconditions": {
+        "capability_refs": [],
+        "authority_ref_required": false,
+        "target_observation_required": false,
+        "secure_attention_required": false
+      },
+      "execution": {
+        "preferred_adapter": "omarchy_cli",
+        "fallback_adapters": [
+          "native_service"
+        ],
+        "command_template_ref": "mako.history"
+      },
+      "risk": {
+        "consequence_class": "low",
+        "reversibility": "read_only"
+      },
+      "result": {
+        "schema_ref": "veragensia.result.notification_list.v1",
+        "evidence_policy_ref": "docs/193-veragensia-execution-substrate-workload-identity-and-capability-enforcement-spec.md"
+      }
+    },
+    {
+      "schema": "veragensia.system_operation.v1",
+      "operation_id": "system.agent.select_foreman",
+      "version": 1,
+      "owner_runtime": "focusa",
+      "category": "agent",
+      "human": {
+        "label": "Select the active Foreman",
+        "current_hotkeys": []
+      },
+      "voice": {
+        "examples": [
+          "Switch to the web Foreman",
+          "Select the builder agent"
+        ]
+      },
+      "parameters": {
+        "schema_ref": "veragensia.param.foreman_ref.v1"
+      },
+      "preconditions": {
+        "capability_refs": [
+          "focusa.workstream.read"
+        ],
+        "authority_ref_required": true,
+        "target_observation_required": false,
+        "secure_attention_required": false
+      },
+      "execution": {
+        "preferred_adapter": "focusa_operation",
+        "fallback_adapters": [],
+        "command_template_ref": "focusa.workstream.select_foreman"
+      },
+      "risk": {
+        "consequence_class": "medium",
+        "reversibility": "reversible"
+      },
+      "result": {
+        "schema_ref": "veragensia.result.agent_selection.v1",
+        "evidence_policy_ref": "docs/193-veragensia-execution-substrate-workload-identity-and-capability-enforcement-spec.md"
+      }
+    },
+    {
+      "schema": "veragensia.system_operation.v1",
+      "operation_id": "system.dictation.toggle",
+      "version": 1,
+      "owner_runtime": "veragensia",
+      "category": "text",
+      "human": {
+        "label": "Toggle dictation",
+        "current_hotkeys": []
+      },
+      "voice": {
+        "examples": [
+          "Start dictation",
+          "Stop listening"
+        ]
+      },
+      "parameters": {
+        "schema_ref": "veragensia.param.none.v1"
+      },
+      "preconditions": {
+        "capability_refs": [
+          "audio.trusted_microphone"
+        ],
+        "authority_ref_required": true,
+        "target_observation_required": false,
+        "secure_attention_required": false
+      },
+      "execution": {
+        "preferred_adapter": "native_service",
+        "fallback_adapters": [],
+        "command_template_ref": "voxtype.toggle_dictation"
+      },
+      "risk": {
+        "consequence_class": "medium",
+        "reversibility": "reversible"
+      },
+      "result": {
+        "schema_ref": "veragensia.result.dictation_state.v1",
+        "evidence_policy_ref": "docs/193-veragensia-execution-substrate-workload-identity-and-capability-enforcement-spec.md"
+      }
+    }
+  ]
+}
