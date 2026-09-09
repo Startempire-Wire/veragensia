@@ -1,6 +1,7 @@
 #!/bin/bash
 # Veragensia Omarchy public demo — atomic container swap with rollback.
 # Root-only on the OVH demo host. Never starts or repairs a Focusa daemon.
+# Requires the vkms virtual GPU: modprobe vkms (see /etc/modules-load.d/vkms.conf).
 set -euo pipefail
 
 IMAGE_TAG="veragensia-omarchy-demo:latest"
@@ -14,8 +15,15 @@ HOST_REPO="/home/wirebot/veragensia"
 HOST_DEMO="/home/wirebot/uiai-lab/veragensia-demo"
 
 COMMON_BINDS=(-v "${HOST_PROFILE}:/config" -v "${HOST_EXT}:/extroot:ro" -v "${HOST_REPO}:/veragensia:ro" -v "${HOST_DEMO}:/veragensia-demo")
-COMMON_ENV=(-e PUID=1001 -e PGID=1001 -e TZ=America/Los_Angeles)
+COMMON_ENV=(-e PUID=1001 -e PGID=1001 -e TZ=America/Los_Angeles -e DISPLAY=:1 -e SELKIES_RENDER_DRI=/dev/dri/card0)
 COMMON_PORTS=(-p 127.0.0.1:3000:3000 -p 127.0.0.1:3001:3001)
+COMMON_DEVICES=(--device /dev/dri)
+
+clean_profile_locks() {
+    # Chromium singleton locks are hostname-bound; a recreated container is a
+    # different host. No Chromium runs while this script holds them.
+    rm -f "${HOST_PROFILE}/.config/chromium-uiai/Singleton"*
+}
 
 verify() {
     local name="$1"
@@ -27,6 +35,7 @@ verify() {
     return 0
 }
 
+clean_profile_locks
 echo "[omarchy-demo] verifying new container (canonical ports)..."
 if verify "$NEW"; then
     echo "[omarchy-demo] new container healthy; swapping."
@@ -34,8 +43,9 @@ if verify "$NEW"; then
     docker rename "$OLD" "$PREV"
     docker stop "$NEW" >/dev/null
     docker rm "$NEW" >/dev/null
+    clean_profile_locks
     docker run -d --name "$OLD" \
-        "${COMMON_BINDS[@]}" "${COMMON_ENV[@]}" "${COMMON_PORTS[@]}" \
+        "${COMMON_DEVICES[@]}" "${COMMON_BINDS[@]}" "${COMMON_ENV[@]}" "${COMMON_PORTS[@]}" \
         "$IMAGE_TAG" >/dev/null
     if verify "$OLD"; then
         echo "[omarchy-demo] swap complete; previous container retained as ${PREV}."
