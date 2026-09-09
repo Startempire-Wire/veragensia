@@ -4,10 +4,14 @@
 FROM lscr.io/linuxserver/webtop:arch-kde@sha256:ed197a60c161b5d45a0d0137a5c47ecd136964c57791bf3151d01ad41ac6b988
 
 # Hyprland stack + portals + audio + build tooling for the compatibility patches.
-# hyprpaper serves the generated Veragensia wallpaper on the demo desktop.
+# swaybg serves the generated Veragensia wallpaper on the demo desktop.
+# ENABLE_RESIZE=False: every connecting browser otherwise resizes the whole
+# capture pipeline (resolution churn = the resize-transition glitches and
+# pipeline restarts). The demo desktop stays at its native 1280x760 and the
+# client letterboxes. MPL-2.0 patch to the installed selkies package.
 RUN pacman -Syu --noconfirm --ignore docker-compose \
         hyprland \
-        hyprpaper \
+        swaybg \
         waybar \
         foot \
         xdg-desktop-portal-hyprland \
@@ -18,7 +22,8 @@ RUN pacman -Syu --noconfirm --ignore docker-compose \
         git \
         gcc \
         libdisplay-info \
-    && pacman -Scc --noconfirm || true
+    && pacman -Scc --noconfirm || true \
+    && sed -i 's/^ENABLE_RESIZE = True$/ENABLE_RESIZE = False/' /lsiopy/lib/python3*/site-packages/selkies/selkies.py
 
 # Two build-time patches (see patch-aquamarine.py for rationale and design notes):
 #   1. Registry version clamp — Aquamarine binds Wayland protocol globals with
