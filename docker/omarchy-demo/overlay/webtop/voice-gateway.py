@@ -14,10 +14,10 @@ import importlib.util as _ilu
 from pathlib import Path
 
 _HERE = Path(__file__).resolve().parent
-_REPO = _HERE.parent.parent.parent
+_ROOT = _HERE.parents[3]  # /veragensia repo root inside the container mount
 
 def _load(name, rel):
-    spec = _ilu.spec_from_file_location(name, _HERE / rel)
+    spec = _ilu.spec_from_file_location(name, _ROOT / "scripts" / rel)
     mod = _ilu.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod
