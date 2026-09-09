@@ -58,12 +58,15 @@ class VoiceDeliveryStaticTest(unittest.TestCase):
     def test_image_and_supervisor_own_restart_contract(self):
         dockerfile = (ROOT / "docker/omarchy-demo/Dockerfile").read_text(encoding="utf-8")
         loop = (ROOT / "docker/omarchy-demo/overlay/webtop/voice-gateway-loop.sh").read_text(encoding="utf-8")
+        swap = (ROOT / "docker/omarchy-demo/omarchy-demo-swap.sh").read_text(encoding="utf-8")
         self.assertIn("COPY --chown=abc:abc docker/omarchy-demo/overlay/selkies-web/veragensia-voice.js /usr/share/selkies/selkies-dashboard/src/veragensia-voice.js", dockerfile)
         self.assertIn("VERAGENSIA_VOICE_INDEX=/usr/share/selkies/selkies-dashboard/index.html", dockerfile)
         self.assertIn("VERAGENSIA_VOICE_NGINX=/defaults/default.conf", dockerfile)
         self.assertIn("veragensia-voice-page-patch.py", dockerfile)
         self.assertIn("while :; do", loop)
         self.assertIn("retrying", loop)
+        self.assertIn("archive_existing_previous", swap)
+        self.assertIn('docker rename "$PREV" "$archive"', swap)
 
 
 if __name__ == "__main__":

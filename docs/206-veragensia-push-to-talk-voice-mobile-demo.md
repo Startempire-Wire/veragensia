@@ -62,7 +62,9 @@ The browser sends speech confidence and listening duration when available.
 The HTTP layer ignores caller-supplied actor names and records the stable
 `voice-browser` actor, so request JSON cannot spoof audit attribution. Gateway
 exceptions return a bounded JSON failure instead of an empty browser response;
-the failed transcription attempt is still recorded.
+the failed transcription attempt is still recorded. The atomic container swap
+archives any pre-existing rollback container under a timestamped name before
+reusing `uiai-webtop.prev`, preserving rollback history across repeated swaps.
 
 ## 6. Live verification (2026-09-09)
 
@@ -70,3 +72,7 @@ Public path `POST https://os.focusa.dev/voice-gateway/command` executed
 workspace travel, focus movement, fullscreen on/off; `close this window` was
 **refused** by the authority gate and audited; transcription entries carry
 `action_audit_seq` lineage into the operations ledger; chain verify intact.
+The restart-safe image was built as
+`sha256:0603908824c472f8b77a5eecb9eda97ef86b36b7f9a04aa6dda1c0d0a1071b35`,
+atomically swapped, and verified through the public route plus a local CDP
+PNG capture showing the visible 132×132 TALK button.

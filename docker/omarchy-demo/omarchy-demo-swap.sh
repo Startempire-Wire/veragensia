@@ -63,11 +63,25 @@ verify() {
     return 1
 }
 
+archive_existing_previous() {
+    if docker container inspect "$PREV" >/dev/null 2>&1; then
+        local archive="${PREV}.$(date -u +%Y%m%d-%H%M%S)"
+        local suffix=1
+        while docker container inspect "$archive" >/dev/null 2>&1; do
+            archive="${PREV}.$(date -u +%Y%m%d-%H%M%S)-${suffix}"
+            suffix=$((suffix + 1))
+        done
+        docker rename "$PREV" "$archive"
+        echo "[omarchy-demo] preserved existing rollback container as ${archive}."
+    fi
+}
+
 clean_profile_locks
 echo "[omarchy-demo] verifying new container (desktop chain)..."
 if verify "$NEW" desktop; then
     echo "[omarchy-demo] new container healthy; swapping."
     docker stop "$OLD" >/dev/null
+    archive_existing_previous
     docker rename "$OLD" "$PREV"
     docker stop "$NEW" >/dev/null
     docker rm "$NEW" >/dev/null
