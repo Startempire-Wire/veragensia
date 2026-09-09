@@ -27,6 +27,54 @@
       "argument_sha256": "7442729aadb77c95048605246869656ce799ba65d8ed5150100676d5f273b7ad",
       "source": "application",
       "environment_note": "demo proving ground: exec of the overlay foot.ini terminal; digest binds this rule to that exact argument only"
+    },
+    {
+      "operation_id": "system.window.focus_direction",
+      "match": { "dispatcher": "movefocus" },
+      "argument_sha256": null,
+      "source": "omarchy_default"
+    },
+    {
+      "operation_id": "system.workspace.activate",
+      "match": { "dispatcher": "workspace" },
+      "argument_sha256": null,
+      "source": "omarchy_default"
+    },
+    {
+      "operation_id": "system.workspace.move_window_to",
+      "match": { "dispatcher": "movetoworkspace" },
+      "argument_sha256": null,
+      "source": "omarchy_default"
+    },
+    {
+      "operation_id": "system.window.toggle_floating",
+      "match": { "dispatcher": "togglefloating" },
+      "argument_sha256": null,
+      "source": "omarchy_default"
+    },
+    {
+      "operation_id": "system.window.toggle_split",
+      "match": { "dispatcher": "togglesplit" },
+      "argument_sha256": null,
+      "source": "omarchy_default"
+    },
+    {
+      "operation_id": "system.window.move_direction",
+      "match": { "dispatcher": "movewindow" },
+      "argument_sha256": null,
+      "source": "omarchy_default"
+    },
+    {
+      "operation_id": "system.window.resize_active",
+      "match": { "dispatcher": "resizeactive" },
+      "argument_sha256": null,
+      "source": "omarchy_default"
+    },
+    {
+      "operation_id": "system.workspace.toggle_special",
+      "match": { "dispatcher": "togglespecialworkspace" },
+      "argument_sha256": null,
+      "source": "omarchy_default"
     }
   ]
 }

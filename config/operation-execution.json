@@ -1,0 +1,19 @@
+{
+  "schema": "veragensia.operation_execution.v1",
+  "spec_ref": "docs/201-veragensia-semantic-os-operation-keybinding-and-voxtype-integration-spec.md#V201-S4",
+  "note": "Binds S2 operation ids to concrete hyprland_dispatch invocations. fixed_args bindings reject caller args entirely; literal bindings pass bounded caller args through. Only hyprland_dispatch is implemented in this slice; other adapters fail with adapter_unavailable until their slices land.",
+  "bindings": [
+    { "operation_id": "system.workspace.activate", "adapter": "hyprland_dispatch", "dispatcher": "workspace", "arg_mode": "literal" },
+    { "operation_id": "system.workspace.move_window_to", "adapter": "hyprland_dispatch", "dispatcher": "movetoworkspace", "arg_mode": "literal" },
+    { "operation_id": "system.workspace.toggle_special", "adapter": "hyprland_dispatch", "dispatcher": "togglespecialworkspace", "arg_mode": "fixed", "fixed_args": ["magic"] },
+    { "operation_id": "system.window.close", "adapter": "hyprland_dispatch", "dispatcher": "killactive", "arg_mode": "none" },
+    { "operation_id": "system.window.fullscreen", "adapter": "hyprland_dispatch", "dispatcher": "fullscreen", "arg_mode": "none" },
+    { "operation_id": "system.window.focus_direction", "adapter": "hyprland_dispatch", "dispatcher": "movefocus", "arg_mode": "literal" },
+    { "operation_id": "system.window.toggle_floating", "adapter": "hyprland_dispatch", "dispatcher": "togglefloating", "arg_mode": "none" },
+    { "operation_id": "system.window.toggle_split", "adapter": "hyprland_dispatch", "dispatcher": "togglesplit", "arg_mode": "none" },
+    { "operation_id": "system.window.move_direction", "adapter": "hyprland_dispatch", "dispatcher": "movewindow", "arg_mode": "literal" },
+    { "operation_id": "system.window.resize_active", "adapter": "hyprland_dispatch", "dispatcher": "resizeactive", "arg_mode": "literal" },
+    { "operation_id": "system.session.exit", "adapter": "hyprland_dispatch", "dispatcher": "exit", "arg_mode": "none" },
+    { "operation_id": "system.app.launch.terminal", "adapter": "hyprland_dispatch", "dispatcher": "exec", "arg_mode": "fixed", "fixed_args": ["foot -c /veragensia/docker/omarchy-demo/overlay/hypr/foot.ini"] }
+  ]
+}

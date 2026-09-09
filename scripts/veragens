@@ -26,6 +26,12 @@ _parity_spec = _importlib_util.spec_from_file_location(
     "veragens_keymap_parity", ROOT / "scripts/veragens-keymap-parity.py")
 keymap_parity = _importlib_util.module_from_spec(_parity_spec)
 _parity_spec.loader.exec_module(keymap_parity)
+
+# V201-S4 execution module (loaded by path; audited, read-verified dispatch).
+_exec_spec = _importlib_util.spec_from_file_location(
+    "veragens_operations_exec", ROOT / "scripts/veragens-operations-exec.py")
+opexec = _importlib_util.module_from_spec(_exec_spec)
+_exec_spec.loader.exec_module(opexec)
 MAX_MANIFEST_BYTES = 65536
 MAX_ARTIFACT_BYTES = 512 * 1024 * 1024
 FOCUSA_READ_TIMEOUT = 5.0  # Daemon-backed reads need more headroom than local inventory probes.
@@ -327,8 +333,59 @@ def main():
     keymap_inspect.add_argument("--baseline", type=Path, default=None,
                                 help="prior projection report; emits projection drift")
     keymap_inspect.add_argument("--json", action="store_true", required=True)
+    # V201-S4: execution layer (invoke/batch) + audit ledger reads.
+    op_invoke = operation_commands.add_parser("invoke", help="execute one semantic operation via its adapter")
+    op_invoke.add_argument("operation_id")
+    op_invoke.add_argument("args", nargs="*", help="bounded operation arguments")
+    op_invoke.add_argument("--authority-ref", default=None,
+                           help="authority reference required for medium/high consequence operations")
+    op_invoke.add_argument("--actor", default="operator-cli")
+    op_invoke.add_argument("--no-audit", action="store_true")
+    op_invoke.add_argument("--registry", type=Path, default=None)
+    op_invoke.add_argument("--execution", type=Path, default=None)
+    op_invoke.add_argument("--json", action="store_true", required=True)
+    op_batch = operation_commands.add_parser("batch", help="execute a fenced operation batch")
+    op_batch.add_argument("--file", type=Path, required=True, help="JSON file: [{operation_id, args}]")
+    op_batch.add_argument("--fence", type=Path, required=True,
+                          help="interruption fence: existing file aborts between steps")
+    op_batch.add_argument("--authority-ref", default=None)
+    op_batch.add_argument("--actor", default="operator-cli")
+    op_batch.add_argument("--no-audit", action="store_true")
+    op_batch.add_argument("--json", action="store_true", required=True)
+    op_audit = operation_commands.add_parser("audit", help="read the operations audit ledger")
+    op_audit.add_argument("--tail", type=int, default=32)
+    op_audit.add_argument("--verify", action="store_true",
+                          help="verify the hash chain and report any breakage")
+    op_audit.add_argument("--json", action="store_true", required=True)
     args = parser.parse_args()
     if args.command == "operation":
+        if args.operation_command in ("invoke", "batch", "audit"):
+            if args.operation_command == "invoke":
+                report = opexec.invoke(
+                    args.operation_id, args.args,
+                    registry_describe=lambda oid: operations.describe(
+                        oid, args.registry or operations.REGISTRY_PATH),
+                    bindings=opexec.load_execution(args.execution or opexec.EXECUTION_PATH),
+                    authority_ref=args.authority_ref, actor=args.actor,
+                    audit_dir=None if args.no_audit else opexec.audit_mod.DEFAULT_DIR)
+                code = 0 if report.get("status") == "ok" else 1
+            elif args.operation_command == "batch":
+                steps = json.loads(Path(args.file).read_text(encoding="utf-8"))
+                report = opexec.batch(
+                    steps, registry_describe=lambda oid: operations.describe(
+                        oid, args.registry or operations.REGISTRY_PATH),
+                    bindings=opexec.load_execution(args.execution or opexec.EXECUTION_PATH),
+                    authority_ref=args.authority_ref, fence_path=args.fence,
+                    actor=args.actor,
+                    audit_dir=None if args.no_audit else opexec.audit_mod.DEFAULT_DIR)
+                code = 0 if report.get("outcome") == "completed" else 1
+            else:
+                report = opexec.audit_mod.tail(
+                    opexec.audit_mod.DEFAULT_DIR / opexec.audit_mod.OPERATIONS_LEDGER,
+                    limit=max(1, min(args.tail, opexec.audit_mod.MAX_TAIL)), verify=args.verify)
+                code = 0
+            print(json.dumps(report, sort_keys=True))
+            return code
         registry = args.registry or operations.REGISTRY_PATH
         if args.operation_command == "list":
             report, code = operations.catalog(registry), 0

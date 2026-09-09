@@ -205,6 +205,222 @@
     },
     {
       "schema": "veragensia.system_operation.v1",
+      "operation_id": "system.workspace.move_window_to",
+      "version": 1,
+      "owner_runtime": "hyprland",
+      "category": "workspace",
+      "human": {
+        "label": "Move window to workspace",
+        "current_hotkeys": []
+      },
+      "voice": {
+        "examples": ["Move this window to workspace three", "Send it to workspace two"]
+      },
+      "parameters": {
+        "schema_ref": "veragensia.param.workspace_ref.v1"
+      },
+      "preconditions": {
+        "capability_refs": [],
+        "authority_ref_required": false,
+        "target_observation_required": true,
+        "secure_attention_required": false
+      },
+      "execution": {
+        "preferred_adapter": "hyprland_dispatch",
+        "fallback_adapters": [],
+        "command_template_ref": "hyprland.dispatch.movetoworkspace"
+      },
+      "risk": {
+        "consequence_class": "low",
+        "reversibility": "reversible"
+      },
+      "result": {
+        "schema_ref": "veragensia.result.window_state.v1",
+        "evidence_policy_ref": "docs/193-veragensia-execution-substrate-workload-identity-and-capability-enforcement-spec.md"
+      }
+    },
+    {
+      "schema": "veragensia.system_operation.v1",
+      "operation_id": "system.workspace.toggle_special",
+      "version": 1,
+      "owner_runtime": "hyprland",
+      "category": "workspace",
+      "human": {
+        "label": "Toggle special workspace",
+        "current_hotkeys": []
+      },
+      "voice": {
+        "examples": ["Show the scratchpad", "Hide the scratch workspace"]
+      },
+      "parameters": {
+        "schema_ref": "veragensia.param.workspace_ref.v1"
+      },
+      "preconditions": {
+        "capability_refs": [],
+        "authority_ref_required": false,
+        "target_observation_required": false,
+        "secure_attention_required": false
+      },
+      "execution": {
+        "preferred_adapter": "hyprland_dispatch",
+        "fallback_adapters": [],
+        "command_template_ref": "hyprland.dispatch.togglespecialworkspace"
+      },
+      "risk": {
+        "consequence_class": "low",
+        "reversibility": "reversible"
+      },
+      "result": {
+        "schema_ref": "veragensia.result.workspace_state.v1",
+        "evidence_policy_ref": "docs/193-veragensia-execution-substrate-workload-identity-and-capability-enforcement-spec.md"
+      }
+    },
+    {
+      "schema": "veragensia.system_operation.v1",
+      "operation_id": "system.window.toggle_floating",
+      "version": 1,
+      "owner_runtime": "hyprland",
+      "category": "window",
+      "human": {
+        "label": "Toggle floating",
+        "current_hotkeys": []
+      },
+      "voice": {
+        "examples": ["Make this window float", "Put it back in the tiling"]
+      },
+      "parameters": {
+        "schema_ref": "veragensia.param.window_target.v1"
+      },
+      "preconditions": {
+        "capability_refs": [],
+        "authority_ref_required": false,
+        "target_observation_required": true,
+        "secure_attention_required": false
+      },
+      "execution": {
+        "preferred_adapter": "hyprland_dispatch",
+        "fallback_adapters": [],
+        "command_template_ref": "hyprland.dispatch.togglefloating"
+      },
+      "risk": {
+        "consequence_class": "low",
+        "reversibility": "reversible"
+      },
+      "result": {
+        "schema_ref": "veragensia.result.window_state.v1",
+        "evidence_policy_ref": "docs/193-veragensia-execution-substrate-workload-identity-and-capability-enforcement-spec.md"
+      }
+    },
+    {
+      "schema": "veragensia.system_operation.v1",
+      "operation_id": "system.window.toggle_split",
+      "version": 1,
+      "owner_runtime": "hyprland",
+      "category": "window",
+      "human": {
+        "label": "Toggle split direction",
+        "current_hotkeys": []
+      },
+      "voice": {
+        "examples": ["Split the other way", "Change the split direction"]
+      },
+      "parameters": {
+        "schema_ref": "veragensia.param.none.v1"
+      },
+      "preconditions": {
+        "capability_refs": [],
+        "authority_ref_required": false,
+        "target_observation_required": false,
+        "secure_attention_required": false
+      },
+      "execution": {
+        "preferred_adapter": "hyprland_dispatch",
+        "fallback_adapters": [],
+        "command_template_ref": "hyprland.dispatch.togglesplit"
+      },
+      "risk": {
+        "consequence_class": "low",
+        "reversibility": "reversible"
+      },
+      "result": {
+        "schema_ref": "veragensia.result.none.v1",
+        "evidence_policy_ref": "docs/193-veragensia-execution-substrate-workload-identity-and-capability-enforcement-spec.md"
+      }
+    },
+    {
+      "schema": "veragensia.system_operation.v1",
+      "operation_id": "system.window.move_direction",
+      "version": 1,
+      "owner_runtime": "hyprland",
+      "category": "window",
+      "human": {
+        "label": "Move window in a direction",
+        "current_hotkeys": []
+      },
+      "voice": {
+        "examples": ["Move the window left", "Push this window down"]
+      },
+      "parameters": {
+        "schema_ref": "veragensia.param.direction.v1"
+      },
+      "preconditions": {
+        "capability_refs": [],
+        "authority_ref_required": false,
+        "target_observation_required": true,
+        "secure_attention_required": false
+      },
+      "execution": {
+        "preferred_adapter": "hyprland_dispatch",
+        "fallback_adapters": [],
+        "command_template_ref": "hyprland.dispatch.movewindow"
+      },
+      "risk": {
+        "consequence_class": "low",
+        "reversibility": "reversible"
+      },
+      "result": {
+        "schema_ref": "veragensia.result.window_state.v1",
+        "evidence_policy_ref": "docs/193-veragensia-execution-substrate-workload-identity-and-capability-enforcement-spec.md"
+      }
+    },
+    {
+      "schema": "veragensia.system_operation.v1",
+      "operation_id": "system.window.resize_active",
+      "version": 1,
+      "owner_runtime": "hyprland",
+      "category": "window",
+      "human": {
+        "label": "Resize active window",
+        "current_hotkeys": []
+      },
+      "voice": {
+        "examples": ["Make this window wider", "Shrink it a bit"]
+      },
+      "parameters": {
+        "schema_ref": "veragensia.param.resize_delta.v1"
+      },
+      "preconditions": {
+        "capability_refs": [],
+        "authority_ref_required": false,
+        "target_observation_required": true,
+        "secure_attention_required": false
+      },
+      "execution": {
+        "preferred_adapter": "hyprland_dispatch",
+        "fallback_adapters": [],
+        "command_template_ref": "hyprland.dispatch.resizeactive"
+      },
+      "risk": {
+        "consequence_class": "low",
+        "reversibility": "reversible"
+      },
+      "result": {
+        "schema_ref": "veragensia.result.window_state.v1",
+        "evidence_policy_ref": "docs/193-veragensia-execution-substrate-workload-identity-and-capability-enforcement-spec.md"
+      }
+    },
+    {
+      "schema": "veragensia.system_operation.v1",
       "operation_id": "system.app.launch.terminal",
       "version": 1,
       "owner_runtime": "veragensia",

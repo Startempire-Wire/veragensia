@@ -73,11 +73,12 @@ class SystemOperationRegistryTest(unittest.TestCase):
         self.assertEqual(unknown.returncode, 2)
         self.assertEqual(json.loads(unknown.stdout)["error"], "unknown_operation")
 
-    def test_cli_has_no_invoke_subcommand_before_s4(self):
+    def test_cli_s4_execution_subcommands_present(self):
+        # S4 has landed: invoke/batch/audit are the execution + audit surface.
         result = subprocess.run([sys.executable, str(CLI), "operation", "--help"],
                                 capture_output=True, text=True, timeout=30, check=True)
-        self.assertNotIn("invoke", result.stdout)
-        self.assertNotIn("batch", result.stdout)
+        for subcommand in ("invoke", "batch", "audit"):
+            self.assertIn(subcommand, result.stdout)
 
 
 if __name__ == "__main__":
