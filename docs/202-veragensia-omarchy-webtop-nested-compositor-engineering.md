@@ -56,28 +56,34 @@ host-kernel limitation; on real hardware (Chromebook i915) a render node exists
 and the direct architecture works natively. Do not re-attempt direct mode on
 kernel 6.8 without first solving the render-node gap.
 
-### 2.3 Deadlock at dmabuf import (FIXED — wl_shm presentation patch)
+### 2.3 Fatal protocol ordering: commit before the initial configure ack
+(ROOT CAUSE — FIXED — ack-ordering patch; the earlier "dmabuf import stall"
+turned out to be this same bug wearing different clothes)
 
 With Hyprland booting and allocating on vkms, every nested client (Waybar,
-Chromium) still never mapped a window, and Chromium's DevTools bound without a
-window ever appearing. Root cause, from v0.15.0 source + observed behavior:
+Chromium) still never mapped a window, and the streamed picture stayed black.
+`WAYLAND_DEBUG=1` protocol capture on 2026-09-09 (docs of the session) pinned
+the exact failure:
 
-- Aquamarine's `CWaylandBuffer` presents **every** output frame as a
-  `zwp_linux_dmabuf_v1` buffer (there is no shm path for output frames; wl_shm
-  exists only for the cursor).
-- The capture compositor cannot import the dmabufs the GBM allocator produces
-  on the virtual GPU, and never sends `wl_buffer.release`.
-- The swapchain then has no released buffer to reuse; Hyprland's render loop
-  blocks; frame callbacks never fire; clients never map. (KWin's nested session
-  works because the capture compositor composites its output fine — the
-  failure is specific to the dmabuf presentation path, not the parent.)
+1. Hyprland creates its xdg_surface for the output and sends the standard
+   initial NULL commit, which makes the parent send the initial
+   `xdg_surface.configure`.
+2. The configure event is dispatched on Aquamarine's event thread, but the
+   render thread commits the first real buffer **before that dispatch runs**.
+3. The parent raises the fatal `xdg_surface` error 3 — *"must ack the initial
+   configure before attaching buffer"* — and kills the whole connection about
+   one second later.
+4. With the connection dead there are no buffer releases and no frames: the
+   stream shows the parent's black background and cursor, Hyprland's own
+   screencopy (grim) hangs, and nested clients never get their first frame
+   callback. (The dmabuf-vs-shm presentation question was secondary — the
+   connection was being killed before any compositing could happen.)
 
-**Fix:** `patch-aquamarine.py` patch 2 — opt-in via `AQ_PRESENT_SHM=1` (set in
-`overlay/webtop/startwm_wayland.sh`). Frames are presented as plain `wl_shm`
-buffers: one memfd-backed pool per swapchain slot, one memcpy per frame through
-the existing `beginDataPtr()/endDataPtr()` CPU-mapping API, then
-attach + full damage. The same CPU presentation path the parent already handles
-for ordinary software clients. Zero behavior change when the env is unset.
+**Fix:** `patch-aquamarine.py` patch 3 — the initial `xdg_surface.configure`
+now acks, sets `configureAcked`, and only then kicks the first frame; real
+buffer commits are gated on the ack (deferred, then retried via the frame
+kick). Combined with patch 2 (`AQ_PRESENT_SHM=1`) the session then composites
+end-to-end through the capture compositor's ordinary client path.
 
 ## 3. Patch file map
 
@@ -85,8 +91,9 @@ for ordinary software clients. Zero behavior change when the env is unset.
 |---|---|---|
 | `patch-aquamarine.py` | 1. registry version clamps (always) | build time |
 | `patch-aquamarine.py` | 2. `AQ_PRESENT_SHM=1` wl_shm presentation | runtime env |
+| `patch-aquamarine.py` | 3. initial-configure ack ordering (always) | build time |
 | `overlay/webtop/startwm_wayland.sh` | sets `AQ_PRESENT_SHM=1` for Hyprland | runtime |
-| `Dockerfile` | applies both patches, rebuilds Aquamarine 0.15.0 | build time |
+| `Dockerfile` | applies all patches, rebuilds Aquamarine 0.15.0 | build time |
 
 License posture: Aquamarine/Hyprland are GPL-3.0; patches are kept in-repo and
 applied from pinned source (`--branch v0.15.0`), satisfying source provision.
@@ -114,9 +121,10 @@ source but are used unmodified — no fork of their binaries is needed.
 | 1 | vgem, nested | Hyprland dies: no allocator | Mesa has no vgem driver |
 | 2 | vkms, no device forcing | headless, "no allocator" | no DRM device visible |
 | 3 | vkms + parent dmabuf device | boot, then protocol crash | hardcoded versions (§2.1) |
-| 4 | clamp patch + SELKIES_RENDER_DRI | boots; **clients never map** | dmabuf import stall (§2.3) |
+| 4 | clamp patch + SELKIES_RENDER_DRI | boots; **stream black**, clients stuck | parent kills the connection: commit before initial configure ack (§2.3) |
 | 5 | direct Hyprland on vkms (+seatd) | `CBackend::create() failed` | no render node on kernel 6.8 (§2.2) |
-| 6 | §2.3 patch, verify container | pending build verification | — |
+| 6 | §2.3 wl_shm presentation, swapped live | **stream black + cursor only** | same §2.3 protocol violation — connection killed on first real commit |
+| 7 | §2.3 ack-ordering patch, rebuilt | pending verification | — |
 
 ## 6. Future paths
 

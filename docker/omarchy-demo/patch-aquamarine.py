@@ -171,6 +171,74 @@ SYNC_OLD = '''    wlBuffer->pendingRelease = true;
 
     waylandState.surface->sendAttach(wlBuffer->waylandState.buffer.get(), 0, 0);'''
 
+# --- Patch 3 anchors (initial-configure ack ordering) ---
+# The parent compositor requires the initial xdg_surface.configure to be acked
+# before a real buffer is attached (error 3, fatal). Upstream dispatches the
+# configure handler on its event thread while the render thread commits; with
+# the fast shm allocation the first real commit wins the race and the parent
+# kills the connection ~1 s later (black stream, no buffer releases, stuck
+# clients). Gate real commits on the ack and move the first-frame kick into the
+# ack handler so rendering starts on the safe side of the protocol boundary.
+ACK_HANDLER_OLD = '''    waylandState.xdgSurface->setConfigure([this](CCXdgSurface* r, uint32_t serial) {
+        backend->backend->log(AQ_LOG_DEBUG, std::format("Output {}: configure surface with {}", name, serial));
+        r->sendAckConfigure(serial);
+    });'''
+
+ACK_HANDLER_NEW = '''    waylandState.xdgSurface->setConfigure([this](CCXdgSurface* r, uint32_t serial) {
+        backend->backend->log(AQ_LOG_DEBUG, std::format("Output {}: configure surface with {}", name, serial));
+        r->sendAckConfigure(serial);
+        // VERAGENSIA PATCH (initial-configure ordering): the initial configure is
+        // now acked; only after this point may a real buffer be attached. Kick
+        // the first frame here so rendering starts on the safe side of the
+        // protocol boundary (the toplevel configure may precede this event).
+        configureAcked = true;
+        needsFrame      = true;
+        sched.frameReady.emit();
+    });'''
+
+TOPLEVEL_KICK_OLD = '''        events.state.emit(SStateEvent{.size = {w, h}});
+        // Kick off the first frame synchronously: the consumer expects events.frame in
+        // the same dispatch cycle as the toplevel configure. Deferring via scheduleFrame's
+        // idle races the first commit and can leave the output blank until the next event.
+        needsFrame = true;
+        sched.frameReady.emit();
+    });'''
+
+TOPLEVEL_KICK_NEW = '''        events.state.emit(SStateEvent{.size = {w, h}});
+        // VERAGENSIA PATCH (initial-configure ordering): the first-frame kick moved
+        // to the xdg_surface.configure handler, which the protocol requires to be
+        // acked before any real buffer is attached. The xdg_surface.configure is
+        // dispatched in the same event batch as this toplevel configure, so the
+        // consumer still sees events.frame in the same dispatch cycle.
+    });'''
+
+COMMIT_GATE_OLD = '''    auto wlBuffer = wlBufferFromBuffer(STATE.buffer);
+
+    if (!wlBuffer) {'''
+
+COMMIT_GATE_NEW = '''    // VERAGENSIA PATCH (initial-configure ordering): a real buffer commit before
+    // the initial configure is a fatal protocol error against compositors that
+    // enforce the xdg-shell order (error 3). Defer until the ack lands; the ack
+    // handler kicks the first frame, which re-enters this path.
+    if (!configureAcked) {
+        backend->backend->log(AQ_LOG_DEBUG, std::format("Output {}: deferring commit until initial configure is acked", name));
+        return false;
+    }
+
+    auto wlBuffer = wlBufferFromBuffer(STATE.buffer);
+
+    if (!wlBuffer) {'''
+
+OUTPUT_MEMBER_OLD = '''        void                                              onFrameDone();
+        void                                              onEnter(Hyprutils::Memory::CSharedPointer<CCWlPointer> pointer, uint32_t serial);'''
+
+OUTPUT_MEMBER_NEW = '''        void                                              onFrameDone();
+        void                                              onEnter(Hyprutils::Memory::CSharedPointer<CCWlPointer> pointer, uint32_t serial);
+
+        // VERAGENSIA PATCH (initial-configure ordering): true once the initial
+        // xdg_surface.configure has been acked; real buffer commits are gated on it.
+        bool                                              configureAcked = false;'''
+
 SYNC_NEW = '''    wlBuffer->pendingRelease = true;
 
     // VERAGENSIA PATCH (shm-presentation): copy the just-rendered frame into the
@@ -191,14 +259,33 @@ def main() -> None:
     src = src.replace(GOOD_OLD, SHM_METHODS, 1)
     assert SYNC_OLD in src, 'commit sync anchor not found'
     src = src.replace(SYNC_OLD, SYNC_NEW)
+
+    # --- Patch 3: initial-configure ack ordering -------------------------------
+    # The parent compositor requires the initial xdg_surface.configure to be acked
+    # before a real buffer is attached (error 3: "must ack the initial configure
+    # before attaching buffer", fatal). Upstream dispatches the configure handler
+    # on its event thread but commits buffers from the render thread; with the
+    # fast shm allocation path the first real commit wins the race and the parent
+    # kills the connection ~1 s later (black stream, no buffer releases, stuck
+    # clients). Gate real commits on the ack and move the first-frame kick into
+    # the ack handler so rendering starts only after the protocol is satisfied.
+    assert ACK_HANDLER_OLD in src, 'configure handler anchor not found'
+    src = src.replace(ACK_HANDLER_OLD, ACK_HANDLER_NEW)
+    assert TOPLEVEL_KICK_OLD in src, 'toplevel kick anchor not found'
+    src = src.replace(TOPLEVEL_KICK_OLD, TOPLEVEL_KICK_NEW)
+    assert COMMIT_GATE_OLD in src, 'commit gate anchor not found'
+    src = src.replace(COMMIT_GATE_OLD, COMMIT_GATE_NEW)
+
     SRC.write_text(src)
 
     hdr = HDR.read_text()
     assert HEADER_OLD in hdr, 'header anchor not found'
     hdr = hdr.replace(HEADER_OLD, HEADER_NEW)
+    assert OUTPUT_MEMBER_OLD in hdr, 'output header anchor not found'
+    hdr = hdr.replace(OUTPUT_MEMBER_OLD, OUTPUT_MEMBER_NEW)
     HDR.write_text(hdr)
 
-    print('patched: 5 registry version clamps + AQ_PRESENT_SHM wl_shm presentation path')
+    print('patched: 5 registry clamps + AQ_PRESENT_SHM shm presentation + initial-configure ack ordering')
 
 
 if __name__ == '__main__':

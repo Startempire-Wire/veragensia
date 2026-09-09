@@ -31,14 +31,19 @@ ABI; Hyprland stays current).
 
 **2. wl_shm output presentation (runtime opt-in, `AQ_PRESENT_SHM=1` — set in
 `overlay/webtop/startwm_wayland.sh`).** Aquamarine presents every output frame
-as a dmabuf buffer; a GPU-less capture compositor cannot import them, never
-releases the buffers, and deadlocks every nested client (windows never map).
-With the env set, frames are presented as plain shared-memory buffers — one
-memcpy per frame, the same CPU path ordinary clients use. Without the env,
-behavior is identical to upstream.
+as a dmabuf buffer; a GPU-less capture compositor cannot import them. With the
+env set, frames are presented as plain shared-memory buffers — one memcpy per
+frame, the same CPU path ordinary clients use. Without the env, behavior is
+identical to upstream.
 
-Full engineering record, failure history (five documented failed attempts),
-and the direct-Hyprland-on-vkms findings: `docs/202-veragensia-omarchy-webtop-nested-compositor-engineering.md`.
+**3. Initial-configure ack ordering (always applied at build time).** Aquamarine
+commits the first real output buffer from its render thread before the
+compositor's initial `xdg_surface.configure` is dispatched — a fatal xdg-shell
+violation that makes capture compositors kill the connection (~1 s in), leaving
+a black stream with no buffer releases. The patch acks first, then kicks the
+first frame, and gates real commits on the ack. This — not buffer import — was
+the root cause of the black stream; full analysis in
+`docs/202-veragensia-omarchy-webtop-nested-compositor-engineering.md`.
 
 ## Host requirements (demo host)
 
@@ -60,6 +65,10 @@ and the direct-Hyprland-on-vkms findings: `docs/202-veragensia-omarchy-webtop-ne
 The base image is pinned (`lscr.io/linuxserver/webtop:arch-kde@sha256:ed197a…`),
 the selkies/pixelflux streaming stack is kept intact, and the swap script never
 starts or repairs a Focusa daemon.
+
+Full engineering record — failure history (seven documented attempts), the
+direct-Hyprland-on-vkms finding, and the verification procedure:
+`docs/202-veragensia-omarchy-webtop-nested-compositor-engineering.md`.
 
 ## Build and deploy (OVH demo host)
 
