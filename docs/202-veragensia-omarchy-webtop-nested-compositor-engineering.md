@@ -126,7 +126,34 @@ source but are used unmodified — no fork of their binaries is needed.
 | 6 | §2.3 wl_shm presentation, swapped live | **stream black + cursor only** | same §2.3 protocol violation — connection killed on first real commit |
 | 7 | §2.3 ack-ordering patch, rebuilt | pending verification | — |
 
-## 6. Future paths
+## 6. Mobile readability pass (2026-09-09, later the same day)
+
+The demo gets viewed from phones where the 1280-wide desktop scales down to a
+~400px viewport. The first live pass was readable on desktop but tiny on
+mobile. Changes (all in the mounted overlay, applied on reload):
+
+- Waybar: height 40px, 17px presenter font (from 30px/13px).
+- foot: overlay `foot.ini` at 13pt (via `foot -c`).
+- Chromium: `--force-device-scale-factor=1.25` — the whole consumer surface
+  (tabs, toolbar, pages) renders larger.
+- Stream: 30 fps locked + resolution locked to the native 1280x760 (see the
+  selkies notes above), so a phone gets a deterministic, letterboxed picture
+  instead of reshaping the desktop.
+
+Operator guidance for phones: hold the phone in landscape for the best fit.
+The desktop stays 1280x760; the client scales it to the viewport.
+
+## 7. Robustness notes
+
+- Chromium is supervised (`overlay/webtop/chromium-loop.sh`): a closed last
+  window exits the browser, and the loop relaunches it with the exact demo
+  flags (uid-dropped, session env defaulted) — the Work view surface cannot
+  silently disappear from the demo.
+- The capture pipeline stops when no viewer is connected (selkies behavior)
+  and starts again on the next connection — an idle demo costs almost nothing.
+- The stream-client tab opened during verification must be closed afterwards;
+  otherwise a viewer sees the desktop viewing itself (recursion). Keep the
+  Work view as the active tab.
 
 - **Chromebook (native):** direct Hyprland on i915, no patches needed for the
   protocol/allocator issues (real compositor, real render node). The patches
