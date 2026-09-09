@@ -26,7 +26,10 @@ COMMON_BINDS=(-v "${HOST_PROFILE}:/config" -v "${HOST_EXT}:/extroot:ro" -v "${HO
 # PIXELFLUX_WAYLAND=true selects the capture compositor's Wayland mode — the
 # same env the stock KDE demo runs with. Without it svc-de waits for X11 and
 # the Wayland DE (svc-de → startwm_wayland.sh) never starts.
-COMMON_ENV=(-e PUID=1001 -e PGID=1001 -e TZ=America/Los_Angeles -e DISPLAY=:1 -e PIXELFLUX_WAYLAND=true -e SELKIES_RENDER_DRI=/dev/dri/card0)
+# SELKIES_FRAMERATE=30 is a fixed value, which locks the client's framerate
+# choice at 30 fps: the CPU encoder on a GPU-less host cannot sustain 60 fps
+# without dropping frames (the glitchy look); 30 is smooth and halves load.
+COMMON_ENV=(-e PUID=1001 -e PGID=1001 -e TZ=America/Los_Angeles -e DISPLAY=:1 -e PIXELFLUX_WAYLAND=true -e SELKIES_RENDER_DRI=/dev/dri/card0 -e SELKIES_FRAMERATE=30)
 COMMON_PORTS=(-p 127.0.0.1:3000:3000 -p 127.0.0.1:3001:3001)
 COMMON_DEVICES=(--device /dev/dri)
 
