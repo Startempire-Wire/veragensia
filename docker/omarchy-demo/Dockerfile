@@ -4,7 +4,7 @@
 FROM lscr.io/linuxserver/webtop:arch-kde@sha256:ed197a60c161b5d45a0d0137a5c47ecd136964c57791bf3151d01ad41ac6b988
 
 # Hyprland stack + portals + audio + build tooling for the compatibility patch.
-RUN pacman -Syu --noconfirm \
+RUN pacman -Syu --noconfirm --ignore docker-compose \
         hyprland \
         waybar \
         foot \
