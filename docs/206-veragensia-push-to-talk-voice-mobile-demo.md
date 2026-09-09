@@ -104,3 +104,13 @@ The restart-safe image was built as
 `sha256:0603908824c472f8b77a5eecb9eda97ef86b36b7f9a04aa6dda1c0d0a1071b35`,
 atomically swapped, and verified through the public route plus a local CDP
 PNG capture showing the visible 132×132 TALK button.
+
+LLM intent verification (same public path, gpt-5.6-luna at max reasoning):
+"can you put me on the third workspace please" → `workspace.activate 3` ok;
+"hey um switch me over to workspace 1 thanks" → ok; "shrink the window a bit"
+and "make the window wider please" → `resize_active` ok (deltas split into
+hyprctl tokens); "move the window over to the right side" → ok;
+"close this window" → `refused / authority_required` (gate intact, audited);
+"what is the meaning of life" → honest `llm_unmatched` with a hint. Ledger
+entries record `intent_engine` and `intent_confidence`; audit chain verified
+unbroken after every attempt.
