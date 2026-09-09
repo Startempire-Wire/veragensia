@@ -37,11 +37,16 @@ clean_profile_locks() {
 }
 
 verify() {
-    local name="$1"
+    local name="$1" full="${2:-full}"
     sleep 8
     docker exec "$name" bash -lc 'curl -sf http://127.0.0.1:3000/ >/dev/null' || return 1
     docker exec "$name" bash -lc 'pgrep -f Hyprland >/dev/null' || return 1
     docker exec "$name" bash -lc 'pgrep -f waybar >/dev/null' || return 1
+    # The CDP extension check only makes sense when this container holds the
+    # profile exclusively: Chromium enforces one writer per user-data-dir, and a
+    # candidate checked alongside the still-running old container cannot load
+    # the unpacked extension (shared /config profile). It runs post-swap.
+    [[ $full == desktop ]] && return 0
     # Chromium + extension startup takes well over the 8 s sleep above (Wayland
     # boot, profile load, NTP override redirect). Retry the CDP check briefly
     # instead of failing the whole swap on a slow first boot.
@@ -53,8 +58,8 @@ verify() {
 }
 
 clean_profile_locks
-echo "[omarchy-demo] verifying new container (canonical ports)..."
-if verify "$NEW"; then
+echo "[omarchy-demo] verifying new container (desktop chain)..."
+if verify "$NEW" desktop; then
     echo "[omarchy-demo] new container healthy; swapping."
     docker stop "$OLD" >/dev/null
     docker rename "$OLD" "$PREV"
