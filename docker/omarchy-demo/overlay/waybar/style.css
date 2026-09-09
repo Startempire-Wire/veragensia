@@ -1,6 +1,8 @@
 * {
     font-family: "Inter", "Symbols Nerd Font", sans-serif;
-    font-size: 13px;
+    /* 17px keeps the presenter readable when a phone scales the 1280-wide
+       desktop down to a ~400px viewport (the public demo is viewed on mobile). */
+    font-size: 17px;
     font-weight: 500;
     color: #e6e0f8;
     background: transparent;

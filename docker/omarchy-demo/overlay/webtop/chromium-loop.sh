@@ -8,6 +8,7 @@ FLAGS=(--show-component-extension-options
   --no-default-browser-check --disable-pings --media-router=0
   --disable-dev-shm-usage --enable-remote-extensions --no-sandbox
   --ozone-platform=wayland --hide-crash-restore-bubble
+  --force-device-scale-factor=1.25
   --user-data-dir=/config/.config/chromium-uiai
   --load-extension=/extroot/dist --disable-extensions-except=/extroot/dist
   --remote-debugging-port=9333 --remote-debugging-address=127.0.0.1
