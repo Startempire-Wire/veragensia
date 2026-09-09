@@ -19,7 +19,7 @@ if [[ -n $PUBLIC_WORK ]]; then
   "$NODE" scripts/check-public-work.mjs "$PUBLIC_WORK"
 fi
 echo "== building locally =="
-"$NODE" scripts/build.mjs
+FOCUSA_PUBLIC_NEWTAB=1 "$NODE" scripts/build.mjs
 if [[ -n $PUBLIC_WORK ]]; then
   install -m 644 "$PUBLIC_WORK" dist/public-work.json
   "$NODE" scripts/check-public-work.mjs dist/public-work.json
