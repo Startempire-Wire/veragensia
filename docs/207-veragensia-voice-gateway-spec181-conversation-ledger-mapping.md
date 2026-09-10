@@ -59,7 +59,7 @@ where `<seq>` is the transcription ledger sequence number of the causing utteran
 
 ## 6. Next conformant slices, in order
 
-1. **SystemOperationBatch (multi-op):** one utterance may carry several registry operations ("put me on workspace 3 and make the window wider"); each dispatch records `origin_utterance_ref` per §4; per-operation refusal stays independent.
+1. **SystemOperationBatch (multi-op) — IMPLEMENTED 2026-09-09 (veragensia commit `a66dd51`):** one utterance may carry several registry operations; the LLM classifies 1–4 operations in spoken order; the first keeps the existing `action_audit_seq` lineage and every following operation dispatches through the canonical `opexec.batch` executor with `origin_utterance_ref = veragensia:transcriptions:<seq>` stamped in its own hash-chained audit entry. Per-operation refusal stays independent and audited (verified live: “put me on workspace 3 and make the window a bit wider” → 2 operations ok; “put me on workspace 2 then log out” → second op refused `authority_required`, hash chains intact, batch_size=2 on the transcription).
 2. **ConversationSession schema v2:** durable per-surface session rows so utterances group into sessions without changing the hash chain (schema bump `veragensia.transcription_entry.v2` adds `session_ref`/`utterance_id`).
 3. **ExpressionOutput alignment:** response envelope gains a `conversation` block echoing `utterance_id`, `session_ref`, and the human-readable result sentence Spec 181 §13 expects — the spoken path can then attach Kokoro without rework.
 4. **T2 private lane (later):** trusted local audio (VoxType/whisper.cpp), voice identity (§10), full-duplex (§8) — private, never the public proving ground.
