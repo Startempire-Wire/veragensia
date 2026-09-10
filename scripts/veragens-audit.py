@@ -103,7 +103,8 @@ def tail(ledger_path, limit=64, verify=False):
             "total": total, "entries": entries[-limit:], "broken": broken}
 
 
-def record_operation(audit_dir, result, actor, authority_ref=None):
+def record_operation(audit_dir, result, actor, authority_ref=None,
+                     origin_utterance_ref=None):
     """Audit one S4 execution attempt (success, refusal, or failure)."""
     entry = {"schema": AUDIT_SCHEMA, "kind": "operation",
              "observed_at": result.get("observed_at"),
@@ -117,6 +118,8 @@ def record_operation(audit_dir, result, actor, authority_ref=None):
              if authority_ref else None,
              "authority_ref_present": result.get("authority_ref_present", False),
              "before": result.get("before"), "after": result.get("after")}
+    if origin_utterance_ref:
+        entry["origin_utterance_ref"] = str(origin_utterance_ref)[:120]
     outcome = append(Path(audit_dir) / OPERATIONS_LEDGER, entry)
     return {"audit_write": outcome.get("status"), "audit_seq": outcome.get("seq"),
             "audit_entry_hash": outcome.get("entry_hash"),
@@ -126,7 +129,8 @@ def record_operation(audit_dir, result, actor, authority_ref=None):
 def record_transcription(audit_dir, text, engine, actor, confidence=None,
                          matched_operation_id=None, match_method=None,
                          audio_duration_ms=None, action_audit_seq=None,
-                         intent_engine=None, intent_confidence=None):
+                         intent_engine=None, intent_confidence=None,
+                         batch_size=None):
     """Record one transcribed utterance and its action lineage."""
     entry = {"schema": TRANSCRIPTION_SCHEMA, "kind": "transcription",
              "observed_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
@@ -141,5 +145,7 @@ def record_transcription(audit_dir, text, engine, actor, confidence=None,
         entry["intent_engine"] = str(intent_engine)[:120]
     if intent_confidence is not None:
         entry["intent_confidence"] = intent_confidence
+    if batch_size is not None and batch_size > 1:
+        entry["batch_size"] = int(batch_size)
     outcome = append(Path(audit_dir) / TRANSCRIPTIONS_LEDGER, entry)
     return outcome

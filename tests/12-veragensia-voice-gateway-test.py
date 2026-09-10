@@ -129,6 +129,81 @@ class VoiceMatcherTest(unittest.TestCase):
         self.assertEqual(junk["args"], [])
         self.assertEqual(junk["confidence"], 0.0)
 
+    def test_handle_command_batch_lineage_and_origin_ref(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            state = {"activeworkspace": {"id": 1}, "activewindow": {"class": "foot"}}
+
+            def fake_runner(argv):
+                if argv[1] == "-j":
+                    return {"status": "ok", "exit_code": 0}, json.dumps(state).encode()
+                return {"status": "ok", "exit_code": 0}, b"ok"
+
+            intents = [
+                {"operation_id": "system.workspace.activate", "args": ["3"],
+                 "confidence": 0.91},
+                {"operation_id": "system.window.resize_active", "args": ["40", "0"],
+                 "confidence": 0.87},
+            ]
+            outcome = gateway.handle_command(
+                "put me on workspace 3 and make the window wider", REGISTRY,
+                audit_dir=tmp, actor="voice-test", runner=fake_runner,
+                intent_fn=lambda t, r: intents)
+            self.assertTrue(outcome["matched"])
+            self.assertEqual(outcome["batch_size"], 2)
+            self.assertEqual(outcome["batch_outcome"], "completed")
+            self.assertEqual(outcome["batch"][0]["status"], "ok")
+            transcriptions = audit.tail(Path(tmp) / audit.TRANSCRIPTIONS_LEDGER)
+            entry = transcriptions["entries"][-1]
+            self.assertEqual(entry["matched_operation_id"], "system.workspace.activate")
+            self.assertEqual(entry["batch_size"], 2)
+            self.assertIsNotNone(entry["action_audit_seq"])
+            utterance_ref = "veragensia:transcriptions:{}".format(entry["seq"])
+            operations_ledger = audit.tail(
+                Path(tmp) / audit.OPERATIONS_LEDGER, verify=True)
+            self.assertEqual(operations_ledger["broken"], [])
+            extra = [e for e in operations_ledger["entries"]
+                     if e.get("origin_utterance_ref")]
+            self.assertEqual(len(extra), 1)
+            self.assertEqual(extra[0]["operation_id"], "system.window.resize_active")
+            self.assertEqual(extra[0]["origin_utterance_ref"], utterance_ref)
+            # the first op keeps the transcription->audit link
+            self.assertEqual(entry["action_audit_seq"],
+                             operations_ledger["entries"][-2]["seq"])
+
+    def test_handle_command_batch_refusal_is_independent_and_audited(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            state = {"activeworkspace": {"id": 1}, "activewindow": {"class": "foot"}}
+
+            def fake_runner(argv):
+                if argv[1] == "-j":
+                    return {"status": "ok", "exit_code": 0}, json.dumps(state).encode()
+                return {"status": "ok", "exit_code": 0}, b"ok"
+
+            intents = [
+                {"operation_id": "system.workspace.activate", "args": ["2"],
+                 "confidence": 0.9},
+                {"operation_id": "system.session.exit", "args": [],
+                 "confidence": 0.9},
+            ]
+            outcome = gateway.handle_command(
+                "switch to workspace 2 then log out", REGISTRY,
+                audit_dir=tmp, actor="voice-test", runner=fake_runner,
+                intent_fn=lambda t, r: intents)
+            self.assertEqual(outcome["status"], "ok")
+            self.assertEqual(outcome["batch_outcome"], "failed")
+            refused = outcome["batch"][0]
+            self.assertTrue(refused["authority_required"])
+            self.assertEqual(refused["error"], "authority_required")
+            operations_ledger = audit.tail(
+                Path(tmp) / audit.OPERATIONS_LEDGER, verify=True)
+            self.assertEqual(operations_ledger["broken"], [])
+            refused_entries = [e for e in operations_ledger["entries"]
+                               if e.get("operation_id") == "system.session.exit"]
+            self.assertEqual(len(refused_entries), 1)
+            self.assertEqual(refused_entries[0]["status"], "refused")
+            self.assertTrue(refused_entries[0].get("origin_utterance_ref", "")
+                            .startswith("veragensia:transcriptions:"))
+
     def test_handle_command_full_lineage(self):
         with tempfile.TemporaryDirectory() as tmp:
             state = {"activeworkspace": {"id": 1}, "activewindow": {"class": "foot"}}

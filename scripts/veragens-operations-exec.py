@@ -135,7 +135,7 @@ def _check_args(args, binding):
 
 def invoke(operation_id, args=None, registry_describe=None, bindings=None,
            runner=probe, authority_ref=None, observed_at=None, actor="operator-cli",
-           audit_dir=None):
+           audit_dir=None, origin_utterance_ref=None):
     """Execute one semantic operation through its adapter with verification.
 
     Every attempt — success, refusal, or failure — is audited when audit_dir
@@ -148,8 +148,12 @@ def invoke(operation_id, args=None, registry_describe=None, bindings=None,
               "observed_at": observed_at, "authority_ref_present": bool(authority_ref)}
 
     def finish():
+        if origin_utterance_ref:
+            result["origin_utterance_ref"] = str(origin_utterance_ref)[:120]
         if audit_dir is not None:
-            result.update(audit_mod.record_operation(audit_dir, result, actor, authority_ref))
+            result.update(audit_mod.record_operation(
+                audit_dir, result, actor, authority_ref,
+                origin_utterance_ref=origin_utterance_ref))
         return result
 
     descriptor = registry_describe(operation_id)
@@ -201,7 +205,7 @@ def invoke(operation_id, args=None, registry_describe=None, bindings=None,
 
 def batch(steps, registry_describe=None, bindings=None, runner=probe,
           authority_ref=None, fence_path=None, max_ops=MAX_BATCH_OPS, observed_at=None,
-          actor="operator-cli", audit_dir=None):
+          actor="operator-cli", audit_dir=None, origin_utterance_ref=None):
     """Run operations sequentially; a fence file existing aborts between steps."""
     from datetime import datetime, timezone
     observed_at = observed_at or datetime.now(timezone.utc).isoformat()
@@ -214,7 +218,8 @@ def batch(steps, registry_describe=None, bindings=None, runner=probe,
         entry = invoke(step.get("operation_id"), step.get("args") or [],
                        registry_describe=registry_describe, bindings=bindings,
                        runner=runner, authority_ref=authority_ref, observed_at=observed_at,
-                       actor=actor, audit_dir=audit_dir)
+                       actor=actor, audit_dir=audit_dir,
+                       origin_utterance_ref=origin_utterance_ref)
         entry["step"] = index
         results.append(entry)
         if entry.get("status") != "ok":

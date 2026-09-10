@@ -51,17 +51,19 @@ ARG_HINTS = {
 }
 INTENT_INSTRUCTIONS = (
     "You are the intent classifier for a voice-controlled Linux desktop. "
-    "Map ONE spoken utterance to at most ONE operation from the provided "
-    "list, or to null. Rules: use exact operation_id strings from the list; "
-    "follow each operation's args hints exactly (workspace numbers are the "
-    "strings \"1\"..\"9\"; directions are \"l\"|\"r\"|\"u\"|\"d\"; resize takes "
-    "pixel deltas like \"40 0\"; every arg is a short ASCII string); prefer "
-    "the operator's intent over their exact words (rude, casual, indirect, "
-    "or polite phrasings all count); questions about the desktop that match "
-    "a read-style operation still count; greetings, smalltalk, and anything "
-    "outside the list are null. Never invent operation ids. Reply ONLY "
-    "minified JSON: {\"operation_id\":string|null,\"args\":[string],"
-    "\"confidence\":number}."
+    "Map ONE spoken utterance to a sequence of 1 to 4 operations from the "
+    "provided list (more than one only when the operator clearly asked for "
+    "several actions, in the order spoken), or to null. Rules: use exact "
+    "operation_id strings from the list; follow each operation's args hints "
+    "exactly (workspace numbers are the strings \"1\"..\"9\"; directions are "
+    "\"l\"|\"r\"|\"u\"|\"d\"; resize takes pixel deltas like \"40 0\"; every arg "
+    "is a short ASCII string); prefer the operator's intent over their exact "
+    "words (rude, casual, indirect, or polite phrasings all count); questions "
+    "about the desktop that match a read-style operation still count; "
+    "greetings, smalltalk, and anything outside the list are null. Never "
+    "invent operation ids. Reply ONLY minified JSON: {\"operations\":[{\""
+    "\"operation_id\":string,\"args\":[string],\"confidence\":number}]} with one "
+    "to four items."
 )
 
 
@@ -114,34 +116,57 @@ def _registry_digest(registry):
     return ops
 
 
-def parse_intent_text(raw):
-    """Parse the model's final text into a validated intent dict or None."""
+def parse_intent_batch(raw):
+    """Parse the model's final text into a validated list of intents (0..4).
+
+    Accepts both the batch shape {"operations":[...]} and the legacy single
+    {"operation_id":...} shape. Batch items without an operation id are
+    dropped; the legacy single shape is returned even when null, matching
+    the original parse_intent_text contract.
+    """
     text = str(raw or "").strip()
     text = re.sub(r"^```(?:json)?\s*|\s*```$", "", text).strip()
     start, end = text.find("{"), text.rfind("}")
     if start < 0 or end <= start:
-        return None
+        return []
     try:
-        intent = json.loads(text[start:end + 1])
+        parsed = json.loads(text[start:end + 1])
     except ValueError:
-        return None
-    if not isinstance(intent, dict):
-        return None
-    op_id = intent.get("operation_id")
-    try:
-        confidence = max(0.0, min(1.0, float(intent.get("confidence", 0.0))))
-    except (TypeError, ValueError):
-        confidence = 0.0
-    args = intent.get("args") or []
-    if not isinstance(args, list):
-        args = []
-    args = [str(a).strip()[:64] for a in args if str(a).strip()][:4]
-    return {"operation_id": (str(op_id) if op_id else None),
-            "args": args, "confidence": confidence}
+        return []
+    if not isinstance(parsed, dict):
+        return []
+    is_batch = isinstance(parsed.get("operations"), list)
+    items = parsed.get("operations") if is_batch else [parsed]
+    out = []
+    for intent in items[:4]:
+        if not isinstance(intent, dict):
+            continue
+        try:
+            confidence = max(0.0, min(1.0, float(intent.get("confidence", 0.0))))
+        except (TypeError, ValueError):
+            confidence = 0.0
+        args = intent.get("args") or []
+        if not isinstance(args, list):
+            args = []
+        args = [str(a).strip()[:64] for a in args if str(a).strip()][:4]
+        op_id = intent.get("operation_id")
+        if op_id:
+            out.append({"operation_id": str(op_id), "args": args,
+                        "confidence": confidence})
+        elif not is_batch:
+            out.append({"operation_id": None, "args": args,
+                        "confidence": confidence})
+    return out
 
 
-def llm_intent(text, registry):
-    """Classify one utterance via the KH subscription proxy; None on any failure."""
+def parse_intent_text(raw):
+    """Backward-compatible single-intent parse (first of the batch)."""
+    batch = parse_intent_batch(raw)
+    return batch[0] if batch else None
+
+
+def llm_intent_batch(text, registry):
+    """Classify one utterance into 0..4 intents via the KH proxy; [] on failure."""
     payload = json.dumps({
         "instructions": INTENT_INSTRUCTIONS,
         "input": json.dumps({"transcript": text,
@@ -152,8 +177,14 @@ def llm_intent(text, registry):
         headers={"Content-Type": "application/json", "Host": INTENT_HOST})
     data = json.load(urllib.request.urlopen(req, timeout=INTENT_TIMEOUT))
     if not data.get("ok"):
-        return None
-    return parse_intent_text(data.get("text", ""))
+        return []
+    return parse_intent_batch(data.get("text", ""))
+
+
+def llm_intent(text, registry):
+    """Backward-compatible single-intent classification (first of the batch)."""
+    batch = llm_intent_batch(text, registry)
+    return batch[0] if batch else None
 
 
 def desktop_notify(runner, message):
@@ -186,16 +217,22 @@ def handle_command(text, registry, actor="voice-daemon", audit_dir=None,
                "audio_duration_ms": audio_duration_ms,
                "intent_engine": INTENT_ENGINE if intent_fn is None else "test"}
     runner = runner or opexec.probe
-    intent_fn = intent_fn or llm_intent
-    intent = None
+    intent_fn = intent_fn or llm_intent_batch
+    intents = []
     intent_unavailable = False
     try:
-        intent = intent_fn(text, registry)
+        raw_intents = intent_fn(text, registry)
     except Exception:
-        intent = None  # regex matcher stays as the offline fallback
+        raw_intents = None  # regex matcher stays as the offline fallback
         intent_unavailable = True
+    if isinstance(raw_intents, dict):
+        intents = [raw_intents] if raw_intents.get("operation_id") else []
+    elif isinstance(raw_intents, list):
+        intents = [i for i in raw_intents if isinstance(i, dict)
+                   and i.get("operation_id")][:4]
+    intent = intents[0] if intents else None
     matched = None
-    if intent and intent.get("operation_id"):
+    if intent:
         matched = (intent["operation_id"], intent.get("args") or [], "llm")
     else:
         fallback = match_operation(text, registry)
@@ -224,18 +261,53 @@ def handle_command(text, registry, actor="voice-daemon", audit_dir=None,
         (o for o in ops if o["operation_id"] == oid), None),
         bindings=BINDINGS, runner=runner, actor=actor, audit_dir=audit_dir)
     intent_engine = INTENT_ENGINE if intent is not None else None
-    audit.record_transcription(
+    transcription = audit.record_transcription(
         audit_dir, text, "web-speech-api", actor, confidence=confidence,
         audio_duration_ms=audio_duration_ms, matched_operation_id=op_id,
         match_method=method, action_audit_seq=result.get("audit_seq"),
-        intent_engine=intent_engine, intent_confidence=(intent or {}).get("confidence"))
-    desktop_notify(runner, f"voice: {op_id.split('.', 2)[-1]} {result.get('status')}")
+        intent_engine=intent_engine, intent_confidence=(intent or {}).get("confidence"),
+        batch_size=len(intents) if len(intents) > 1 else None)
+    # Spec 201 SystemOperationBatch (docs/207 §4): the first operation links
+    # to its utterance via action_audit_seq; the remaining operations each
+    # carry origin_utterance_ref in their own audit entries, dispatched
+    # through the canonical batch executor (sequential, stop on failure).
+    batch_result = None
+    if len(intents) > 1:
+        utterance_ref = "veragensia:transcriptions:{}".format(
+            transcription.get("seq"))
+        steps = [{"operation_id": i["operation_id"], "args": i.get("args") or []}
+                 for i in intents[1:]]
+        batch_result = opexec.batch(
+            steps, registry_describe=lambda oid: next(
+                (o for o in ops if o["operation_id"] == oid), None),
+            bindings=BINDINGS, runner=runner, actor=actor, audit_dir=audit_dir,
+            origin_utterance_ref=utterance_ref)
+    if batch_result and batch_result.get("executed"):
+        notify_bits = ["{} {}".format(
+            r.get("operation_id", "?").split(".", 2)[-1], r.get("status"))
+            for r in batch_result.get("results", [])]
+        desktop_notify(runner, "voice: {} | {}".format(
+            "{} {}".format(op_id.split(".", 2)[-1], result.get("status")),
+            ", ".join(notify_bits)))
+    else:
+        desktop_notify(runner, f"voice: {op_id.split('.', 2)[-1]} {result.get('status')}")
     outcome.update(matched=True, operation_id=op_id, match_method=method,
                    status=result.get("status"), error=result.get("error"),
                    consequence_class=result.get("consequence_class"),
                    authority_required=result.get("error") == "authority_required",
                    intent_confidence=(intent or {}).get("confidence"),
                    before=result.get("before"), after=result.get("after"))
+    if batch_result:
+        outcome["batch_size"] = len(intents)
+        outcome["batch"] = [{
+            "operation_id": r.get("operation_id"),
+            "status": r.get("status"),
+            "error": r.get("error"),
+            "audit_seq": r.get("audit_seq"),
+            "origin_utterance_ref": r.get("origin_utterance_ref"),
+            "authority_required": r.get("error") == "authority_required"}
+            for r in batch_result.get("results", [])]
+        outcome["batch_outcome"] = batch_result.get("outcome")
     return outcome
 
 
