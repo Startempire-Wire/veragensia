@@ -57,7 +57,7 @@ Ledgers live under `/config/.local/state/veragensia/` (the persisted
   snapshots), `workspace.activate 2` (ws 1→2 verified), `workspace.activate 1`
   (return), and `session.exit` **refused** (high consequence, no authority)
   — refusal audited as entry 2.
-- `operation audit --verify`: 4 entries, chain intact.
+- `operation audit --verify`: 4 entries at the S4 slice proof, chain intact; the live ledger has since grown (22 entries verified 2026-09-09, chain still intact — see docs/207).
 
 ## 5. Deliberately not in this slice
 

@@ -9,7 +9,7 @@
 
 | Artifact | Role |
 |---|---|
-| `config/system-operations.json` | The registry: catalog envelope `veragensia.system_operation_catalog.v1` + descriptors `veragensia.system_operation.v1` (16 operations) |
+| `config/system-operations.json` | The registry: catalog envelope `veragensia.system_operation_catalog.v1` + descriptors `veragensia.system_operation.v1` (22 operations; 12 categories — grew from 16/9 at the S2 slice proof, see docs/207) |
 | `scripts/veragens-operations.py` | Loader/validator + bounded projections (`catalog()`, `describe()`, `family_coverage()`); raises `RegistryError` on any contract violation |
 | `scripts/veragens` | `operation list --json` and `operation describe <id> --json` (exit 2 + typed error envelope for unknown ids) |
 | `tests/09-veragensia-system-operation-registry-test.py` | Contract tests: validation, id uniqueness, family coverage, authority posture, CLI projections, no-invoke guarantee |
@@ -57,7 +57,7 @@ descriptors fails the test.
 ## 6. Verification
 
 ```bash
-python3 scripts/veragens-operations.py --validate   # 16 operations, 9/9 families
+python3 scripts/veragens-operations.py --validate   # 22 operations, 12 categories
 python3 tests/09-veragensia-system-operation-registry-test.py
 ./scripts/veragens operation list --json
 ./scripts/veragens operation describe system.workspace.activate --json
