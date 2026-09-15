@@ -2,7 +2,11 @@
 # Build and atomically deploy the public Veragensia/Focusa Workforce extension.
 set -euo pipefail
 
-SOURCE=/home/wirebot/focusa-piext-sync/apps/workforce-extension
+# AUTHORITATIVE SOURCE (cutover 2026-09-14): Focusa-Workforce-Extension repo.
+# Old source /home/wirebot/focusa-piext-sync/apps/workforce-extension is retired
+# for deployment; keep it read-only for rollback/provenance until parity and
+# rollback are proven (see docs/01-source-recovery-and-migration-runbook.md).
+SOURCE=/home/wirebot/focusa-workforce-extension
 REMOTE=focusa-build-ovh
 STABLE=uiai-lab/workforce-extension
 NODE=/opt/node-v22.22.3-linux-x64/bin/node
@@ -20,6 +24,18 @@ if [[ -n $PUBLIC_WORK ]]; then
 fi
 echo "== building locally =="
 FOCUSA_PUBLIC_NEWTAB=1 "$NODE" scripts/build.mjs
+# Preserve live demo new-tab behavior (provenance 2026-09-14): the deployed
+# manifest keeps the standard startpage.html new-tab override (normal private
+# mode); the public Work view is opened explicitly via
+# startpage.html?public-work=1 by lab-ext.sh. Matches the live artifact
+# (dist/manifest.json sha256 bc73a514...) deployed 2026-09-09.
+python3 - <<'MANIFEST_PIN'
+import json, pathlib
+m = pathlib.Path('dist/manifest.json')
+d = json.loads(m.read_text())
+d['chrome_url_overrides'] = {'newtab': 'startpage.html'}
+m.write_text(json.dumps(d, indent=2) + '\n')
+MANIFEST_PIN
 if [[ -n $PUBLIC_WORK ]]; then
   install -m 644 "$PUBLIC_WORK" dist/public-work.json
   "$NODE" scripts/check-public-work.mjs dist/public-work.json
