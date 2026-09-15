@@ -75,15 +75,65 @@ ensure_container(){
 
 chrome_healthy(){ docker exec "$NAME" bash -c 'curl -s http://127.0.0.1:9333/json >/dev/null 2>&1'; }
 
+# Record the extension ID from CDP into /tmp/uiai-ext-id (status/gate input).
+record_ext_id(){
+  docker exec -u abc "$NAME" bash -c 'curl -s -m 5 http://127.0.0.1:9333/json > /tmp/uiai-cdp.json 2>/dev/null; python3 - >/tmp/uiai-ext-id <<"PYEOF"
+import json
+try:
+    for t in json.load(open("/tmp/uiai-cdp.json")):
+        u = t.get("url", "")
+        if u.startswith("chrome-extension://") and (t.get("type") == "background_page" or "background" in u):
+            print(u.split("/")[2])
+            break
+except Exception:
+    pass
+PYEOF
+rm -f /tmp/uiai-cdp.json' 2>/dev/null
+}
+
+# Omarchy demo stack: Hyprland exec-once supervises the browser through
+# chromium-loop.sh. Never pkill -f chromium: that also kills the supervisor.
+# Kill only the chromium binary and let the loop relaunch it; if no loop is
+# running, start one detached inside the Hyprland session env.
+ensure_chrome_loop(){
+  docker exec "$NAME" bash -c 'pkill -f "^/usr/lib/chromium/chromium" 2>/dev/null' 2>/dev/null || true
+  if ! docker exec "$NAME" bash -c 'pgrep -f chromium-loop.sh >/dev/null 2>&1'; then
+    # Discover the live Wayland session env from the Hyprland process.
+    docker exec -u abc "$NAME" bash -c '
+      HYP=$(pgrep -x Hyprland | head -1)
+      [ -n "$HYP" ] || exit 1
+      WD=$(tr "\0" "\n" </proc/$HYP/environ | sed -n "s/^WAYLAND_DISPLAY=//p")
+      XR=$(tr "\0" "\n" </proc/$HYP/environ | sed -n "s/^XDG_RUNTIME_DIR=//p")
+      DB=$(tr "\0" "\n" </proc/$HYP/environ | sed -n "s/^DBUS_SESSION_BUS_ADDRESS=//p")
+      export WAYLAND_DISPLAY="$WD" XDG_RUNTIME_DIR="$XR" DBUS_SESSION_BUS_ADDRESS="$DB"
+      nohup /veragensia/docker/omarchy-demo/overlay/webtop/chromium-loop.sh >/tmp/chromium-loop.log 2>&1 &
+    ' 2>/dev/null || true
+  fi
+  i=0
+  while [ $i -lt 15 ]; do
+    chrome_healthy && break
+    sleep 2; i=$((i+1))
+  done
+  record_ext_id
+}
+
 ensure_chrome(){
   repair_extension_mount
   if [ ! -f "$EXT_PARENT_HOST/dist/manifest.json" ]; then
     echo "extension build missing: $EXT_PARENT_HOST/dist/manifest.json; run uiai-lab-push" >&2
     return 1
   fi
-  docker cp "$LABEXT" "$NAME:/tmp/lab-ext.sh" 2>/dev/null
   if ! chrome_healthy; then
-    docker exec "$NAME" bash /tmp/lab-ext.sh >/tmp/uiai-lab-chrome.log 2>&1
+    if docker exec "$NAME" bash -c 'pgrep -u abc -x plasmashell >/dev/null 2>&1'; then
+      # Legacy KDE webtop stack: lab-ext.sh owns the launch.
+      docker cp "$LABEXT" "$NAME:/tmp/lab-ext.sh" 2>/dev/null
+      docker exec "$NAME" bash /tmp/lab-ext.sh >/tmp/uiai-lab-chrome.log 2>&1
+    else
+      # Omarchy (Hyprland) demo stack: chromium-loop.sh owns the launch.
+      ensure_chrome_loop
+    fi
+  else
+    record_ext_id
   fi
 }
 
@@ -177,8 +227,9 @@ case "${1:-up}" in
   keeper) keeper ;;
   reload-chrome)
     ensure_container || exit 1
-    docker exec "$NAME" bash -c 'pkill -f chromium 2>/dev/null' 2>/dev/null
-    sleep 2
+    # Kill only the chromium binary (the omarchy chromium-loop supervisor must
+    # survive so it relaunches the browser); pkill -f chromium would kill both.
+    docker exec "$NAME" bash -c 'pkill -f "^/usr/lib/chromium/chromium" 2>/dev/null' 2>/dev/null
     ensure_chrome
     echo "EXT_ID=$(docker exec "$NAME" cat /tmp/uiai-ext-id 2>/dev/null || echo unknown)"
     ;;
