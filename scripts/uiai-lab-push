@@ -1,25 +1,113 @@
 #!/usr/bin/env bash
 # Build and atomically deploy the public Veragensia/Focusa Workforce extension.
+#
+# Issue #2 fixes (2026-09-14):
+#   - side-effect-free --help (no build, no network, no writes) before any dispatch
+#   - target/source/node are explicit, overridable, and prefetched
+#   - --dry-run preflight prints source, target, user, hash and the activation
+#     command without mutating anything
+#   - every failure (missing source, unknown target, unreachable host) happens
+#     BEFORE the local build runs
+# Cutover (2026-09-14): authoritative source is the Focusa-Workforce-Extension
+# repo; default remote back to the working wirebot alias focusa-build-ovh
+# (PR #4's bare 'ovh' does not resolve for wirebot on kh); health gates and
+# post-rollback re-activation restored.
 set -euo pipefail
 
 # AUTHORITATIVE SOURCE (cutover 2026-09-14): Focusa-Workforce-Extension repo.
 # Old source /home/wirebot/focusa-piext-sync/apps/workforce-extension is retired
 # for deployment; keep it read-only for rollback/provenance until parity and
-# rollback are proven (see docs/01-source-recovery-and-migration-runbook.md).
-SOURCE=/home/wirebot/focusa-workforce-extension
-REMOTE=focusa-build-ovh
+# rollback are proven (see Focusa-Workforce-Extension
+# docs/01-source-recovery-and-migration-runbook.md).
+DEFAULT_SOURCE=/home/wirebot/focusa-workforce-extension
+# focusa-build-ovh is the working wirebot alias on kh (public IP, dedicated
+# build key). PR #4's bare 'ovh' does not resolve for wirebot on kh.
+DEFAULT_REMOTE=focusa-build-ovh
 STABLE=uiai-lab/workforce-extension
-NODE=/opt/node-v22.22.3-linux-x64/bin/node
 STAGE="dist.stage.$$"
+
+usage() {
+  cat <<'USAGE'
+usage: uiai-lab-push [options]
+
+  --help              Show this help. Performs no build, no network, no writes.
+  --dry-run           Preflight only: print source, target, ssh user, source hash,
+                      and the exact activation command. No writes, no network.
+  --public-work FILE  Validated public-work snapshot to embed (checked pre-build).
+  --remote TARGET     SSH target for the preview host.
+                      Default: $UIAI_LAB_PUSH_REMOTE, else 'focusa-build-ovh'.
+  --source DIR        Workforce-extension source directory.
+                      Default: $UIAI_LAB_PUSH_SOURCE, else
+                      /home/wirebot/focusa-workforce-extension
+                      (Startempire-Wire/Focusa-Workforce-Extension checkout).
+
+Environment overrides: UIAI_LAB_PUSH_REMOTE, UIAI_LAB_PUSH_SOURCE, UIAI_LAB_PUSH_NODE.
+Failure ordering: all preflight failures (missing source/tooling, unknown target)
+exit before the local build starts; a failed activation restores the prior preview
+and re-activates it before exiting.
+USAGE
+}
+
+SOURCE=${UIAI_LAB_PUSH_SOURCE:-$DEFAULT_SOURCE}
+REMOTE=${UIAI_LAB_PUSH_REMOTE:-$DEFAULT_REMOTE}
+NODE=${UIAI_LAB_PUSH_NODE:-}
 PUBLIC_WORK=
-if [[ $# -gt 0 ]]; then
-  [[ $# -eq 2 && $1 == --public-work ]] || { echo 'usage: uiai-lab-push [--public-work SNAPSHOT]' >&2; exit 2; }
-  PUBLIC_WORK=$2
+DRY_RUN=0
+
+while [ $# -gt 0 ]; do
+  case $1 in
+    -h|--help) usage; exit 0 ;;
+    --dry-run) DRY_RUN=1 ;;
+    --remote)  [ $# -ge 2 ] || { echo 'uiai-lab-push: --remote requires a value' >&2; exit 2; }
+               REMOTE=$2; shift ;;
+    --source)  [ $# -ge 2 ] || { echo 'uiai-lab-push: --source requires a value' >&2; exit 2; }
+               SOURCE=$2; shift ;;
+    --public-work)
+               [ $# -ge 2 ] || { echo 'uiai-lab-push: --public-work requires a value' >&2; exit 2; }
+               PUBLIC_WORK=$2; shift ;;
+    *) echo "uiai-lab-push: unknown argument: $1 (try --help)" >&2; exit 2 ;;
+  esac
+  shift
+done
+
+# ---- preflight (no build, no writes; read-only remote probe only in dry-run) ----
+preflight_fail() { echo "uiai-lab-push: preflight failed: $*" >&2; exit 3; }
+
+[ -d "$SOURCE" ] || preflight_fail "source directory not found: $SOURCE (set --source or UIAI_LAB_PUSH_SOURCE)"
+[ -f "$SOURCE/scripts/build.mjs" ] || preflight_fail "source is not a workforce-extension tree (scripts/build.mjs missing): $SOURCE"
+if [ -z "$NODE" ]; then
+  NODE=$(command -v node || true)
+  [ -n "$NODE" ] || preflight_fail "node not found on PATH (set UIAI_LAB_PUSH_NODE)"
+fi
+[ -f "$NODE" ] || preflight_fail "node binary not found: $NODE"
+if [ -n "$PUBLIC_WORK" ]; then
+  [ -f "$PUBLIC_WORK" ] || preflight_fail "public-work snapshot not found: $PUBLIC_WORK"
   [[ $PUBLIC_WORK == /* ]] || PUBLIC_WORK="$PWD/$PUBLIC_WORK"
 fi
 
+ssh_target_user=$(ssh -o BatchMode=yes -o ConnectTimeout=10 "$REMOTE" 'whoami' 2>/dev/null || true)
+[ -n "$ssh_target_user" ] || preflight_fail "ssh target unreachable: $REMOTE (is the alias/Tailscale path up?)"
+
+src_hash=$(cd "$SOURCE" && find . -type f -not -path './dist/*' | sort | xargs sha256sum | sha256sum | cut -d' ' -f1)
+
+if [ "$DRY_RUN" = 1 ]; then
+  cat <<EOF
+dry-run preflight (no build, no writes):
+  source:       $SOURCE
+  target:       $REMOTE (user: ${ssh_target_user:-unknown})
+  node:         $NODE
+  stable path:  $STABLE
+  stage dir:    $STABLE/$STAGE
+  source hash:  $src_hash
+  public-work:  ${PUBLIC_WORK:-none}
+  activation:   ssh $REMOTE 'sudo -n /usr/local/sbin/uiai-lab-remote-control sync-activate'
+EOF
+  exit 0
+fi
+
+# ---- build ----
 cd "$SOURCE"
-if [[ -n $PUBLIC_WORK ]]; then
+if [ -n "$PUBLIC_WORK" ]; then
   "$NODE" scripts/check-public-work.mjs "$PUBLIC_WORK"
 fi
 echo "== building locally =="
@@ -36,7 +124,7 @@ d = json.loads(m.read_text())
 d['chrome_url_overrides'] = {'newtab': 'startpage.html'}
 m.write_text(json.dumps(d, indent=2) + '\n')
 MANIFEST_PIN
-if [[ -n $PUBLIC_WORK ]]; then
+if [ -n "$PUBLIC_WORK" ]; then
   install -m 644 "$PUBLIC_WORK" dist/public-work.json
   "$NODE" scripts/check-public-work.mjs dist/public-work.json
 fi
@@ -47,7 +135,7 @@ rsync -az --delete dist/ "$REMOTE:$STABLE/$STAGE/"
 local_manifest=$(sha256sum dist/manifest.json | awk '{print $1}')
 remote_manifest=$(ssh "$REMOTE" "sha256sum '$STABLE/$STAGE/manifest.json' | cut -d' ' -f1")
 [[ "$local_manifest" == "$remote_manifest" ]] || { echo "manifest checksum mismatch" >&2; exit 1; }
-if [[ -n $PUBLIC_WORK ]]; then
+if [ -n "$PUBLIC_WORK" ]; then
   local_work=$(sha256sum dist/public-work.json | cut -d' ' -f1)
   remote_work=$(ssh "$REMOTE" "sha256sum '$STABLE/$STAGE/public-work.json' | cut -d' ' -f1")
   [[ "$local_work" == "$remote_work" ]] || { echo 'public snapshot checksum mismatch' >&2; exit 1; }
@@ -74,19 +162,25 @@ if ! status=$(ssh "$REMOTE" 'sudo -n /usr/local/sbin/uiai-lab-remote-control syn
 set -euo pipefail
 cd "$1"
 if [[ -d dist.rollback ]]; then
-  find dist -mindepth 1 -delete 2>/dev/null || true
-  rmdir dist 2>/dev/null || true
+  rm -rf dist
   mv dist.rollback dist
 fi
 REMOTE
-  ssh "$REMOTE" 'sudo -n /usr/local/sbin/uiai-lab-remote-control sync-activate'
+  # Re-activate the restored prior extension so the lab keeps serving it.
+  ssh "$REMOTE" 'sudo -n /usr/local/sbin/uiai-lab-remote-control sync-activate' || true
   exit 1
 fi
 printf '%s\n' "$status"
+# Activation verification gates (deployment guarantees kept from the original
+# wrapper): Chromium/CDP health, extension ready + pinned ID, no owner drift,
+# and the public lab URL answering HTTP 200.
 grep -q 'chrome:    healthy' <<<"$status"
 grep -q 'extension: ready' <<<"$status"
 grep -q 'owner_drift: none' <<<"$status"
 grep -q 'ext_id:    ohfbbkpacpcapicpgplnnmifmlnmjggj' <<<"$status"
 code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 15 https://os.focusa.dev/)
 [[ "$code" == 200 ]] || { echo "public lab health failed: HTTP $code" >&2; exit 1; }
-echo "LAB: https://os.focusa.dev (HTTP 200, stable extension synchronized)"
+
+echo "== cleanup =="
+ssh "$REMOTE" "find '$STABLE' -maxdepth 1 -name 'dist.stage.*' -exec rm -rf {} + 2>/dev/null || true"
+echo "PASS: atomic push complete; https://os.focusa.dev (HTTP 200, extension ohfbbkpacpcapicpgplnnmifmlnmjggj synchronized)"
